@@ -1,0 +1,9 @@
+[general]
+name=MyLiDAR
+description=QGIS plugin focused on easing LiDAR point analysis and processing
+about=About this plugin
+version=1.0
+qgisMinimumVersion=3.0
+author=Pablo Fernández
+email=pfernandzoq@alumnos.unex.es
+repository=URL to the code repository
