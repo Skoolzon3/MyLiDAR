@@ -59,7 +59,7 @@ class LidarProcessingPlugin:
         try:
             import pdal
         except ImportError:
-            QMessageBox.critical(self.iface.mainWindow(), "PDAL Missing", "The PDAL Python bindings are not installed.")
+            QMessageBox.critical(self.iface.mainWindow(), "PDAL Missing!", "The PDAL Python bindings are not installed.")
             return
 
         # Run PDAL
