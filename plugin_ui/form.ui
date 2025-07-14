@@ -16,7 +16,7 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <layout class="QHBoxLayout">
+      <layout class="QHBoxLayout" name="inputFileLayout">
        <item>
         <widget class="QLineEdit" name="lineEditInputFile"/>
        </item>
@@ -37,7 +37,7 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <layout class="QHBoxLayout">
+      <layout class="QHBoxLayout" name="outputFileLayout">
        <item>
         <widget class="QLineEdit" name="lineEditOutputFile"/>
        </item>
@@ -59,6 +59,12 @@
      </item>
      <item row="2" column="1">
       <widget class="QDoubleSpinBox" name="spinScalar">
+        <property name="minimum">
+            <double>0.0</double>
+        </property>
+        <property name="maximum">
+            <double>1000.0</double>
+        </property>
        <property name="value">
         <double>1.2</double>
        </property>
@@ -137,13 +143,44 @@
      </item>
     </layout>
    </item>
-   <item>
+   <!-- <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="standardButtons">
       <set>QDialogButtonBox.Cancel|QDialogButtonBox.Ok</set>
      </property>
     </widget>
-   </item>
+   </item> -->
+    <item>
+        <layout class="QHBoxLayout" name="buttonLayout">
+            <item>
+                <spacer name="horizontalSpacer">
+                    <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                        <size>
+                            <width>40</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+            </item>
+            <item>
+                <widget class="QPushButton" name="btnOk">
+                    <property name="text">
+                        <string>OK</string>
+                    </property>
+                </widget>
+            </item>
+            <item>
+                <widget class="QPushButton" name="btnCancel">
+                    <property name="text">
+                        <string>Cancel</string>
+                    </property>
+                </widget>
+            </item>
+        </layout>
+    </item>
   </layout>
  </widget>
  <resources/>
