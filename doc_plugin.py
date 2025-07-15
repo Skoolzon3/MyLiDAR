@@ -33,7 +33,7 @@ class DocumentGenerationPlugin:
         return QCoreApplication.translate('LiDAR Document Generator', message)
 
     def initGui(self):
-        icon_path = os.path.join(self.plugin_dir, 'icon.png')
+        icon_path = os.path.join(self.plugin_dir, 'icons/start.png')
         self.action = QAction(QIcon(icon_path), self.tr('Generate LiDAR File Report'), self.iface.mainWindow())
         self.action.triggered.connect(self.generate_report)
 
