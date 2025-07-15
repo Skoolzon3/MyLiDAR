@@ -1,10 +1,12 @@
 import os
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.PyQt.QtWidgets import QAction, QFileDialog, QMessageBox
+from qgis.PyQt.QtWidgets import QAction, QFileDialog, QMessageBox, QDialogButtonBox
 from qgis.PyQt.QtGui import QIcon
 
 import laspy
 from laspy import LazBackend
+
+import numpy as np
 
 # User interface imports
 from qgis.PyQt import uic
@@ -23,8 +25,32 @@ class ReportDialog(QDialog, form_class):
         super().__init__(parent)
         self.setupUi(self)
 
+        self.checkboxes = [
+            self.checkFileName,
+            self.checkVersion,
+            self.checkPointFormat,
+            self.checkNumPoints,
+            self.checkBounds,
+            self.checkXAxisBounds,
+            self.checkYAxisBounds,
+        ]
+
+        self.ok_button = self.buttonBox.button(QDialogButtonBox.Ok)
+
+        for checkbox in self.checkboxes:
+            checkbox.stateChanged.connect(self.update_ok_button)
+
+        self.update_ok_button()
+
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
+
+    def update_ok_button(self):
+        any_checked = any(cb.isChecked() for cb in self.checkboxes)
+        self.ok_button.setEnabled(any_checked)
+        # self.labelWarning.setVisible(not any_checked)
+        self.labelWarning.setText("" if any_checked else "No information selected.")
+
 
 # -------------------------
 # --- Report Data Class ---
@@ -35,6 +61,8 @@ class ReportData:
         include_version, include_point_format, include_num_points,
         include_bounds, include_x_axis, include_y_axis):
 
+        # -- Basic attributes --
+
         self.file_name = file_name
         self.version = version
         self.point_format = point_format
@@ -42,6 +70,9 @@ class ReportData:
         self.bounds = bounds
         self.x_axis_bounds = x_axis_bounds
         self.y_axis_bounds = y_axis_bounds
+
+        # -- Include flags --
+
         self.include_file_name = include_file_name
         self.include_version = include_version
         self.include_point_format = include_point_format
@@ -166,12 +197,55 @@ class DocumentGenerationPlugin:
 
         try:
             las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
-            num_points = las.header.point_count
-            bounds = las.header.mins, las.header.maxs
-            point_format = las.header.point_format
-            version = las.header.version
-            x_axis_bounds = las.header.x_max, las.header.x_min
-            y_axis_bounds = las.header.y_max, las.header.y_min
+
+            num_points = las.header.point_count                 # Total number of points in the file
+            point_format = las.header.point_format              # Point format
+            version = las.header.version                        # LAS version (e.g., 1.4)
+
+            bounds = las.header.mins, las.header.maxs           # Bounds of the point cloud
+            x_axis_bounds = las.header.x_max, las.header.x_min  # Bounds for X-axis
+            y_axis_bounds = las.header.y_max, las.header.y_min  # Bounds for Y-axis
+
+            # TODO: implement the following attributes
+
+            file_source = las.header.file_source_id             # File source ID. If value = 0, no ID assigned
+            global_encoding = las.header.global_encoding        # Global encoding bits
+            system_id = las.header.system_identifier            # System ID. Value = "LAStools (c) by rapidlasso GmbH" if generated with LASTools
+            gen_software = las.header.generating_software       # Generating software
+            creation_date = las.header.creation_date            # Creation date in YYYY-MM-DD format
+
+            unique_classes, counts = np.unique(las.classification, return_counts=True)  # Classification values and their counts
+            unique_returns, counts = np.unique(las.return_number, return_counts=True)   # Return number values and their counts
+
+            min_intensity = las.intensity.min()         # Minimum intensity value. Note: value lost through conversion with LASTools
+            max_intensity = las.intensity.max()         # Maximum intensity value. Note: value lost through conversion with LASTools
+
+            has_gps_time = hasattr(las, "gps_time")
+            if has_gps_time:
+                min_time = las.gps_time.min()           # Minimum GPS time
+                max_time = las.gps_time.max()           # Maximum GPS time
+
+            area = (las.header.x_max - las.header.x_min) * (las.header.y_max - las.header.y_min)    # Area of the point cloud in square units
+            density = las.header.point_count / area                                                 # Density of points per square unit
+
+            QMessageBox.information(self.iface.mainWindow(), "File Info",
+                f"File Name: {os.path.basename(filename)}\n"
+                f"File Source ID: {file_source}\n"
+                f"Global Encoding: {global_encoding}\n"
+                f"System ID: {system_id}\n"
+                f"Generating Software: {gen_software}\n"
+                f"Creation Date: {creation_date} (YYYY-MM-DD)\n"
+                f"Unique Classes: {len(unique_classes)}\n"
+                f"Class Counts: {dict(zip(unique_classes, counts))}\n"
+                f"Unique Returns: {len(unique_returns)}\n"
+                f"Return Counts: {dict(zip(unique_returns, counts))}\n"
+                f"Min GPS Time: {min_time if has_gps_time else 'N/A'}\n"
+                f"Max GPS Time: {max_time if has_gps_time else 'N/A'}\n"
+                f"Min Intensity: {min_intensity}\n"
+                f"Max Intensity: {max_intensity}\n"
+                f"Area: {area:.2f} square units\n"
+                f"Density: {density:.2f} points per square unit\n"
+            )
 
             dialog = ReportDialog(self.iface.mainWindow())
             if dialog.exec_() != QDialog.Accepted:
@@ -181,7 +255,6 @@ class DocumentGenerationPlugin:
             is_md = dialog.radioMarkdown.isChecked()
             is_pdf = dialog.radioPdf.isChecked()
 
-            # Pick extension and filter
             if is_pdf:
                 ext = ".pdf"
                 filter_str = "PDF Files (*.pdf)"

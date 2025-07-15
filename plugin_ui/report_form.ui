@@ -117,6 +117,19 @@
                 </widget>
             </item>
             <item>
+                <widget class="QLabel" name="labelWarning">
+                    <property name="text">
+                        <string>No information selected</string>
+                    </property>
+                    <property name="styleSheet">
+                        <string>color: red;</string>
+                    </property>
+                    <property name="minimumHeight">
+                        <number>15</number>
+                    </property>
+                </widget>
+            </item>
+            <item>
                 <widget class="QDialogButtonBox" name="buttonBox">
                     <property name="orientation">
                         <enum>Qt::Horizontal</enum>
