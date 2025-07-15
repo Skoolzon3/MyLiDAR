@@ -1,10 +1,13 @@
 import os
-from qgis.PyQt import uic
-from qgis.PyQt.QtWidgets import QAction, QFileDialog, QMessageBox, QDialog
+
 from qgis.core import QgsRasterLayer, QgsProject
+from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtWidgets import QAction, QFileDialog, QMessageBox
+from qgis.PyQt.QtGui import QIcon
 
+from qgis.PyQt import uic
+from qgis.PyQt.QtWidgets import QDialog
 
-# Load the .ui file dynamically
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'form.ui'
 ))
@@ -175,11 +178,6 @@ class LidarProcessingPlugin:
             "Success",
             "LiDAR processing complete!"
         )
-
-
-# import os
-# from qgis.PyQt.QtWidgets import QAction, QFileDialog, QMessageBox
-# from qgis.core import QgsRasterLayer, QgsProject
 
 # class LidarProcessingPlugin:
 #     def __init__(self, iface):
