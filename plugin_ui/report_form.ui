@@ -5,6 +5,7 @@
         <property name="windowTitle">
             <string>Select Report Contents</string>
         </property>
+
         <layout class="QVBoxLayout" name="verticalLayout">
             <item>
                 <widget class="QLabel" name="label">
@@ -13,76 +14,205 @@
                     </property>
                 </widget>
             </item>
+
             <item>
-                <widget class="QCheckBox" name="checkFileName">
-                    <property name="text">
-                        <string>File Name</string>
-                    </property>
-                    <property name="checked">
-                        <bool>true</bool>
-                    </property>
-                </widget>
+                <layout class="QGridLayout" name="gridLayoutGroups">
+                    <item row="0" column="0">
+                        <widget class="QGroupBox" name="groupFileMetadata">
+                            <property name="title">
+                                <string>File Metadata</string>
+                            </property>
+                            <layout class="QVBoxLayout" name="verticalLayoutFileMetadata">
+                                <item>
+                                    <widget class="QCheckBox" name="checkFileName">
+                                        <property name="text">
+                                            <string>File Name</string>
+                                        </property>
+                                        <property name="checked">
+                                            <bool>true</bool>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QCheckBox" name="checkFileSource">
+                                        <property name="text">
+                                            <string>File Source</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QCheckBox" name="checkGlobalEncoding">
+                                        <property name="text">
+                                            <string>Global Encoding</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QCheckBox" name="checkSystemId">
+                                        <property name="text">
+                                            <string>System ID</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QCheckBox" name="checkGenSoftware">
+                                        <property name="text">
+                                            <string>Generating Software</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QCheckBox" name="checkVersion">
+                                        <property name="text">
+                                            <string>LAS Version</string>
+                                        </property>
+                                        <property name="checked">
+                                            <bool>true</bool>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QCheckBox" name="checkPointFormat">
+                                        <property name="text">
+                                            <string>Point Format</string>
+                                        </property>
+                                        <property name="checked">
+                                            <bool>true</bool>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QCheckBox" name="checkCreationDate">
+                                        <property name="text">
+                                            <string>Creation Date</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                            </layout>
+                        </widget>
+                    </item>
+
+                    <item row="0" column="1">
+                        <widget class="QGroupBox" name="groupSpatial">
+                            <property name="title">
+                                <string>Spatial</string>
+                            </property>
+                            <layout class="QVBoxLayout" name="verticalLayoutSpatial">
+                                <item>
+                                    <widget class="QCheckBox" name="checkNumPoints">
+                                        <property name="text">
+                                            <string>Number of Points</string>
+                                        </property>
+                                        <property name="checked">
+                                            <bool>true</bool>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QCheckBox" name="checkArea">
+                                        <property name="text">
+                                            <string>Area</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QCheckBox" name="checkDensity">
+                                        <property name="text">
+                                            <string>Density</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QCheckBox" name="checkBounds">
+                                        <property name="text">
+                                            <string>Bounds (Min/Max)</string>
+                                        </property>
+                                        <property name="checked">
+                                            <bool>true</bool>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QCheckBox" name="checkXAxisBounds">
+                                        <property name="text">
+                                            <string>X-Axis Bounds</string>
+                                        </property>
+                                        <property name="checked">
+                                            <bool>false</bool>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QCheckBox" name="checkYAxisBounds">
+                                        <property name="text">
+                                            <string>Y-Axis Bounds</string>
+                                        </property>
+                                        <property name="checked">
+                                            <bool>false</bool>
+                                        </property>
+                                    </widget>
+                                </item>
+                            </layout>
+                        </widget>
+                    </item>
+
+                    <item row="1" column="0">
+                        <widget class="QGroupBox" name="groupIntensity">
+                            <property name="title">
+                                <string>Intensity</string>
+                            </property>
+                            <layout class="QVBoxLayout" name="verticalLayoutIntensity">
+                                <item>
+                                    <widget class="QCheckBox" name="checkMinIntensity">
+                                        <property name="text">
+                                            <string>Min Intensity</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QCheckBox" name="checkMaxIntensity">
+                                        <property name="text">
+                                            <string>Max Intensity</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                            </layout>
+                        </widget>
+                    </item>
+
+                    <item row="1" column="1">
+                        <widget class="QGroupBox" name="groupTime">
+                            <property name="title">
+                                <string>Time</string>
+                            </property>
+                            <layout class="QVBoxLayout" name="verticalLayoutTime">
+                                <item>
+                                    <widget class="QCheckBox" name="checkHasGpsTime">
+                                        <property name="text">
+                                            <string>Has GPS Time</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QCheckBox" name="checkMinTime">
+                                        <property name="text">
+                                            <string>Min Time</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QCheckBox" name="checkMaxTime">
+                                        <property name="text">
+                                            <string>Max Time</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                            </layout>
+                        </widget>
+                    </item>
+                </layout>
             </item>
-            <item>
-                <widget class="QCheckBox" name="checkVersion">
-                    <property name="text">
-                        <string>LAS Version</string>
-                    </property>
-                    <property name="checked">
-                        <bool>true</bool>
-                    </property>
-                </widget>
-            </item>
-            <item>
-                <widget class="QCheckBox" name="checkPointFormat">
-                    <property name="text">
-                        <string>Point Format</string>
-                    </property>
-                    <property name="checked">
-                        <bool>true</bool>
-                    </property>
-                </widget>
-            </item>
-            <item>
-                <widget class="QCheckBox" name="checkNumPoints">
-                    <property name="text">
-                        <string>Number of Points</string>
-                    </property>
-                    <property name="checked">
-                        <bool>true</bool>
-                    </property>
-                </widget>
-            </item>
-            <item>
-                <widget class="QCheckBox" name="checkBounds">
-                    <property name="text">
-                        <string>Bounds (Min/Max)</string>
-                    </property>
-                    <property name="checked">
-                        <bool>true</bool>
-                    </property>
-                </widget>
-            </item>
-            <item>
-                <widget class="QCheckBox" name="checkXAxisBounds">
-                    <property name="text">
-                        <string>X-Axis Bounds</string>
-                    </property>
-                    <property name="checked">
-                        <bool>false</bool>
-                    </property>
-                </widget>
-            </item>
-            <item>
-                <widget class="QCheckBox" name="checkYAxisBounds">
-                    <property name="text">
-                        <string>Y-Axis Bounds</string>
-                    </property>
-                    <property name="checked">
-                        <bool>false</bool>
-                    </property>
-                </widget>
-            </item>
+
             <item>
                 <widget class="QGroupBox" name="groupOutputFormat">
                     <property name="title">
@@ -116,6 +246,7 @@
                     </layout>
                 </widget>
             </item>
+
             <item>
                 <widget class="QLabel" name="labelWarning">
                     <property name="text">
@@ -129,6 +260,7 @@
                     </property>
                 </widget>
             </item>
+
             <item>
                 <widget class="QDialogButtonBox" name="buttonBox">
                     <property name="orientation">
@@ -140,6 +272,7 @@
                 </widget>
             </item>
         </layout>
+
     </widget>
     <resources/>
     <connections/>

@@ -3,14 +3,16 @@ from qgis.PyQt.QtCore import QCoreApplication
 from qgis.PyQt.QtWidgets import QAction, QFileDialog, QMessageBox, QDialogButtonBox
 from qgis.PyQt.QtGui import QIcon
 
-import laspy
-from laspy import LazBackend
-
-import numpy as np
-
 # User interface imports
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QDialog
+
+# Backend imports
+import laspy
+from laspy import LazBackend
+
+# Data handling imports
+import numpy as np
 
 # PDF generation imports
 from reportlab.pdfgen.canvas import Canvas
@@ -26,13 +28,32 @@ class ReportDialog(QDialog, form_class):
         self.setupUi(self)
 
         self.checkboxes = [
+            # Metadata checkboxes
             self.checkFileName,
+            self.checkFileSource,
+            self.checkGlobalEncoding,
+            self.checkSystemId,
+            self.checkGenSoftware,
             self.checkVersion,
             self.checkPointFormat,
+            self.checkCreationDate,
+
+            # Intensity checkboxes
+            self.checkMinIntensity,
+            self.checkMaxIntensity,
+
+            # Spatial bounds checkboxes
             self.checkNumPoints,
+            self.checkArea,
+            self.checkDensity,
             self.checkBounds,
             self.checkXAxisBounds,
             self.checkYAxisBounds,
+
+            # GPS time checkboxes
+            self.checkHasGpsTime,
+            self.checkMinTime,
+            self.checkMaxTime,
         ]
 
         self.ok_button = self.buttonBox.button(QDialogButtonBox.Ok)
@@ -48,43 +69,55 @@ class ReportDialog(QDialog, form_class):
     def update_ok_button(self):
         any_checked = any(cb.isChecked() for cb in self.checkboxes)
         self.ok_button.setEnabled(any_checked)
-        # self.labelWarning.setVisible(not any_checked)
         self.labelWarning.setText("" if any_checked else "No information selected.")
-
 
 # -------------------------
 # --- Report Data Class ---
 # -------------------------
 class ReportData:
-    def __init__(self, file_name, version, point_format, num_points,
-        bounds, x_axis_bounds, y_axis_bounds, include_file_name,
-        include_version, include_point_format, include_num_points,
-        include_bounds, include_x_axis, include_y_axis):
-
-        # -- Basic attributes --
-
+    def __init__(self, file_name, version, point_format,
+        num_points, bounds, x_axis_bounds, y_axis_bounds,
+        file_source=None, global_encoding=None, system_id=None, gen_software=None,
+        creation_date=None, unique_classes=None, class_counts=None, unique_returns=None,
+        return_counts=None, min_intensity=None, max_intensity=None, has_gps_time=None,
+        min_time=None, max_time=None, area=None, density=None,
+    ):
+        # -- Metadata --
         self.file_name = file_name
+        self.file_source = file_source
+        self.global_encoding = global_encoding
+        self.system_id = system_id
+        self.gen_software = gen_software
         self.version = version
         self.point_format = point_format
+        self.creation_date = creation_date
+
+        # -- Classifications and Returns --
+        # self.unique_classes = unique_classes              # np.unique(las.classification)
+        # self.class_counts = class_counts                  # counts of classifications
+        # self.unique_returns = unique_returns              # np.unique(las.return_number)
+        # self.return_counts = return_counts                # counts of returns
+
+        # -- Intensity --
+        self.min_intensity = min_intensity
+        self.max_intensity = max_intensity
+
+        # -- GPS Time --
+        self.has_gps_time = has_gps_time
+        self.min_time = min_time
+        self.max_time = max_time
+
+        # -- Spatial Measures --
         self.num_points = num_points
+        self.area = area
+        self.density = density
         self.bounds = bounds
         self.x_axis_bounds = x_axis_bounds
         self.y_axis_bounds = y_axis_bounds
 
-        # -- Include flags --
-
-        self.include_file_name = include_file_name
-        self.include_version = include_version
-        self.include_point_format = include_point_format
-        self.include_num_points = include_num_points
-        self.include_bounds = include_bounds
-        self.include_x_axis = include_x_axis
-        self.include_y_axis = include_y_axis
-
 # ----------------------------------------
 # --- Document Generation Plugin Class ---
 # ----------------------------------------
-
 class DocumentGenerationPlugin:
     def __init__(self, iface):
         self.iface = iface
@@ -109,77 +142,250 @@ class DocumentGenerationPlugin:
 # --- Text Report Generation ---
 
     def generate_txt_report(self, path, data: ReportData):
-        with open(path, "w") as f:
-            f.write("LiDAR File Report\n")
+        with open(path, "w", encoding="utf-8") as f:
             f.write("==================\n")
-            if data.include_file_name:
-                f.write(f"File: {data.file_name}\n")
-            if data.include_version:
-                f.write(f"Version: {data.version}\n")
-            if data.include_point_format:
-                f.write(f"Point Format: {data.point_format}\n")
-            if data.include_num_points:
-                f.write(f"Number of Points: {data.num_points}\n")
-            if data.include_bounds:
-                f.write(f"Bounds Min: {data.bounds[0]}\n")
-                f.write(f"Bounds Max: {data.bounds[1]}\n")
-            if data.include_x_axis:
-                f.write(f"X-Axis Bounds: {data.x_axis_bounds}\n")
-            if data.include_y_axis:
-                f.write(f"Y-Axis Bounds: {data.y_axis_bounds}\n")
+            f.write("LiDAR File Report\n")
+            f.write("==================\n\n")
 
-# --- Markdown Report Generation ---
+            if data.file_name:
+                f.write(f"Name: {data.file_name}\n")
+
+            # -- File Metadata --
+            if (data.file_source or data.global_encoding or data.system_id or
+                data.gen_software or data.version or data.point_format or data.creation_date):
+                f.write("File Metadata:\n")
+                if data.file_source:
+                    f.write(f"File Source ID: {data.file_source}\n")
+                if data.global_encoding:
+                    f.write(f"Global Encoding: {data.global_encoding}\n")
+                if data.system_id:
+                    f.write(f"System ID: {data.system_id}\n")
+                if data.gen_software:
+                    f.write(f"Generating Software: {data.gen_software}\n")
+                if data.version:
+                    f.write(f"Version: {data.version}\n")
+                if data.point_format:
+                    f.write(f"Point Format: {data.point_format}\n")
+                if data.creation_date:
+                    f.write(f"Creation Date: {data.creation_date}\n")
+
+            f.write("\n")
+
+            # -- Intensity --
+            if data.min_intensity or data.max_intensity:
+                f.write("Intensity:\n")
+                if data.min_intensity:
+                    f.write(f"Min Intensity: {data.min_intensity}\n")
+                if data.max_intensity:
+                    f.write(f"Max Intensity: {data.max_intensity}\n")
+
+            f.write("\n")
+
+            # -- Spatial Measures --
+            if (data.num_points or data.area or data.density or
+                data.bounds or data.x_axis_bounds or data.y_axis_bounds):
+                f.write("Spatial Measures:\n")
+                if data.num_points:
+                    f.write(f"Number of Points: {data.num_points}\n")
+                if data.area:
+                    f.write(f"Area: {data.area}\n")
+                if data.density:
+                    f.write(f"Density: {data.density}\n")
+                if data.bounds:
+                    f.write(f"Bounds Min: {data.bounds[0]}\n")
+                    f.write(f"Bounds Max: {data.bounds[1]}\n")
+                if data.x_axis_bounds:
+                    f.write(f"X-Axis Bounds: {data.x_axis_bounds}\n")
+                if data.y_axis_bounds:
+                    f.write(f"Y-Axis Bounds: {data.y_axis_bounds}\n")
+
+            f.write("\n")
+
+            # -- GPS Time --
+            if data.has_gps_time:
+                f.write("GPS Time Present: Yes\n")
+                if data.min_time:
+                    f.write(f"Min GPS Time: {data.min_time}\n")
+                if data.max_time:
+                    f.write(f"Max GPS Time: {data.max_time}\n")
+            else:
+                f.write("GPS Time Present: No\n")
+
+            # # -- Classifications --
+            # if data.unique_classes is not None and data.class_counts is not None:
+            #     f.write("\nClassification Counts:\n")
+            #     for cls, count in zip(data.unique_classes, data.class_counts):
+            #         f.write(f"  Class {cls}: {count}\n")
+
+            # # -- Returns --
+            # if data.unique_returns is not None and data.return_counts is not None:
+            #     f.write("\nReturn Number Counts:\n")
+            #     for ret, count in zip(data.unique_returns, data.return_counts):
+            #         f.write(f"  Return {ret}: {count}\n")
+
+# --- Markdown Report Generation (NEEDS UPDATE) ---
 
     def generate_markdown_report(self, path, data: ReportData):
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write("# LiDAR File Report\n\n")
-            if data.include_file_name:
-                f.write(f"- **File:** `{data.file_name}`\n")
-            if data.include_version:
-                f.write(f"- **Version:** `{data.version}`\n")
-            if data.include_point_format:
-                f.write(f"- **Point Format:** `{data.point_format}`\n")
-            if data.include_num_points:
-                f.write(f"- **Number of Points:** `{data.num_points}`\n")
-            if data.include_bounds:
-                f.write(f"- **Bounds Min:** `{data.bounds[0]}`\n")
-                f.write(f"- **Bounds Max:** `{data.bounds[1]}`\n")
-            if data.include_x_axis:
-                f.write(f"- **X-Axis Bounds:** `{data.x_axis_bounds}`\n")
-            if data.include_y_axis:
-                f.write(f"- **Y-Axis Bounds:** `{data.y_axis_bounds}`\n")
 
-# --- PDF Report Generation ---
+            if data.file_name:
+                f.write(f"- **File:** `{data.file_name}`\n")
+
+            f.write("\n")
+
+            # -- File Metadata --
+            if (data.file_source or data.global_encoding or data.system_id or
+                data.gen_software or data.version or data.point_format or data.creation_date):
+                f.write("## File Metadata\n")
+                if data.file_source:
+                    f.write(f"- **File Source ID:** `{data.file_source}`\n")
+                if data.global_encoding:
+                    f.write(f"- **Global Encoding:** `{data.global_encoding}`\n")
+                if data.system_id:
+                    f.write(f"- **System ID:** `{data.system_id}`\n")
+                if data.gen_software:
+                    f.write(f"- **Generating Software:** `{data.gen_software}`\n")
+                if data.version:
+                    f.write(f"- **Version:** `{data.version}`\n")
+                if data.point_format:
+                    f.write(f"- **Point Format:** `{data.point_format}`\n")
+                if data.creation_date:
+                    f.write(f"- **Creation Date:** `{data.creation_date}`\n")
+
+                f.write("\n")
+
+            # -- Intensity --
+            if data.min_intensity or data.max_intensity:
+                f.write("## Intensity\n")
+                if data.min_intensity:
+                    f.write(f"- **Min Intensity:** `{data.min_intensity}`\n")
+                if data.max_intensity:
+                    f.write(f"- **Max Intensity:** `{data.max_intensity}`\n")
+
+                f.write("\n")
+
+            # -- Spatial Measures --
+            if (data.num_points or data.area or data.density or
+                data.bounds or data.x_axis_bounds or data.y_axis_bounds):
+                f.write("## Spatial Measures\n")
+                if data.num_points:
+                    f.write(f"- **Number of Points:** `{data.num_points}`\n")
+                if data.area:
+                    f.write(f"- **Area:** `{data.area}`\n")
+                if data.density:
+                    f.write(f"- **Density:** `{data.density}`\n")
+                if data.bounds:
+                    f.write(f"- **Bounds Min:** `{data.bounds[0]}`\n")
+                    f.write(f"- **Bounds Max:** `{data.bounds[1]}`\n")
+                if data.x_axis_bounds:
+                    f.write(f"- **X-Axis Bounds:** `{data.x_axis_bounds}`\n")
+                if data.y_axis_bounds:
+                    f.write(f"- **Y-Axis Bounds:** `{data.y_axis_bounds}`\n")
+
+                f.write("\n")
+
+            # -- GPS Time --
+            f.write("## GPS Time\n")
+            if data.has_gps_time:
+                f.write("- **GPS Time Present:** Yes\n")
+                if data.min_time:
+                    f.write(f"- **Min GPS Time:** `{data.min_time}`\n")
+                if data.max_time:
+                    f.write(f"- **Max GPS Time:** `{data.max_time}`\n")
+            else:
+                f.write("- **GPS Time Present:** No\n")
+
+            f.write("\n")
+
+# --- PDF Report Generation (NEEDS UPDATE) ---
 
     def generate_pdf_report(self, path, data: ReportData):
         canvas = Canvas(path)
         canvas.setFont("Helvetica", 12)
         y = 800
-        canvas.drawString(50, y, "LiDAR File Report")
-        y -= 20
-        canvas.drawString(50, y, "==================")
-        y -= 30
 
         def write_line(text):
             nonlocal y
             canvas.drawString(50, y, text)
             y -= 20
+            if y < 50:
+                canvas.showPage()
+                canvas.setFont("Helvetica", 12)
+                y = 800
 
-        if data.include_file_name:
+        # Title
+        write_line("LiDAR File Report")
+        write_line("==================")
+        y -= 10
+
+        # File Name
+        if data.file_name:
             write_line(f"File: {data.file_name}")
-        if data.include_version:
-            write_line(f"Version: {data.version}")
-        if data.include_point_format:
-            write_line(f"Point Format: {data.point_format}")
-        if data.include_num_points:
-            write_line(f"Number of Points: {data.num_points}")
-        if data.include_bounds:
-            write_line(f"Bounds Min: {data.bounds[0]}")
-            write_line(f"Bounds Max: {data.bounds[1]}")
-        if data.include_x_axis:
-            write_line(f"X-Axis Bounds: {data.x_axis_bounds}")
-        if data.include_y_axis:
-            write_line(f"Y-Axis Bounds: {data.y_axis_bounds}")
+
+        y -= 10
+
+        # File Metadata
+        if (data.file_source or data.global_encoding or data.system_id or
+            data.gen_software or data.version or data.point_format or data.creation_date):
+            write_line("File Metadata:")
+            if data.file_source:
+                write_line(f"  File Source ID: {data.file_source}")
+            if data.global_encoding:
+                write_line(f"  Global Encoding: {data.global_encoding}")
+            if data.system_id:
+                write_line(f"  System ID: {data.system_id}")
+            if data.gen_software:
+                write_line(f"  Generating Software: {data.gen_software}")
+            if data.version:
+                write_line(f"  Version: {data.version}")
+            if data.point_format:
+                write_line(f"  Point Format: {data.point_format}")
+            if data.creation_date:
+                write_line(f"  Creation Date: {data.creation_date}")
+
+            y -= 10
+
+        # Intensity
+        if data.min_intensity or data.max_intensity:
+            write_line("Intensity:")
+            if data.min_intensity:
+                write_line(f"  Min Intensity: {data.min_intensity}")
+            if data.max_intensity:
+                write_line(f"  Max Intensity: {data.max_intensity}")
+
+            y -= 10
+
+        # Spatial Measures
+        if (data.num_points or data.area or data.density or
+            data.bounds or data.x_axis_bounds or data.y_axis_bounds):
+            write_line("Spatial Measures:")
+            if data.num_points:
+                write_line(f"  Number of Points: {data.num_points}")
+            if data.area:
+                write_line(f"  Area: {data.area}")
+            if data.density:
+                write_line(f"  Density: {data.density}")
+            if data.bounds:
+                write_line(f"  Bounds Min: {data.bounds[0]}")
+                write_line(f"  Bounds Max: {data.bounds[1]}")
+            if data.x_axis_bounds:
+                write_line(f"  X-Axis Bounds: {data.x_axis_bounds}")
+            if data.y_axis_bounds:
+                write_line(f"  Y-Axis Bounds: {data.y_axis_bounds}")
+
+            y -= 10
+
+        # GPS Time
+        write_line("GPS Time:")
+        if data.has_gps_time:
+            write_line("  Present: Yes")
+            if data.min_time:
+                write_line(f"  Min GPS Time: {data.min_time}")
+            if data.max_time:
+                write_line(f"  Max GPS Time: {data.max_time}")
+        else:
+            write_line("  Present: No")
 
         canvas.save()
 
@@ -214,8 +420,8 @@ class DocumentGenerationPlugin:
             gen_software = las.header.generating_software       # Generating software
             creation_date = las.header.creation_date            # Creation date in YYYY-MM-DD format
 
-            unique_classes, counts = np.unique(las.classification, return_counts=True)  # Classification values and their counts
-            unique_returns, counts = np.unique(las.return_number, return_counts=True)   # Return number values and their counts
+            unique_classes, class_counts = np.unique(las.classification, return_counts=True)  # Classification values and their counts
+            unique_returns, ret_counts = np.unique(las.return_number, return_counts=True)   # Return number values and their counts
 
             min_intensity = las.intensity.min()         # Minimum intensity value. Note: value lost through conversion with LASTools
             max_intensity = las.intensity.max()         # Maximum intensity value. Note: value lost through conversion with LASTools
@@ -228,24 +434,10 @@ class DocumentGenerationPlugin:
             area = (las.header.x_max - las.header.x_min) * (las.header.y_max - las.header.y_min)    # Area of the point cloud in square units
             density = las.header.point_count / area                                                 # Density of points per square unit
 
-            QMessageBox.information(self.iface.mainWindow(), "File Info",
-                f"File Name: {os.path.basename(filename)}\n"
-                f"File Source ID: {file_source}\n"
-                f"Global Encoding: {global_encoding}\n"
-                f"System ID: {system_id}\n"
-                f"Generating Software: {gen_software}\n"
-                f"Creation Date: {creation_date} (YYYY-MM-DD)\n"
-                f"Unique Classes: {len(unique_classes)}\n"
-                f"Class Counts: {dict(zip(unique_classes, counts))}\n"
-                f"Unique Returns: {len(unique_returns)}\n"
-                f"Return Counts: {dict(zip(unique_returns, counts))}\n"
-                f"Min GPS Time: {min_time if has_gps_time else 'N/A'}\n"
-                f"Max GPS Time: {max_time if has_gps_time else 'N/A'}\n"
-                f"Min Intensity: {min_intensity}\n"
-                f"Max Intensity: {max_intensity}\n"
-                f"Area: {area:.2f} square units\n"
-                f"Density: {density:.2f} points per square unit\n"
-            )
+            # QMessageBox.information(self.iface.mainWindow(), "File Info",
+            #     f"File Name: {os.path.basename(filename)}\n"
+            #     f"File Source ID: {file_source}\n"
+            # )
 
             dialog = ReportDialog(self.iface.mainWindow())
             if dialog.exec_() != QDialog.Accepted:
@@ -275,20 +467,35 @@ class DocumentGenerationPlugin:
                 return
 
             data = ReportData(
-                file_name=os.path.basename(filename),
-                version=version,
-                point_format=point_format,
-                num_points=num_points,
-                bounds=bounds,
-                x_axis_bounds=x_axis_bounds,
-                y_axis_bounds=y_axis_bounds,
-                include_file_name=dialog.checkFileName.isChecked(),
-                include_version=dialog.checkVersion.isChecked(),
-                include_point_format=dialog.checkPointFormat.isChecked(),
-                include_num_points=dialog.checkNumPoints.isChecked(),
-                include_bounds=dialog.checkBounds.isChecked(),
-                include_x_axis=dialog.checkXAxisBounds.isChecked(),
-                include_y_axis=dialog.checkYAxisBounds.isChecked()
+                file_name=os.path.basename(filename) if dialog.checkFileName.isChecked() else None,
+                version=version if dialog.checkVersion.isChecked() else None,
+                point_format=point_format if dialog.checkPointFormat.isChecked() else None,
+                num_points=num_points if dialog.checkNumPoints.isChecked() else None,
+                bounds=bounds if dialog.checkBounds.isChecked() else None,
+                x_axis_bounds=x_axis_bounds if dialog.checkXAxisBounds.isChecked() else None,
+                y_axis_bounds=y_axis_bounds if dialog.checkYAxisBounds.isChecked() else None,
+                file_source=las.header.file_source_id if dialog.checkFileSource.isChecked() else None,
+                global_encoding=las.header.global_encoding if dialog.checkGlobalEncoding.isChecked() else None,
+                system_id=las.header.system_identifier if dialog.checkSystemId.isChecked() else None,
+                gen_software=las.header.generating_software if dialog.checkGenSoftware.isChecked() else None,
+                creation_date=str(las.header.creation_date) if dialog.checkCreationDate.isChecked() else None,
+
+                # unique_classes=unique_classes,
+                # class_counts=class_counts,
+                # unique_returns=unique_returns,
+                # return_counts=ret_counts,
+
+                min_intensity=las.intensity.min() if dialog.checkMinIntensity.isChecked() else None,
+                max_intensity=las.intensity.max() if dialog.checkMaxIntensity.isChecked() else None,
+
+                has_gps_time=has_gps_time if dialog.checkHasGpsTime.isChecked() else None,
+                min_time=las.gps_time.min() if dialog.checkMinTime.isChecked() else None,
+                max_time=las.gps_time.max() if dialog.checkMaxTime.isChecked() else None,
+
+                area=(las.header.x_max - las.header.x_min) * (las.header.y_max - las.header.y_min) if dialog.checkArea.isChecked() else None,
+                density=las.header.point_count / (
+                    (las.header.x_max - las.header.x_min) * (las.header.y_max - las.header.y_min)
+                ) if dialog.checkDensity.isChecked() else None,
             )
 
             if is_pdf:
