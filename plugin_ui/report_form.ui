@@ -195,6 +195,26 @@
                                 </item>
                                 <item>
                                     <widget class="QCheckBox" name="checkMinTime">
+                                        <property name="enabled">
+                                            <bool>false</bool>
+                                        </property>
+                                        <property name="text">
+                                            <string>Min Time</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QCheckBox" name="checkMaxTime">
+                                        <property name="enabled">
+                                            <bool>false</bool>
+                                        </property>
+                                        <property name="text">
+                                            <string>Max Time</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <!-- <item>
+                                    <widget class="QCheckBox" name="checkMinTime">
                                         <property name="text">
                                             <string>Min Time</string>
                                         </property>
@@ -206,7 +226,7 @@
                                             <string>Max Time</string>
                                         </property>
                                     </widget>
-                                </item>
+                                </item> -->
                             </layout>
                         </widget>
                     </item>

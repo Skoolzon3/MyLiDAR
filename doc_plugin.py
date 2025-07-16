@@ -17,6 +17,13 @@ import numpy as np
 # PDF generation imports
 from reportlab.pdfgen.canvas import Canvas
 
+# Timestamp handling imports
+from datetime import datetime, timedelta, timezone
+
+def gps_time_to_datetime(gps_time: float) -> datetime:
+    gps_epoch = datetime(1980, 1, 6, tzinfo=timezone.utc)
+    return gps_epoch + timedelta(seconds=gps_time)
+
 # -----------------------
 # --- UI Dialog Class ---
 # -----------------------
@@ -26,6 +33,12 @@ class ReportDialog(QDialog, form_class):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
+
+        # Connect toggled signal to a slot
+        self.checkHasGpsTime.toggled.connect(self.on_has_gps_time_toggled)
+
+        # Set initial state (in case it's unchecked by default)
+        self.on_has_gps_time_toggled(self.checkHasGpsTime.isChecked())
 
         self.checkboxes = [
             # Metadata checkboxes
@@ -70,6 +83,11 @@ class ReportDialog(QDialog, form_class):
         any_checked = any(cb.isChecked() for cb in self.checkboxes)
         self.ok_button.setEnabled(any_checked)
         self.labelWarning.setText("" if any_checked else "No information selected.")
+
+    def on_has_gps_time_toggled(self, checked):
+        self.checkMinTime.setEnabled(checked)
+        self.checkMaxTime.setEnabled(checked)
+
 
 # -------------------------
 # --- Report Data Class ---
@@ -150,6 +168,8 @@ class DocumentGenerationPlugin:
             if data.file_name:
                 f.write(f"Name: {data.file_name}\n")
 
+            f.write("\n")
+
             # -- File Metadata --
             if (data.file_source or data.global_encoding or data.system_id or
                 data.gen_software or data.version or data.point_format or data.creation_date):
@@ -169,17 +189,17 @@ class DocumentGenerationPlugin:
                 if data.creation_date:
                     f.write(f"Creation Date: {data.creation_date}\n")
 
-            f.write("\n")
+                f.write("\n")
 
             # -- Intensity --
-            if data.min_intensity or data.max_intensity:
+            if (data.min_intensity or data.max_intensity):
                 f.write("Intensity:\n")
                 if data.min_intensity:
                     f.write(f"Min Intensity: {data.min_intensity}\n")
                 if data.max_intensity:
                     f.write(f"Max Intensity: {data.max_intensity}\n")
 
-            f.write("\n")
+                f.write("\n")
 
             # -- Spatial Measures --
             if (data.num_points or data.area or data.density or
@@ -199,7 +219,7 @@ class DocumentGenerationPlugin:
                 if data.y_axis_bounds:
                     f.write(f"Y-Axis Bounds: {data.y_axis_bounds}\n")
 
-            f.write("\n")
+                f.write("\n")
 
             # -- GPS Time --
             if data.has_gps_time:
@@ -295,8 +315,6 @@ class DocumentGenerationPlugin:
                     f.write(f"- **Max GPS Time:** `{data.max_time}`\n")
             else:
                 f.write("- **GPS Time Present:** No\n")
-
-            f.write("\n")
 
 # --- PDF Report Generation (NEEDS UPDATE) ---
 
@@ -413,31 +431,26 @@ class DocumentGenerationPlugin:
             y_axis_bounds = las.header.y_max, las.header.y_min  # Bounds for Y-axis
 
             # TODO: implement the following attributes
-
-            file_source = las.header.file_source_id             # File source ID. If value = 0, no ID assigned
-            global_encoding = las.header.global_encoding        # Global encoding bits
-            system_id = las.header.system_identifier            # System ID. Value = "LAStools (c) by rapidlasso GmbH" if generated with LASTools
-            gen_software = las.header.generating_software       # Generating software
-            creation_date = las.header.creation_date            # Creation date in YYYY-MM-DD format
-
             unique_classes, class_counts = np.unique(las.classification, return_counts=True)  # Classification values and their counts
             unique_returns, ret_counts = np.unique(las.return_number, return_counts=True)   # Return number values and their counts
 
-            min_intensity = las.intensity.min()         # Minimum intensity value. Note: value lost through conversion with LASTools
-            max_intensity = las.intensity.max()         # Maximum intensity value. Note: value lost through conversion with LASTools
-
-            has_gps_time = hasattr(las, "gps_time")
+            has_gps_time = hasattr(las, "gps_time")  # Check if GPS time is present
             if has_gps_time:
-                min_time = las.gps_time.min()           # Minimum GPS time
-                max_time = las.gps_time.max()           # Maximum GPS time
+                min_time = las.gps_time.min()
+                max_time = las.gps_time.max()
 
-            area = (las.header.x_max - las.header.x_min) * (las.header.y_max - las.header.y_min)    # Area of the point cloud in square units
-            density = las.header.point_count / area                                                 # Density of points per square unit
+                dt_min = gps_time_to_datetime(min_time).isoformat()
+                dt_max = gps_time_to_datetime(max_time).isoformat()
+            else:
+                min_time = max_time = None
 
-            # QMessageBox.information(self.iface.mainWindow(), "File Info",
-            #     f"File Name: {os.path.basename(filename)}\n"
-            #     f"File Source ID: {file_source}\n"
-            # )
+            QMessageBox.information(self.iface.mainWindow(), "File Info",
+                f"File Name: {os.path.basename(filename)}\n"
+                f"Global Encoding: {las.header.global_encoding}\n"
+                f"Has GPS Time: {'Yes' if has_gps_time else 'No'}\n"
+                f"Min Time: {dt_min if has_gps_time else 'N/A'}\n"
+                f"Max Time: {dt_max if has_gps_time else 'N/A'}\n"
+            )
 
             dialog = ReportDialog(self.iface.mainWindow())
             if dialog.exec_() != QDialog.Accepted:
@@ -489,8 +502,8 @@ class DocumentGenerationPlugin:
                 max_intensity=las.intensity.max() if dialog.checkMaxIntensity.isChecked() else None,
 
                 has_gps_time=has_gps_time if dialog.checkHasGpsTime.isChecked() else None,
-                min_time=las.gps_time.min() if dialog.checkMinTime.isChecked() else None,
-                max_time=las.gps_time.max() if dialog.checkMaxTime.isChecked() else None,
+                min_time=dt_min if dialog.checkMinTime.isChecked() else None,
+                max_time=dt_max if dialog.checkMaxTime.isChecked() else None,
 
                 area=(las.header.x_max - las.header.x_min) * (las.header.y_max - las.header.y_min) if dialog.checkArea.isChecked() else None,
                 density=las.header.point_count / (
