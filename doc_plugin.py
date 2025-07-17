@@ -34,11 +34,7 @@ class ReportDialog(QDialog, form_class):
         super().__init__(parent)
         self.setupUi(self)
 
-        # Connect toggled signal to a slot
-        self.checkHasGpsTime.toggled.connect(self.on_has_gps_time_toggled)
-
-        # Set initial state (in case it's unchecked by default)
-        self.on_has_gps_time_toggled(self.checkHasGpsTime.isChecked())
+        self.groupTime.toggled.connect(self.on_group_time_toggled)
 
         self.checkboxes = [
             # Metadata checkboxes
@@ -64,7 +60,6 @@ class ReportDialog(QDialog, form_class):
             self.checkYAxisBounds,
 
             # GPS time checkboxes
-            self.checkHasGpsTime,
             self.checkMinTime,
             self.checkMaxTime,
         ]
@@ -84,10 +79,18 @@ class ReportDialog(QDialog, form_class):
         self.ok_button.setEnabled(any_checked)
         self.labelWarning.setText("" if any_checked else "No information selected.")
 
-    def on_has_gps_time_toggled(self, checked):
+    def on_group_time_toggled(self, checked):
         self.checkMinTime.setEnabled(checked)
         self.checkMaxTime.setEnabled(checked)
 
+        if checked:
+            self.checkMinTime.setChecked(True)
+            self.checkMaxTime.setChecked(True)
+        else:
+            self.checkMinTime.setChecked(False)
+            self.checkMaxTime.setChecked(False)
+
+        self.update_ok_button()
 
 # -------------------------
 # --- Report Data Class ---
@@ -97,8 +100,8 @@ class ReportData:
         num_points, bounds, x_axis_bounds, y_axis_bounds,
         file_source=None, global_encoding=None, system_id=None, gen_software=None,
         creation_date=None, unique_classes=None, class_counts=None, unique_returns=None,
-        return_counts=None, min_intensity=None, max_intensity=None, has_gps_time=None,
-        min_time=None, max_time=None, area=None, density=None,
+        return_counts=None, min_intensity=None, max_intensity=None, min_time=None,
+        max_time=None, area=None, density=None,
     ):
         # -- Metadata --
         self.file_name = file_name
@@ -121,7 +124,6 @@ class ReportData:
         self.max_intensity = max_intensity
 
         # -- GPS Time --
-        self.has_gps_time = has_gps_time
         self.min_time = min_time
         self.max_time = max_time
 
@@ -222,14 +224,12 @@ class DocumentGenerationPlugin:
                 f.write("\n")
 
             # -- GPS Time --
-            if data.has_gps_time:
-                f.write("GPS Time Present: Yes\n")
+            if (data.min_time or data.max_time):
+                f.write("GPS Time:\n")
                 if data.min_time:
                     f.write(f"Min GPS Time: {data.min_time}\n")
                 if data.max_time:
                     f.write(f"Max GPS Time: {data.max_time}\n")
-            else:
-                f.write("GPS Time Present: No\n")
 
             # # -- Classifications --
             # if data.unique_classes is not None and data.class_counts is not None:
@@ -307,14 +307,12 @@ class DocumentGenerationPlugin:
 
             # -- GPS Time --
             f.write("## GPS Time\n")
-            if data.has_gps_time:
-                f.write("- **GPS Time Present:** Yes\n")
+            if (data.min_time or data.max_time):
+                f.write("- **GPS Time:** \n")
                 if data.min_time:
                     f.write(f"- **Min GPS Time:** `{data.min_time}`\n")
                 if data.max_time:
                     f.write(f"- **Max GPS Time:** `{data.max_time}`\n")
-            else:
-                f.write("- **GPS Time Present:** No\n")
 
 # --- PDF Report Generation (NEEDS UPDATE) ---
 
@@ -396,7 +394,7 @@ class DocumentGenerationPlugin:
 
         # GPS Time
         write_line("GPS Time:")
-        if data.has_gps_time:
+        if (data.min_time or data.max_time):
             write_line("  Present: Yes")
             if data.min_time:
                 write_line(f"  Min GPS Time: {data.min_time}")
@@ -434,8 +432,8 @@ class DocumentGenerationPlugin:
             unique_classes, class_counts = np.unique(las.classification, return_counts=True)  # Classification values and their counts
             unique_returns, ret_counts = np.unique(las.return_number, return_counts=True)   # Return number values and their counts
 
-            has_gps_time = hasattr(las, "gps_time")  # Check if GPS time is present
-            if has_gps_time:
+            gps_time_present = hasattr(las, "gps_time")  # Check if GPS time is present. This should, in theory, always be true for LAS files.
+            if gps_time_present:
                 min_time = las.gps_time.min()
                 max_time = las.gps_time.max()
 
@@ -443,14 +441,14 @@ class DocumentGenerationPlugin:
                 dt_max = gps_time_to_datetime(max_time).isoformat()
             else:
                 min_time = max_time = None
+                QMessageBox.warning(self.iface.mainWindow(), "Warning", "GPS Time not found in the file. This should NOT HAPPEN")
 
-            QMessageBox.information(self.iface.mainWindow(), "File Info",
-                f"File Name: {os.path.basename(filename)}\n"
-                f"Global Encoding: {las.header.global_encoding}\n"
-                f"Has GPS Time: {'Yes' if has_gps_time else 'No'}\n"
-                f"Min Time: {dt_min if has_gps_time else 'N/A'}\n"
-                f"Max Time: {dt_max if has_gps_time else 'N/A'}\n"
-            )
+            # QMessageBox.information(self.iface.mainWindow(), "File Info",
+            #     f"File Name: {os.path.basename(filename)}\n"
+            #     f"Global Encoding: {las.header.global_encoding}\n"
+            #     f"Min Time: {dt_min if gps_time_present else 'N/A'}\n"
+            #     f"Max Time: {dt_max if gps_time_present else 'N/A'}\n"
+            # )
 
             dialog = ReportDialog(self.iface.mainWindow())
             if dialog.exec_() != QDialog.Accepted:
@@ -501,7 +499,6 @@ class DocumentGenerationPlugin:
                 min_intensity=las.intensity.min() if dialog.checkMinIntensity.isChecked() else None,
                 max_intensity=las.intensity.max() if dialog.checkMaxIntensity.isChecked() else None,
 
-                has_gps_time=has_gps_time if dialog.checkHasGpsTime.isChecked() else None,
                 min_time=dt_min if dialog.checkMinTime.isChecked() else None,
                 max_time=dt_max if dialog.checkMaxTime.isChecked() else None,
 
