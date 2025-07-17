@@ -38,6 +38,7 @@ class ReportDialog(QDialog, form_class):
         self.groupIntensity.toggled.connect(self.on_group_intensity_toggled)
         self.groupSpatial.toggled.connect(self.on_group_spatial_toggled)
         self.groupFileMetadata.toggled.connect(self.on_group_file_metadata_toggled)
+        self.groupClassification.toggled.connect(self.on_group_classification_toggled)
 
         self.checkboxes = [
             # Metadata checkboxes
@@ -65,6 +66,10 @@ class ReportDialog(QDialog, form_class):
             # GPS time checkboxes
             self.checkMinTime,
             self.checkMaxTime,
+
+            # Point metrics checkboxes
+            self.checkClassCounts,
+            self.checkReturnCounts,
         ]
 
         self.ok_button = self.buttonBox.button(QDialogButtonBox.Ok)
@@ -164,6 +169,19 @@ class ReportDialog(QDialog, form_class):
 
         self.update_ok_button()
 
+    def on_group_classification_toggled(self, checked):
+        self.checkClassCounts.setEnabled(checked)
+        self.checkReturnCounts.setEnabled(checked)
+
+        if checked:
+            self.checkClassCounts.setChecked(True)
+            self.checkReturnCounts.setChecked(True)
+        else:
+            self.checkClassCounts.setChecked(False)
+            self.checkReturnCounts.setChecked(False)
+
+        self.update_ok_button()
+
 # -------------------------
 # --- Report Data Class ---
 # -------------------------
@@ -173,7 +191,7 @@ class ReportData:
         file_source=None, global_encoding=None, system_id=None, gen_software=None,
         creation_date=None, unique_classes=None, class_counts=None, unique_returns=None,
         return_counts=None, min_intensity=None, max_intensity=None, min_time=None,
-        max_time=None, area=None, density=None,
+        max_time=None, area=None, density=None
     ):
         # -- Metadata --
         self.file_name = file_name
@@ -186,10 +204,11 @@ class ReportData:
         self.creation_date = creation_date
 
         # -- Classifications and Returns --
-        # self.unique_classes = unique_classes              # np.unique(las.classification)
-        # self.class_counts = class_counts                  # counts of classifications
-        # self.unique_returns = unique_returns              # np.unique(las.return_number)
-        # self.return_counts = return_counts                # counts of returns
+        self.unique_classes = unique_classes              # np.unique(las.classification)
+        self.class_counts = class_counts                  # counts of classifications
+
+        self.unique_returns = unique_returns              # np.unique(las.return_number)
+        self.return_counts = return_counts                # counts of returns
 
         # -- Intensity --
         self.min_intensity = min_intensity
@@ -241,8 +260,7 @@ class DocumentGenerationPlugin:
 
             if data.file_name:
                 f.write(f"Name: {data.file_name}\n")
-
-            f.write("\n")
+                f.write("\n")
 
             # -- File Metadata --
             if (data.file_source or data.global_encoding or data.system_id or
@@ -262,7 +280,6 @@ class DocumentGenerationPlugin:
                     f.write(f"Point Format: {data.point_format}\n")
                 if data.creation_date:
                     f.write(f"Creation Date: {data.creation_date}\n")
-
                 f.write("\n")
 
             # -- Intensity --
@@ -272,7 +289,6 @@ class DocumentGenerationPlugin:
                     f.write(f"Min Intensity: {data.min_intensity}\n")
                 if data.max_intensity:
                     f.write(f"Max Intensity: {data.max_intensity}\n")
-
                 f.write("\n")
 
             # -- Spatial Measures --
@@ -292,7 +308,6 @@ class DocumentGenerationPlugin:
                     f.write(f"X-Axis Bounds: {data.x_axis_bounds}\n")
                 if data.y_axis_bounds:
                     f.write(f"Y-Axis Bounds: {data.y_axis_bounds}\n")
-
                 f.write("\n")
 
             # -- GPS Time --
@@ -302,18 +317,21 @@ class DocumentGenerationPlugin:
                     f.write(f"Min GPS Time: {data.min_time}\n")
                 if data.max_time:
                     f.write(f"Max GPS Time: {data.max_time}\n")
+                f.write("\n")
 
-            # # -- Classifications --
-            # if data.unique_classes is not None and data.class_counts is not None:
-            #     f.write("\nClassification Counts:\n")
-            #     for cls, count in zip(data.unique_classes, data.class_counts):
-            #         f.write(f"  Class {cls}: {count}\n")
+            # -- Classifications --
+            if data.unique_classes is not None and data.class_counts is not None:
+                f.write("\nClassification Counts:\n")
+                for cls, count in zip(data.unique_classes, data.class_counts):
+                    f.write(f" - Class {cls}: {count}\n")
+                f.write("\n")
 
-            # # -- Returns --
-            # if data.unique_returns is not None and data.return_counts is not None:
-            #     f.write("\nReturn Number Counts:\n")
-            #     for ret, count in zip(data.unique_returns, data.return_counts):
-            #         f.write(f"  Return {ret}: {count}\n")
+            # -- Returns --
+            if data.unique_returns is not None and data.return_counts is not None:
+                f.write("\nReturn Number Counts:\n")
+                for ret, count in zip(data.unique_returns, data.return_counts):
+                    f.write(f" - Return {ret}: {count}\n")
+                f.write("\n")
 
 # --- Markdown Report Generation (NEEDS UPDATE) ---
 
@@ -322,9 +340,8 @@ class DocumentGenerationPlugin:
             f.write("# LiDAR File Report\n\n")
 
             if data.file_name:
-                f.write(f"- **File:** `{data.file_name}`\n")
-
-            f.write("\n")
+                f.write(f"**File:** `{data.file_name}`\n")
+                f.write("\n")
 
             # -- File Metadata --
             if (data.file_source or data.global_encoding or data.system_id or
@@ -344,7 +361,6 @@ class DocumentGenerationPlugin:
                     f.write(f"- **Point Format:** `{data.point_format}`\n")
                 if data.creation_date:
                     f.write(f"- **Creation Date:** `{data.creation_date}`\n")
-
                 f.write("\n")
 
             # -- Intensity --
@@ -354,7 +370,6 @@ class DocumentGenerationPlugin:
                     f.write(f"- **Min Intensity:** `{data.min_intensity}`\n")
                 if data.max_intensity:
                     f.write(f"- **Max Intensity:** `{data.max_intensity}`\n")
-
                 f.write("\n")
 
             # -- Spatial Measures --
@@ -374,17 +389,30 @@ class DocumentGenerationPlugin:
                     f.write(f"- **X-Axis Bounds:** `{data.x_axis_bounds}`\n")
                 if data.y_axis_bounds:
                     f.write(f"- **Y-Axis Bounds:** `{data.y_axis_bounds}`\n")
-
                 f.write("\n")
 
             # -- GPS Time --
-            f.write("## GPS Time\n")
             if (data.min_time or data.max_time):
-                f.write("- **GPS Time:** \n")
+                f.write("## GPS Time\n")
                 if data.min_time:
                     f.write(f"- **Min GPS Time:** `{data.min_time}`\n")
                 if data.max_time:
                     f.write(f"- **Max GPS Time:** `{data.max_time}`\n")
+                f.write("\n")
+
+            # -- Classifications --
+            if data.unique_classes is not None and data.class_counts is not None:
+                f.write("## Classification Counts\n")
+                for cls, count in zip(data.unique_classes, data.class_counts):
+                    f.write(f" - **Class {cls}**: {count}\n")
+                f.write("\n")
+
+            # -- Returns --
+            if data.unique_returns is not None and data.return_counts is not None:
+                f.write("## Return Number Counts\n")
+                for ret, count in zip(data.unique_returns, data.return_counts):
+                    f.write(f" - **Return {ret}**: {count}\n")
+                f.write("\n")
 
 # --- PDF Report Generation (NEEDS UPDATE) ---
 
@@ -402,7 +430,6 @@ class DocumentGenerationPlugin:
                 canvas.setFont("Helvetica", 12)
                 y = 800
 
-        # Title
         write_line("LiDAR File Report")
         write_line("==================")
         y -= 10
@@ -410,10 +437,9 @@ class DocumentGenerationPlugin:
         # File Name
         if data.file_name:
             write_line(f"File: {data.file_name}")
+            y -= 10
 
-        y -= 10
-
-        # File Metadata
+        # -- File Metadata --
         if (data.file_source or data.global_encoding or data.system_id or
             data.gen_software or data.version or data.point_format or data.creation_date):
             write_line("File Metadata:")
@@ -431,20 +457,18 @@ class DocumentGenerationPlugin:
                 write_line(f"  Point Format: {data.point_format}")
             if data.creation_date:
                 write_line(f"  Creation Date: {data.creation_date}")
-
             y -= 10
 
-        # Intensity
+        # -- Intensity --
         if data.min_intensity or data.max_intensity:
             write_line("Intensity:")
             if data.min_intensity:
                 write_line(f"  Min Intensity: {data.min_intensity}")
             if data.max_intensity:
                 write_line(f"  Max Intensity: {data.max_intensity}")
-
             y -= 10
 
-        # Spatial Measures
+        # -- Spatial Measures --
         if (data.num_points or data.area or data.density or
             data.bounds or data.x_axis_bounds or data.y_axis_bounds):
             write_line("Spatial Measures:")
@@ -461,19 +485,30 @@ class DocumentGenerationPlugin:
                 write_line(f"  X-Axis Bounds: {data.x_axis_bounds}")
             if data.y_axis_bounds:
                 write_line(f"  Y-Axis Bounds: {data.y_axis_bounds}")
-
             y -= 10
 
-        # GPS Time
-        write_line("GPS Time:")
+        # -- GPS Time --
         if (data.min_time or data.max_time):
-            write_line("  Present: Yes")
+            write_line("GPS Time:")
             if data.min_time:
                 write_line(f"  Min GPS Time: {data.min_time}")
             if data.max_time:
                 write_line(f"  Max GPS Time: {data.max_time}")
-        else:
-            write_line("  Present: No")
+            y -= 10
+
+        # -- Classifications --
+        if data.unique_classes is not None and data.class_counts is not None:
+            write_line("Classification Counts:")
+            for cls, count in zip(data.unique_classes, data.class_counts):
+                write_line(f" - Class {cls}: {count}")
+            y -= 10
+
+        # -- Returns --
+        if data.unique_returns is not None and data.return_counts is not None:
+            write_line("Return Number Counts:")
+            for ret, count in zip(data.unique_returns, data.return_counts):
+                write_line(f" - Return {ret}: {count}")
+            y -= 10
 
         canvas.save()
 
@@ -520,7 +555,11 @@ class DocumentGenerationPlugin:
                 unique_classes, class_counts = np.unique(las.classification, return_counts=True)  # Classification values and their counts
                 unique_returns, ret_counts = np.unique(las.return_number, return_counts=True)   # Return number values and their counts
 
-                if not hasattr(las, "gps_time"):    # Check if GPS time is present. This should, in theory, always be true for LAS files.
+                if hasattr(las, "gps_time"):    # Check if GPS time is present. This should, in theory, always be true for LAS files.
+                        dt_min = gps_time_to_datetime(las.gps_time.min()).isoformat()
+                        dt_max = gps_time_to_datetime(las.gps_time.max()).isoformat()
+                else:
+                    dt_min = dt_max = None
                     QMessageBox.warning(self.iface.mainWindow(), "Warning", "GPS Time not found in the file. This should NOT HAPPEN")
 
             finally:
@@ -531,6 +570,8 @@ class DocumentGenerationPlugin:
                 f"File Name: {os.path.basename(filename)}\n"
                 f"Min Intensity: {las.intensity.min() if hasattr(las, 'intensity') else 'N/A'}\n"
                 f"Max Intensity: {las.intensity.max() if hasattr(las, 'intensity') else 'N/A'}\n"
+                f"Unique Classes: {unique_classes}\n"
+                f"Unique Returns: {unique_returns}"
             )
 
             dialog = ReportDialog(self.iface.mainWindow())
@@ -574,10 +615,10 @@ class DocumentGenerationPlugin:
                 gen_software=las.header.generating_software if dialog.checkGenSoftware.isChecked() else None,
                 creation_date=str(las.header.creation_date) if dialog.checkCreationDate.isChecked() else None,
 
-                # unique_classes=unique_classes,
-                # class_counts=class_counts,
-                # unique_returns=unique_returns,
-                # return_counts=ret_counts,
+                unique_classes=unique_classes if dialog.checkClassCounts.isChecked() else None,
+                class_counts=class_counts if dialog.checkClassCounts.isChecked() else None,
+                unique_returns=unique_returns if dialog.checkReturnCounts.isChecked() else None,
+                return_counts=ret_counts if dialog.checkReturnCounts.isChecked() else None,
 
                 min_intensity=las.intensity.min() if dialog.checkMinIntensity.isChecked() else None,
                 max_intensity=las.intensity.max() if dialog.checkMaxIntensity.isChecked() else None,

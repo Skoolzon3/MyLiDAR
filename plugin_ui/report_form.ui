@@ -231,6 +231,37 @@
             </item>
 
             <item>
+                <widget class="QGroupBox" name="groupClassification">
+                    <property name="title">
+                        <string>Classification</string>
+                    </property>
+                    <property name="checkable">
+                        <bool>true</bool>
+                    </property>
+                    <property name="checked">
+                        <bool>false</bool>
+                    </property>
+                    <layout class="QVBoxLayout" name="verticalLayoutClassification">
+                        <item>
+                            <widget class="QCheckBox" name="checkClassCounts">
+                                <property name="text">
+                                    <string>Class Counts</string>
+                                </property>
+                            </widget>
+                        </item>
+                        <item>
+                            <widget class="QCheckBox" name="checkReturnCounts">
+                                <property name="text">
+                                    <string>Return Counts</string>
+                                </property>
+                            </widget>
+                        </item>
+                    </layout>
+                </widget>
+            </item>
+
+
+            <item>
                 <widget class="QGroupBox" name="groupOutputFormat">
                     <property name="title">
                         <string>Output Format</string>
