@@ -16,6 +16,10 @@ import numpy as np
 
 # PDF generation imports
 from reportlab.pdfgen.canvas import Canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import cm
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib import colors
 
 # Timestamp handling imports
 from datetime import datetime, timedelta, timezone
@@ -204,11 +208,11 @@ class ReportData:
         self.creation_date = creation_date
 
         # -- Classifications and Returns --
-        self.unique_classes = unique_classes              # np.unique(las.classification)
-        self.class_counts = class_counts                  # counts of classifications
+        self.unique_classes = unique_classes
+        self.class_counts = class_counts
 
-        self.unique_returns = unique_returns              # np.unique(las.return_number)
-        self.return_counts = return_counts                # counts of returns
+        self.unique_returns = unique_returns
+        self.return_counts = return_counts
 
         # -- Intensity --
         self.min_intensity = min_intensity
@@ -257,6 +261,9 @@ class DocumentGenerationPlugin:
             f.write("==================\n")
             f.write("LiDAR File Report\n")
             f.write("==================\n\n")
+
+            current_time = datetime.now()
+            f.write(f"Report date: {current_time}\n")
 
             if data.file_name:
                 f.write(f"Name: {data.file_name}\n")
@@ -339,6 +346,9 @@ class DocumentGenerationPlugin:
         with open(path, "w", encoding="utf-8") as f:
             f.write("# LiDAR File Report\n\n")
 
+            current_time = datetime.now()
+            f.write(f"**Report date**: `{current_time}`\n")
+
             if data.file_name:
                 f.write(f"**File:** `{data.file_name}`\n")
                 f.write("\n")
@@ -417,98 +427,113 @@ class DocumentGenerationPlugin:
 # --- PDF Report Generation (NEEDS UPDATE) ---
 
     def generate_pdf_report(self, path, data: ReportData):
-        canvas = Canvas(path)
-        canvas.setFont("Helvetica", 12)
-        y = 800
+        canvas = Canvas(path, pagesize=A4)
+        width, height = A4
+        y = height - 2 * cm
 
-        def write_line(text):
+        def check_page_space(lines_needed=1):
             nonlocal y
-            canvas.drawString(50, y, text)
-            y -= 20
-            if y < 50:
+            if y < lines_needed * 1.2 * cm:
                 canvas.showPage()
+                y = height - 2 * cm
                 canvas.setFont("Helvetica", 12)
-                y = 800
 
-        write_line("LiDAR File Report")
-        write_line("==================")
-        y -= 10
+        def write_spacing(lines=1):
+            nonlocal y
+            y -= lines * 0.6 * cm
+            check_page_space()
 
-        # File Name
+        def write_heading(text, level=1):
+            nonlocal y
+            size = {1: 16, 2: 14}.get(level, 12)
+            write_spacing(1.5 if level == 1 else 1.2)
+            canvas.setFont("Helvetica-Bold", size)
+            canvas.drawString(2 * cm, y, text)
+            y -= 0.7 * cm
+            check_page_space()
+
+        def write_item(label, value):
+            nonlocal y
+            canvas.setFont("Helvetica-Bold", 12)
+            canvas.drawString(2 * cm, y, f"- {label}:")
+            canvas.setFont("Courier", 12)
+            canvas.drawString(7 * cm, y, str(value))
+            y -= 0.6 * cm
+            check_page_space()
+
+        write_heading("LiDAR File Report", level=1)
+
+        current_time = datetime.now()
+        write_item("Report date", current_time)
+
         if data.file_name:
-            write_line(f"File: {data.file_name}")
-            y -= 10
+            write_spacing()
+            write_item("File", data.file_name)
 
         # -- File Metadata --
         if (data.file_source or data.global_encoding or data.system_id or
             data.gen_software or data.version or data.point_format or data.creation_date):
-            write_line("File Metadata:")
+            write_heading("File Metadata", level=2)
             if data.file_source:
-                write_line(f"  File Source ID: {data.file_source}")
+                write_item("File Source ID", data.file_source)
             if data.global_encoding:
-                write_line(f"  Global Encoding: {data.global_encoding}")
+                write_item("Global Encoding", data.global_encoding)
             if data.system_id:
-                write_line(f"  System ID: {data.system_id}")
+                write_item("System ID", data.system_id)
             if data.gen_software:
-                write_line(f"  Generating Software: {data.gen_software}")
+                write_item("Generating Software", data.gen_software)
             if data.version:
-                write_line(f"  Version: {data.version}")
+                write_item("Version", data.version)
             if data.point_format:
-                write_line(f"  Point Format: {data.point_format}")
+                write_item("Point Format", data.point_format)
             if data.creation_date:
-                write_line(f"  Creation Date: {data.creation_date}")
-            y -= 10
+                write_item("Creation Date", data.creation_date)
 
         # -- Intensity --
         if data.min_intensity or data.max_intensity:
-            write_line("Intensity:")
+            write_heading("Intensity", level=2)
             if data.min_intensity:
-                write_line(f"  Min Intensity: {data.min_intensity}")
+                write_item("Min Intensity", data.min_intensity)
             if data.max_intensity:
-                write_line(f"  Max Intensity: {data.max_intensity}")
-            y -= 10
+                write_item("Max Intensity", data.max_intensity)
 
         # -- Spatial Measures --
         if (data.num_points or data.area or data.density or
             data.bounds or data.x_axis_bounds or data.y_axis_bounds):
-            write_line("Spatial Measures:")
+            write_heading("Spatial Measures", level=2)
             if data.num_points:
-                write_line(f"  Number of Points: {data.num_points}")
+                write_item("Number of Points", data.num_points)
             if data.area:
-                write_line(f"  Area: {data.area}")
+                write_item("Area", data.area)
             if data.density:
-                write_line(f"  Density: {data.density}")
+                write_item("Density", data.density)
             if data.bounds:
-                write_line(f"  Bounds Min: {data.bounds[0]}")
-                write_line(f"  Bounds Max: {data.bounds[1]}")
+                write_item("Bounds Min", data.bounds[0])
+                write_item("Bounds Max", data.bounds[1])
             if data.x_axis_bounds:
-                write_line(f"  X-Axis Bounds: {data.x_axis_bounds}")
+                write_item("X-Axis Bounds", data.x_axis_bounds)
             if data.y_axis_bounds:
-                write_line(f"  Y-Axis Bounds: {data.y_axis_bounds}")
-            y -= 10
+                write_item("Y-Axis Bounds", data.y_axis_bounds)
 
         # -- GPS Time --
         if (data.min_time or data.max_time):
-            write_line("GPS Time:")
+            write_heading("GPS Time", level=2)
             if data.min_time:
-                write_line(f"  Min GPS Time: {data.min_time}")
+                write_item("Min GPS Time", data.min_time)
             if data.max_time:
-                write_line(f"  Max GPS Time: {data.max_time}")
-            y -= 10
+                write_item("Max GPS Time", data.max_time)
 
         # -- Classifications --
         if data.unique_classes is not None and data.class_counts is not None:
-            write_line("Classification Counts:")
+            write_heading("Classification Counts", level=2)
             for cls, count in zip(data.unique_classes, data.class_counts):
-                write_line(f" - Class {cls}: {count}")
-            y -= 10
+                write_item(f"Class {cls}", count)
 
         # -- Returns --
         if data.unique_returns is not None and data.return_counts is not None:
-            write_line("Return Number Counts:")
+            write_heading("Return Number Counts", level=2)
             for ret, count in zip(data.unique_returns, data.return_counts):
-                write_line(f" - Return {ret}: {count}")
-            y -= 10
+                write_item(f"Return {ret}", count)
 
         canvas.save()
 
