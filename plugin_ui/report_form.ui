@@ -22,6 +22,12 @@
                             <property name="title">
                                 <string>File Metadata</string>
                             </property>
+                            <property name="checkable">
+                                <bool>true</bool>
+                            </property>
+                            <property name="checked">
+                                <bool>false</bool>
+                            </property>
                             <layout class="QVBoxLayout" name="verticalLayoutFileMetadata">
                                 <item>
                                     <widget class="QCheckBox" name="checkFileName">
@@ -97,6 +103,12 @@
                             <property name="title">
                                 <string>Spatial</string>
                             </property>
+                            <property name="checkable">
+                                <bool>true</bool>
+                            </property>
+                            <property name="checked">
+                                <bool>false</bool>
+                            </property>
                             <layout class="QVBoxLayout" name="verticalLayoutSpatial">
                                 <item>
                                     <widget class="QCheckBox" name="checkNumPoints">
@@ -160,6 +172,12 @@
                         <widget class="QGroupBox" name="groupIntensity">
                             <property name="title">
                                 <string>Intensity</string>
+                            </property>
+                            <property name="checkable">
+                                <bool>true</bool>
+                            </property>
+                            <property name="checked">
+                                <bool>false</bool>
                             </property>
                             <layout class="QVBoxLayout" name="verticalLayoutIntensity">
                                 <item>
