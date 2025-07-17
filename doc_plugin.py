@@ -4,6 +4,9 @@ from qgis.PyQt.QtWidgets import QAction, QFileDialog, QMessageBox, QDialogButton
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt import uic
 
+from PyQt5.QtWidgets import QApplication, QMessageBox, QLabel, QDialog, QVBoxLayout
+from PyQt5.QtCore import Qt
+
 # Backend imports
 import laspy
 from laspy import LazBackend
@@ -486,38 +489,49 @@ class DocumentGenerationPlugin:
         if not filename:
             return
 
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        loading_dialog = QDialog(self.iface.mainWindow())
+        loading_dialog.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
+        loading_dialog.setModal(True)
+        loading_dialog.setWindowTitle("Loading")
+        layout = QVBoxLayout()
+        label = QLabel("Loading and analyzing LiDAR file...\nPlease wait.")
+        label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(label)
+        loading_dialog.setLayout(layout)
+        loading_dialog.setFixedSize(300, 100)
+
         try:
-            las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
+            try:
+                loading_dialog.show()
+                QApplication.processEvents()
 
-            num_points = las.header.point_count                 # Total number of points in the file
-            point_format = las.header.point_format              # Point format
-            version = las.header.version                        # LAS version (e.g., 1.4)
+                las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
 
-            bounds = las.header.mins, las.header.maxs           # Bounds of the point cloud
-            x_axis_bounds = las.header.x_max, las.header.x_min  # Bounds for X-axis
-            y_axis_bounds = las.header.y_max, las.header.y_min  # Bounds for Y-axis
+                num_points = las.header.point_count                 # Total number of points in the file
+                point_format = las.header.point_format              # Point format
+                version = las.header.version                        # LAS version (e.g., 1.4)
 
-            # TODO: implement the following attributes
-            unique_classes, class_counts = np.unique(las.classification, return_counts=True)  # Classification values and their counts
-            unique_returns, ret_counts = np.unique(las.return_number, return_counts=True)   # Return number values and their counts
+                bounds = las.header.mins, las.header.maxs           # Bounds of the point cloud
+                x_axis_bounds = las.header.x_max, las.header.x_min  # Bounds for X-axis
+                y_axis_bounds = las.header.y_max, las.header.y_min  # Bounds for Y-axis
 
-            gps_time_present = hasattr(las, "gps_time")  # Check if GPS time is present. This should, in theory, always be true for LAS files.
-            if gps_time_present:
-                min_time = las.gps_time.min()
-                max_time = las.gps_time.max()
+                # TODO: implement the following attributes
+                unique_classes, class_counts = np.unique(las.classification, return_counts=True)  # Classification values and their counts
+                unique_returns, ret_counts = np.unique(las.return_number, return_counts=True)   # Return number values and their counts
 
-                dt_min = gps_time_to_datetime(min_time).isoformat()
-                dt_max = gps_time_to_datetime(max_time).isoformat()
-            else:
-                min_time = max_time = None
-                QMessageBox.warning(self.iface.mainWindow(), "Warning", "GPS Time not found in the file. This should NOT HAPPEN")
+                if not hasattr(las, "gps_time"):    # Check if GPS time is present. This should, in theory, always be true for LAS files.
+                    QMessageBox.warning(self.iface.mainWindow(), "Warning", "GPS Time not found in the file. This should NOT HAPPEN")
 
-            # QMessageBox.information(self.iface.mainWindow(), "File Info",
-            #     f"File Name: {os.path.basename(filename)}\n"
-            #     f"Global Encoding: {las.header.global_encoding}\n"
-            #     f"Min Time: {dt_min if gps_time_present else 'N/A'}\n"
-            #     f"Max Time: {dt_max if gps_time_present else 'N/A'}\n"
-            # )
+            finally:
+                loading_dialog.close()
+                QApplication.restoreOverrideCursor()
+
+            QMessageBox.information(self.iface.mainWindow(), "File Info",
+                f"File Name: {os.path.basename(filename)}\n"
+                f"Min Intensity: {las.intensity.min() if hasattr(las, 'intensity') else 'N/A'}\n"
+                f"Max Intensity: {las.intensity.max() if hasattr(las, 'intensity') else 'N/A'}\n"
+            )
 
             dialog = ReportDialog(self.iface.mainWindow())
             if dialog.exec_() != QDialog.Accepted:
@@ -588,3 +602,7 @@ class DocumentGenerationPlugin:
 
         except Exception as e:
             QMessageBox.critical(self.iface.mainWindow(), "Error", f"Failed to process file:\n{e}")
+
+        finally:
+            loading_dialog.close()
+            QApplication.restoreOverrideCursor()
