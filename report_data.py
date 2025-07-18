@@ -19,20 +19,9 @@ class ReportData:
         self.point_format = point_format
         self.creation_date = creation_date
 
-        # -- Classifications and Returns --
-        self.unique_classes = unique_classes
-        self.class_counts = class_counts
-
-        self.unique_returns = unique_returns
-        self.return_counts = return_counts
-
         # -- Intensity --
         self.min_intensity = min_intensity
         self.max_intensity = max_intensity
-
-        # -- GPS Time --
-        self.min_time = min_time
-        self.max_time = max_time
 
         # -- Spatial Measures --
         self.num_points = num_points
@@ -41,3 +30,14 @@ class ReportData:
         self.bounds = bounds
         self.x_axis_bounds = x_axis_bounds
         self.y_axis_bounds = y_axis_bounds
+
+        # -- GPS Time --
+        self.min_time = min_time
+        self.max_time = max_time
+
+        # -- Classifications and Returns --
+        self.unique_classes = unique_classes
+        self.class_counts = class_counts
+
+        self.unique_returns = unique_returns
+        self.return_counts = return_counts

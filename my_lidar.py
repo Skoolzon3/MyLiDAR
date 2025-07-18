@@ -19,29 +19,38 @@ import numpy as np
 # Timestamp handling imports
 from .utils import gps_time_to_datetime
 
-# ----------------------------------------
-# --- Document Generation Plugin Class ---
-# ----------------------------------------
-class DocumentGenerationPlugin:
+# -----------------------------
+# --- My LiDAR Plugin Class ---
+# -----------------------------
+class MyLiDARPlugin:
     def __init__(self, iface):
         self.iface = iface
         self.plugin_dir = os.path.dirname(__file__)
         self.action = None
+        self.secondary_action = None
 
     def tr(self, message):
         return QCoreApplication.translate('LiDAR Document Generator', message)
 
     def initGui(self):
         icon_path = os.path.join(self.plugin_dir, 'icons/start.png')
+
         self.action = QAction(QIcon(icon_path), self.tr('Generate LiDAR File Report'), self.iface.mainWindow())
         self.action.triggered.connect(self.generate_report)
-
         self.iface.addToolBarIcon(self.action)
-        self.iface.addPluginToMenu(self.tr('&LiDAR Report'), self.action)
+        self.iface.addPluginToMenu(self.tr('&MyLiDAR'), self.action)
+
+        self.secondary_action = QAction(QIcon(icon_path), self.tr('More coming soon!'), self.iface.mainWindow())
+        self.secondary_action.triggered.connect(self.perform_secondary_task)
+        self.iface.addToolBarIcon(self.secondary_action)
+        self.iface.addPluginToMenu(self.tr('&MyLiDAR'), self.secondary_action)
 
     def unload(self):
-        self.iface.removePluginMenu(self.tr('&LiDAR Report'), self.action)
+        self.iface.removePluginMenu(self.tr('&MyLiDAR'), self.action)
         self.iface.removeToolBarIcon(self.action)
+
+        self.iface.removePluginMenu(self.tr('&MyLiDAR'), self.secondary_action)
+        self.iface.removeToolBarIcon(self.secondary_action)
 
 # --- Main Report Generation Function ---
 
@@ -99,10 +108,8 @@ class DocumentGenerationPlugin:
 
             QMessageBox.information(self.iface.mainWindow(), "File Info",
                 f"File Name: {os.path.basename(filename)}\n"
-                f"Min Intensity: {las.intensity.min() if hasattr(las, 'intensity') else 'N/A'}\n"
-                f"Max Intensity: {las.intensity.max() if hasattr(las, 'intensity') else 'N/A'}\n"
-                f"Unique Classes: {unique_classes}\n"
-                f"Unique Returns: {unique_returns}"
+                f"File Source ID: {las.header.file_source_id}\n"
+                f"System ID: {las.header.system_identifier}"
             )
 
             dialog = ReportDialog(self.iface.mainWindow())
@@ -133,34 +140,39 @@ class DocumentGenerationPlugin:
                 return
 
             data = ReportData(
+                # -- Metadata --
                 file_name=os.path.basename(filename) if dialog.checkFileName.isChecked() else None,
-                version=version if dialog.checkVersion.isChecked() else None,
-                point_format=point_format if dialog.checkPointFormat.isChecked() else None,
-                num_points=num_points if dialog.checkNumPoints.isChecked() else None,
-                bounds=bounds if dialog.checkBounds.isChecked() else None,
-                x_axis_bounds=x_axis_bounds if dialog.checkXAxisBounds.isChecked() else None,
-                y_axis_bounds=y_axis_bounds if dialog.checkYAxisBounds.isChecked() else None,
                 file_source=las.header.file_source_id if dialog.checkFileSource.isChecked() else None,
                 global_encoding=las.header.global_encoding if dialog.checkGlobalEncoding.isChecked() else None,
-                system_id=las.header.system_identifier if dialog.checkSystemId.isChecked() else None,
+                system_id=las.header.system_identifier if dialog.checkSystemId.isChecked() else None,           # Note: System ID only incluided in generated LAZ files
                 gen_software=las.header.generating_software if dialog.checkGenSoftware.isChecked() else None,
+                version=version if dialog.checkVersion.isChecked() else None,
+                point_format=point_format if dialog.checkPointFormat.isChecked() else None,
                 creation_date=str(las.header.creation_date) if dialog.checkCreationDate.isChecked() else None,
 
-                unique_classes=unique_classes if dialog.checkClassCounts.isChecked() else None,
-                class_counts=class_counts if dialog.checkClassCounts.isChecked() else None,
-                unique_returns=unique_returns if dialog.checkReturnCounts.isChecked() else None,
-                return_counts=ret_counts if dialog.checkReturnCounts.isChecked() else None,
-
+                # -- Intensity --
                 min_intensity=las.intensity.min() if dialog.checkMinIntensity.isChecked() else None,
                 max_intensity=las.intensity.max() if dialog.checkMaxIntensity.isChecked() else None,
 
-                min_time=dt_min if dialog.checkMinTime.isChecked() else None,
-                max_time=dt_max if dialog.checkMaxTime.isChecked() else None,
-
+                # -- Spatial --
+                num_points=num_points if dialog.checkNumPoints.isChecked() else None,
                 area=(las.header.x_max - las.header.x_min) * (las.header.y_max - las.header.y_min) if dialog.checkArea.isChecked() else None,
                 density=las.header.point_count / (
                     (las.header.x_max - las.header.x_min) * (las.header.y_max - las.header.y_min)
                 ) if dialog.checkDensity.isChecked() else None,
+                bounds=bounds if dialog.checkBounds.isChecked() else None,
+                x_axis_bounds=x_axis_bounds if dialog.checkXAxisBounds.isChecked() else None,
+                y_axis_bounds=y_axis_bounds if dialog.checkYAxisBounds.isChecked() else None,
+
+                # -- GPS Time --
+                min_time=dt_min if dialog.checkMinTime.isChecked() else None,
+                max_time=dt_max if dialog.checkMaxTime.isChecked() else None,
+
+                # -- Classifications and Returns --
+                unique_classes=unique_classes if dialog.checkClassCounts.isChecked() else None,
+                class_counts=class_counts if dialog.checkClassCounts.isChecked() else None,
+                unique_returns=unique_returns if dialog.checkReturnCounts.isChecked() else None,
+                return_counts=ret_counts if dialog.checkReturnCounts.isChecked() else None,
             )
 
             if is_pdf:
@@ -178,3 +190,6 @@ class DocumentGenerationPlugin:
         finally:
             loading_dialog.close()
             QApplication.restoreOverrideCursor()
+
+    def perform_secondary_task(self):
+        QMessageBox.information(self.iface.mainWindow(), "!!?!?!?!?", f"Coming soon!")
