@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+    <class>OutlierRemovalDialog</class>
+    <widget class="QDialog" name="OutlierRemovalDialog">
+        <property name="windowTitle">
+            <string>Outlier Removal Settings</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+                <widget class="QFormLayout" name="formLayout">
+                    <property name="fieldGrowthPolicy">
+                        <enum>QFormLayout::ExpandingFieldsGrow</enum>
+                    </property>
+                    <item row="0" column="0">
+                        <widget class="QLabel" name="labelRadius">
+                            <property name="text">
+                                <string>Search Radius (units):</string>
+                            </property>
+                        </widget>
+                    </item>
+                    <item row="0" column="1">
+                        <widget class="QDoubleSpinBox" name="spinRadius">
+                            <property name="minimum">
+                                <double>0.1</double>
+                            </property>
+                            <property name="maximum">
+                                <double>50.0</double>
+                            </property>
+                            <property name="singleStep">
+                                <double>0.1</double>
+                            </property>
+                            <property name="value">
+                                <double>2.0</double>
+                            </property>
+                            <property name="decimals">
+                                <number>2</number>
+                            </property>
+                        </widget>
+                    </item>
+                    <item row="1" column="0">
+                        <widget class="QLabel" name="labelNeighbors">
+                            <property name="text">
+                                <string>Minimum Neighbors:</string>
+                            </property>
+                        </widget>
+                    </item>
+                    <item row="1" column="1">
+                        <widget class="QSpinBox" name="spinMinNeighbors">
+                            <property name="minimum">
+                                <number>1</number>
+                            </property>
+                            <property name="maximum">
+                                <number>50</number>
+                            </property>
+                            <property name="value">
+                                <number>5</number>
+                            </property>
+                        </widget>
+                    </item>
+                </widget>
+            </item>
+            <item>
+                <widget class="QDialogButtonBox" name="buttonBox">
+                    <property name="standardButtons">
+                        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+                    </property>
+                </widget>
+            </item>
+        </layout>
+    </widget>
+    <resources/>
+    <connections/>
+</ui>

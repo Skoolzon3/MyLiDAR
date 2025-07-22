@@ -6,5 +6,5 @@ version=1.0
 qgisMinimumVersion=3.0
 author=Pablo Fernández
 email=pfernandzoq@alumnos.unex.es
-repository=URL to the code repository
+repository=https://github.com/Skoolzon3/MyLiDAR
 icon=icons/mylidar.png
