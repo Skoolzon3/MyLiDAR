@@ -28,7 +28,7 @@ def generate_txt_report(self, path, data: ReportData):
             if data.file_source:
                 f.write(f"File Source ID: {data.file_source}\n")
             if data.global_encoding:
-                f.write(f"Global Encoding: {data.global_encoding}\n")
+                f.write(f"Global Encoding:\n{data.global_encoding}")
             if data.system_id:
                 f.write(f"System ID: {data.system_id}\n")
             if data.gen_software:
@@ -36,7 +36,8 @@ def generate_txt_report(self, path, data: ReportData):
             if data.version:
                 f.write(f"Version: {data.version}\n")
             if data.point_format:
-                f.write(f"Point Format: {data.point_format}\n")
+                f.write(f"Point Format:\n{data.point_format}")
+
             if data.creation_date:
                 f.write(f"Creation Date: {data.creation_date}\n")
             f.write("\n")
@@ -112,7 +113,7 @@ def generate_markdown_report(self, path, data: ReportData):
             if data.file_source:
                 f.write(f"- **File Source ID:** `{data.file_source}`\n")
             if data.global_encoding:
-                f.write(f"- **Global Encoding:** `{data.global_encoding}`\n")
+                f.write(f"- **Global Encoding:**\n{data.global_encoding}")
             if data.system_id:
                 f.write(f"- **System ID:** `{data.system_id}`\n")
             if data.gen_software:
@@ -120,7 +121,7 @@ def generate_markdown_report(self, path, data: ReportData):
             if data.version:
                 f.write(f"- **Version:** `{data.version}`\n")
             if data.point_format:
-                f.write(f"- **Point Format:** `{data.point_format}`\n")
+                f.write(f"- **Point Format:**\n{data.point_format}")
             if data.creation_date:
                 f.write(f"- **Creation Date:** `{data.creation_date}`\n")
             f.write("\n")
@@ -217,9 +218,7 @@ def generate_pdf_report(self, path, data: ReportData):
 
     current_time = datetime.now()
     write_item("Report date", current_time)
-
     if data.file_name:
-        write_spacing()
         write_item("File", data.file_name)
 
     # -- File Metadata --
@@ -228,16 +227,32 @@ def generate_pdf_report(self, path, data: ReportData):
         write_heading("File Metadata", level=2)
         if data.file_source:
             write_item("File Source ID", data.file_source)
+
         if data.global_encoding:
-            write_item("Global Encoding", data.global_encoding)
+            write_item("Global Encoding", "")
+            for line in str(data.global_encoding).splitlines():
+                cleaned_line = line.lstrip("- ").strip()
+                canvas.setFont("Courier", 12)
+                canvas.drawString(3 * cm, y, f"• {cleaned_line}")
+                y -= 0.6 * cm
+                check_page_space()
+
         if data.system_id:
             write_item("System ID", data.system_id)
         if data.gen_software:
             write_item("Generating Software", data.gen_software)
         if data.version:
             write_item("Version", data.version)
+
         if data.point_format:
-            write_item("Point Format", data.point_format)
+            write_item("Point Format", "")
+            for line in str(data.point_format).splitlines():
+                cleaned_line = line.lstrip("- ").strip()
+                canvas.setFont("Courier", 12)
+                canvas.drawString(3 * cm, y, f"• {cleaned_line}")
+                y -= 0.6 * cm
+                check_page_space()
+
         if data.creation_date:
             write_item("Creation Date", data.creation_date)
 

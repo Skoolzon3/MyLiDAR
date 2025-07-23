@@ -24,6 +24,23 @@ from .utils import gps_time_to_datetime
 from scipy.spatial import cKDTree
 
 # -----------------------------
+
+def format_global_encoding(ge):
+    return (
+        f"  - GPS Time Type: {ge.gps_time_type}\n"
+        f"  - Waveform Internal: {ge.waveform_data_packets_internal}\n"
+        f"  - Waveform External: {ge.waveform_data_packets_external}\n"
+        f"  - Synthetic Returns: {ge.synthetic_return_numbers}\n"
+        f"  - WKT: {ge.wkt}\n"
+    )
+
+def format_point_format(pf):
+    return (
+        f"  - Point Format ID: {pf.id}\n"
+        f"  - Size: {pf.size} bytes\n"
+    )
+
+# -----------------------------
 def create_loading_dialog(self):
     QApplication.setOverrideCursor(Qt.WaitCursor)
     loading_dialog = QDialog(self.iface.mainWindow())
@@ -162,11 +179,11 @@ class MyLiDARPlugin:
                 # -- Metadata --
                 file_name=os.path.basename(filename) if dialog.checkFileName.isChecked() else None,             # File name
                 file_source=las.header.file_source_id if dialog.checkFileSource.isChecked() else None,          # File source
-                global_encoding=las.header.global_encoding if dialog.checkGlobalEncoding.isChecked() else None, # Global encoding byte
+                global_encoding=format_global_encoding(las.header.global_encoding) if dialog.checkGlobalEncoding.isChecked() else None,     # Global encoding details
                 system_id=las.header.system_identifier if dialog.checkSystemId.isChecked() else None,           # Note: System ID only incluided in generated LAZ files
                 gen_software=las.header.generating_software if dialog.checkGenSoftware.isChecked() else None,   # Generating software (e.g., LAStools, PDAL)
                 version=las.header.version if dialog.checkVersion.isChecked() else None,                        # LAS version (e.g., 1.4)
-                point_format=las.header.point_format if dialog.checkPointFormat.isChecked() else None,          # Point format
+                point_format=format_point_format(las.header.point_format) if dialog.checkPointFormat.isChecked() else None,                 # Point format details
                 creation_date=str(las.header.creation_date) if dialog.checkCreationDate.isChecked() else None,  # Creation date of the file
 
                 # -- Intensity --
