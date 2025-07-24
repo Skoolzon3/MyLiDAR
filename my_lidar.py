@@ -1,8 +1,8 @@
 import os
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.PyQt.QtWidgets import QAction, QFileDialog, QMessageBox, QDialog
-from qgis.PyQt.QtGui import QIcon, QFont
-from PyQt5.QtWidgets import QApplication, QMessageBox, QLabel, QDialog, QVBoxLayout
+from qgis.PyQt.QtGui import QIcon
+from PyQt5.QtWidgets import QApplication, QMessageBox, QDialog
 from PyQt5.QtCore import Qt
 
 from .report_data import ReportData
@@ -18,57 +18,10 @@ from laspy import LazBackend
 import numpy as np
 
 # Timestamp handling imports
-from .utils import gps_time_to_datetime
+from .utils import gps_time_to_datetime, create_loading_dialog, format_global_encoding, format_point_format
 
 # Spatial data handling imports
 from scipy.spatial import cKDTree
-
-# -----------------------------
-
-def format_global_encoding(ge):
-    return (
-        f"  - GPS Time Type: {ge.gps_time_type}\n"
-        f"  - Waveform Internal: {ge.waveform_data_packets_internal}\n"
-        f"  - Waveform External: {ge.waveform_data_packets_external}\n"
-        f"  - Synthetic Returns: {ge.synthetic_return_numbers}\n"
-        f"  - WKT: {ge.wkt}\n"
-    )
-
-def format_point_format(pf):
-    return (
-        f"  - Point Format ID: {pf.id}\n"
-        f"  - Size: {pf.size} bytes\n"
-    )
-
-# -----------------------------
-def create_loading_dialog(self):
-    QApplication.setOverrideCursor(Qt.WaitCursor)
-    loading_dialog = QDialog(self.iface.mainWindow())
-    loading_dialog.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
-    loading_dialog.setModal(True)
-    loading_dialog.setWindowTitle("Loading")
-
-    loading_dialog.setStyleSheet("""
-        QDialog {
-            background-color: #f0f0f0;
-            border: 1px solid #444;
-        }
-        QLabel {
-            font-size: 14px;
-            color: #333;
-        }
-    """)
-
-    layout = QVBoxLayout()
-    layout.setContentsMargins(20, 20, 20, 20)
-    label = QLabel("Loading LiDAR file...\nPlease wait.")
-    label.setAlignment(Qt.AlignCenter)
-    label.setFont(QFont("Segoe UI", 10))
-    layout.addWidget(label)
-    loading_dialog.setLayout(layout)
-    loading_dialog.setFixedSize(300, 100)
-    return loading_dialog
-# ---------------------------
 
 # -----------------------------
 # --- My LiDAR Plugin Class ---
@@ -103,7 +56,9 @@ class MyLiDARPlugin:
         self.iface.removeToolBarIcon(self.action)
         self.iface.removeToolBarIcon(self.secondary_action)
 
-# --- Report Generation ---
+    # -------------------------
+    # --- Report Generation ---
+    # -------------------------
 
     def generate_report(self):
         filename, _ = QFileDialog.getOpenFileName(
@@ -230,7 +185,9 @@ class MyLiDARPlugin:
     def placeholder(self):
         QMessageBox.information(self.iface.mainWindow(), "Title", f"Coming soon!")
 
-# --- Outlier Removal ---
+    # -----------------------
+    # --- Outlier Removal ---
+    # -----------------------
 
     def remove_outliers(self):
 
