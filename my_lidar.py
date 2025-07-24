@@ -230,69 +230,9 @@ class MyLiDARPlugin:
     def placeholder(self):
         QMessageBox.information(self.iface.mainWindow(), "Title", f"Coming soon!")
 
-# # --- Outlier Removal ---
-
-#     def remove_outliers(self, output_path, radius=1.0, min_neighbors=5):
-
-#         filename, _ = QFileDialog.getOpenFileName(
-#             self.iface.mainWindow(),
-#             'Select LiDAR File',
-#             '',
-#             'LiDAR Files (*.las *.laz)'
-#         )
-#         if not filename:
-#             return
-
-#         loading_dialog = create_loading_dialog(self)
-
-#         try:
-#             try:
-#                 loading_dialog.show()
-#                 QApplication.processEvents()
-#                 las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
-
-#             finally:
-#                 loading_dialog.close()
-#                 QApplication.restoreOverrideCursor()
-
-#                 # Build KD-tree from point positions
-#                 coords = np.vstack((las.x, las.y, las.z)).T
-#                 tree = cKDTree(coords)
-
-#                 print("Computing neighbor counts...")
-#                 neighbor_counts = tree.query_ball_point(coords, r=radius, return_length=True)
-
-#                 print(f"Filtering out points with < {min_neighbors} neighbors...")
-#                 mask = neighbor_counts >= min_neighbors
-#                 num_removed = np.sum(~mask)
-
-#                 print(f"Removing {num_removed} outliers (of {len(las.points)})")
-
-#                 # Filter points
-#                 las_filtered = laspy.LasData(las.header)
-#                 for dim in las.point_format.dimensions:
-#                     data = getattr(las, dim.name)
-#                     setattr(las_filtered, dim.name, data[mask])
-
-#                 print(f"Saving filtered file to: {output_path}")
-#                 las_filtered.write(output_path)
-
-#             QMessageBox.information(self.iface.mainWindow(), "Success", f"Success message!!")
-
-#         except Exception as e:
-#             QMessageBox.critical(self.iface.mainWindow(), "Error", f"Failed to process file:\n{e}")
-
-#         finally:
-#             loading_dialog.close()
-#             QApplication.restoreOverrideCursor()
+# --- Outlier Removal ---
 
     def remove_outliers(self):
-
-        dialog = OutlierRemovalDialog(self.iface.mainWindow())
-        if dialog.exec_() != QDialog.Accepted:
-            return
-
-        radius, min_neighbors = dialog.get_values()
 
         filename, _ = QFileDialog.getOpenFileName(
             self.iface.mainWindow(),
@@ -312,18 +252,23 @@ class MyLiDARPlugin:
         if not output_path:
             return
 
+        dialog = OutlierRemovalDialog(self.iface.mainWindow())
+        if dialog.exec_() != QDialog.Accepted:
+            return
+
+        radius, min_neighbors = dialog.get_values()
+
         loading_dialog = create_loading_dialog(self)
+        loading_dialog.show()
 
         try:
-            loading_dialog.show()
             QApplication.setOverrideCursor(Qt.WaitCursor)
             QApplication.processEvents()
 
-            las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
+            las = laspy.read(filename, laz_backend=LazBackend.Lazrs) # Read the LiDAR file (This takes some time)
 
             coords = np.vstack((las.x, las.y, las.z)).T
             tree = cKDTree(coords)
-
             neighbor_counts = tree.query_ball_point(coords, r=radius, return_length=True)
             mask = neighbor_counts >= min_neighbors
             num_removed = np.sum(~mask)
@@ -332,14 +277,27 @@ class MyLiDARPlugin:
             if num_remaining == 0:
                 raise ValueError("All points were classified as outliers — no data would remain.")
 
-            las_filtered = laspy.LasData(las.header)
-            for dim in las.point_format.dimensions:
-                try:
-                    data = getattr(las, dim.name)
-                    if len(data) == len(mask):
-                        setattr(las_filtered, dim.name, data[mask])
-                except AttributeError:
-                    continue
+            new_header = las.header.copy()
+            las_filtered = laspy.LasData(new_header)
+
+            filtered_coords = coords[mask]
+
+            las_filtered.points = las.points[mask]
+
+            las_filtered.header.min = [
+                filtered_coords[:, 0].min(),
+                filtered_coords[:, 1].min(),
+                filtered_coords[:, 2].min()
+            ]
+            las_filtered.header.max = [
+                filtered_coords[:, 0].max(),
+                filtered_coords[:, 1].max(),
+                filtered_coords[:, 2].max()
+            ]
+
+            las_filtered.points = las.points[mask]
+
+            assert len(las_filtered.points) == np.sum(mask)
 
             las_filtered.write(output_path)
 

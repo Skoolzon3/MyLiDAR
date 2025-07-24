@@ -10,5 +10,10 @@ class OutlierRemovalDialog(QDialog, FORM_CLASS):
         super().__init__(parent)
         self.setupUi(self)
 
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+
     def get_values(self):
-        return self.spinRadius.value(), self.spinMinNeighbors.value()
+        radius = self.spinRadius.value()
+        min_neighbors = self.spinMinNeighbors.value()
+        return radius, min_neighbors
