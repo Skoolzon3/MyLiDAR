@@ -1,14 +1,11 @@
 import os
+
+# QGIS and PyQt imports
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.PyQt.QtWidgets import QAction, QFileDialog, QMessageBox, QDialog
 from qgis.PyQt.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QMessageBox, QDialog
 from PyQt5.QtCore import Qt
-
-from .report_data import ReportData
-from .report_functions import generate_txt_report, generate_markdown_report, generate_pdf_report
-from .report_dialog import ReportDialog
-from .outlier_removal_dialog import OutlierRemovalDialog
 
 # Backend imports
 import laspy
@@ -17,11 +14,24 @@ from laspy import LazBackend
 # Data handling imports
 import numpy as np
 
-# Timestamp handling imports
-from .utils import gps_time_to_datetime, create_loading_dialog, format_global_encoding, format_point_format
-
 # Spatial data handling imports
 from scipy.spatial import cKDTree
+
+# External utility functions
+from .utils import format_global_encoding, format_point_format
+from .utils import gps_time_to_datetime, create_loading_dialog
+
+# ---------------------------------
+# --- Function-specific imports ---
+# ---------------------------------
+
+# Report generation imports
+from .report_data import ReportData
+from .report_functions import generate_txt_report, generate_markdown_report, generate_pdf_report
+
+# Dialog imports
+from .report_dialog import ReportDialog
+from .outlier_removal_dialog import OutlierRemovalDialog
 
 # -----------------------------
 # --- My LiDAR Plugin Class ---
@@ -39,22 +49,30 @@ class MyLiDARPlugin:
     def initGui(self):
         report_icon_path = os.path.join(self.plugin_dir, 'icons/report.png')
         cleanup_icon_path = os.path.join(self.plugin_dir, 'icons/cleanup.png')
+        overlap_icon_path = os.path.join(self.plugin_dir, 'icons/overlap.png')
 
         self.action = QAction(QIcon(report_icon_path), self.tr('Generate LiDAR File Report'), self.iface.mainWindow())
         self.action.triggered.connect(self.generate_report)
         self.iface.addToolBarIcon(self.action)
         self.iface.addPluginToMenu(self.tr('&MyLiDAR'), self.action)
 
-        self.secondary_action = QAction(QIcon(cleanup_icon_path), self.tr('Remove outliers'), self.iface.mainWindow())
+        self.secondary_action = QAction(QIcon(cleanup_icon_path), self.tr('Remove outlier points'), self.iface.mainWindow())
         self.secondary_action.triggered.connect(self.remove_outliers)
         self.iface.addToolBarIcon(self.secondary_action)
         self.iface.addPluginToMenu(self.tr('&MyLiDAR'), self.secondary_action)
 
+        self.third_action = QAction(QIcon(overlap_icon_path), self.tr('Reduce overlapping'), self.iface.mainWindow())
+        self.third_action.triggered.connect(self.overlap_reduction)
+        self.iface.addToolBarIcon(self.third_action)
+        self.iface.addPluginToMenu(self.tr('&MyLiDAR'), self.third_action)
+
     def unload(self):
         self.iface.removePluginMenu(self.tr('&MyLiDAR'), self.action)
         self.iface.removePluginMenu(self.tr('&MyLiDAR'), self.secondary_action)
+        self.iface.removePluginMenu(self.tr('&MyLiDAR'), self.third_action)
         self.iface.removeToolBarIcon(self.action)
         self.iface.removeToolBarIcon(self.secondary_action)
+        self.iface.removeToolBarIcon(self.third_action)
 
     # -------------------------
     # --- Report Generation ---
@@ -182,9 +200,6 @@ class MyLiDARPlugin:
             loading_dialog.close()
             QApplication.restoreOverrideCursor()
 
-    def placeholder(self):
-        QMessageBox.information(self.iface.mainWindow(), "Title", f"Coming soon!")
-
     # -----------------------
     # --- Outlier Removal ---
     # -----------------------
@@ -222,12 +237,15 @@ class MyLiDARPlugin:
             QApplication.setOverrideCursor(Qt.WaitCursor)
             QApplication.processEvents()
 
-            las = laspy.read(filename, laz_backend=LazBackend.Lazrs) # Read the LiDAR file (This takes some time)
+            las = laspy.read(filename, laz_backend=LazBackend.Lazrs) # This call takes some time
 
+            # Obtain coordinates and build a KD-tree for neighbor search
             coords = np.vstack((las.x, las.y, las.z)).T
             tree = cKDTree(coords)
             neighbor_counts = tree.query_ball_point(coords, r=radius, return_length=True)
             mask = neighbor_counts >= min_neighbors
+
+            # Create a mask for points with enough neighbors (min_neighbors)
             num_removed = np.sum(~mask)
             num_remaining = np.sum(mask)
 
@@ -237,10 +255,10 @@ class MyLiDARPlugin:
             new_header = las.header.copy()
             las_filtered = laspy.LasData(new_header)
 
+            # Filter points based on the mask
             filtered_coords = coords[mask]
 
-            las_filtered.points = las.points[mask]
-
+            # Update header with new bounds
             las_filtered.header.min = [
                 filtered_coords[:, 0].min(),
                 filtered_coords[:, 1].min(),
@@ -251,7 +269,6 @@ class MyLiDARPlugin:
                 filtered_coords[:, 1].max(),
                 filtered_coords[:, 2].max()
             ]
-
             las_filtered.points = las.points[mask]
 
             assert len(las_filtered.points) == np.sum(mask)
@@ -276,3 +293,95 @@ class MyLiDARPlugin:
         finally:
             loading_dialog.close()
             QApplication.restoreOverrideCursor()
+
+    # ------------------------
+    # --- Overlap Reducing ---
+    # ------------------------
+
+    def overlap_reduction(self):
+        filename, _ = QFileDialog.getOpenFileName(
+            self.iface.mainWindow(),
+            'Select LiDAR File to Reduce Overlap Density',
+            '',
+            'LiDAR Files (*.las *.laz)'
+        )
+        if not filename:
+            return
+
+        output_path, _ = QFileDialog.getSaveFileName(
+            self.iface.mainWindow(),
+            'Save Thinned Overlap LiDAR File',
+            os.path.splitext(filename)[0] + '_thinned_overlap.laz',
+            'LiDAR Files (*.las *.laz)'
+        )
+        if not output_path:
+            return
+
+        loading_dialog = create_loading_dialog(self)
+        loading_dialog.show()
+
+        try:
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            QApplication.processEvents()
+
+            las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
+
+            # Identify overlap points based on classification
+            overlap_classes = {12, 17} # Overlap classes
+            classifications = las.classification
+            is_overlap = np.isin(classifications, list(overlap_classes))
+            is_non_overlap = ~is_overlap
+
+            overlap_coords = np.vstack((las.x[is_overlap], las.y[is_overlap], las.z[is_overlap])).T
+            # non_overlap_coords = np.vstack((las.x[is_non_overlap], las.y[is_non_overlap], las.z[is_non_overlap])).T
+
+            # Grid filter overlap points
+            voxel_size = 0.5  # 0.5m resolution
+            voxel_indices = np.floor(overlap_coords[:, :2] / voxel_size).astype(np.int32)
+            _, unique_indices = np.unique(voxel_indices, axis=0, return_index=True)
+
+            overlap_filtered_indices = np.where(is_overlap)[0][unique_indices]
+            combined_indices = np.concatenate([np.where(is_non_overlap)[0], overlap_filtered_indices])
+            combined_indices = np.sort(combined_indices)
+
+            # Create a new LasData object with the filtered points
+            new_header = las.header.copy()
+            las_filtered = laspy.LasData(new_header)
+            las_filtered.points = las.points[combined_indices]
+
+            x = las.x[combined_indices]
+            y = las.y[combined_indices]
+            z = las.z[combined_indices]
+
+            las_filtered.header.min = [x.min(), y.min(), z.min()]
+            las_filtered.header.max = [x.max(), y.max(), z.max()]
+
+            las_filtered.write(output_path)
+
+            QMessageBox.information(
+                self.iface.mainWindow(),
+                "Overlap Thinning Complete",
+                f"Original points: {len(las.points):,}\n"
+                f"Non-overlap kept: {np.sum(is_non_overlap):,}\n"
+                f"Overlap points thinned: {len(overlap_filtered_indices):,}\n\n"
+                f"Total remaining: {len(combined_indices):,}\n\n"
+                f"Filtered file saved to:\n{output_path}"
+            )
+
+        except Exception as e:
+            QMessageBox.critical(
+                self.iface.mainWindow(),
+                "Error During Overlap Filtering",
+                f"An error occurred:\n{e}"
+            )
+
+        finally:
+            loading_dialog.close()
+            QApplication.restoreOverrideCursor()
+
+    # ---------------------------
+    # ---  Placeholder method ---
+    # ---------------------------
+
+    def placeholder(self):
+        QMessageBox.information(self.iface.mainWindow(), "Title", f"Coming soon!")
