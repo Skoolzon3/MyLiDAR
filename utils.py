@@ -27,7 +27,6 @@ def format_point_format(pf):
 # --- Dialog creation for loading LiDAR files ---
 
 def create_loading_dialog(self):
-    QApplication.setOverrideCursor(Qt.WaitCursor)
     loading_dialog = QDialog(self.iface.mainWindow())
     loading_dialog.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
     loading_dialog.setModal(True)

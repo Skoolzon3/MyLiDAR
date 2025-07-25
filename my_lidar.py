@@ -5,6 +5,7 @@ from qgis.PyQt.QtCore import QCoreApplication
 from qgis.PyQt.QtWidgets import QAction, QFileDialog, QMessageBox, QDialog
 from qgis.PyQt.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QMessageBox, QDialog
+from PyQt5.QtTest import QTest
 from PyQt5.QtCore import Qt
 
 # Backend imports
@@ -92,6 +93,8 @@ class MyLiDARPlugin:
 
         try:
             try:
+                QApplication.setOverrideCursor(Qt.WaitCursor)
+
                 loading_dialog.show()
                 QApplication.processEvents()
 
@@ -215,27 +218,19 @@ class MyLiDARPlugin:
         if not filename:
             return
 
-        output_path, _ = QFileDialog.getSaveFileName(
-            self.iface.mainWindow(),
-            'Save Cleaned LiDAR File',
-            os.path.splitext(filename)[0] + '_cleaned.laz',
-            'LiDAR Files (*.las *.laz)'
-        )
-        if not output_path:
-            return
-
         dialog = OutlierRemovalDialog(self.iface.mainWindow())
         if dialog.exec_() != QDialog.Accepted:
             return
 
         radius, min_neighbors = dialog.get_values()
-
         loading_dialog = create_loading_dialog(self)
-        loading_dialog.show()
 
         try:
             QApplication.setOverrideCursor(Qt.WaitCursor)
+
+            loading_dialog.show()
             QApplication.processEvents()
+            QTest.qWait(100)
 
             las = laspy.read(filename, laz_backend=LazBackend.Lazrs) # This call takes some time
 
@@ -273,6 +268,15 @@ class MyLiDARPlugin:
 
             assert len(las_filtered.points) == np.sum(mask)
 
+            output_path, _ = QFileDialog.getSaveFileName(
+                self.iface.mainWindow(),
+                'Save Cleaned LiDAR File',
+                os.path.splitext(filename)[0] + '_cleaned.laz',
+                'LiDAR Files (*.las *.laz)'
+            )
+            if not output_path:
+                return
+
             las_filtered.write(output_path)
 
             QMessageBox.information(
@@ -308,20 +312,12 @@ class MyLiDARPlugin:
         if not filename:
             return
 
-        output_path, _ = QFileDialog.getSaveFileName(
-            self.iface.mainWindow(),
-            'Save Thinned Overlap LiDAR File',
-            os.path.splitext(filename)[0] + '_thinned_overlap.laz',
-            'LiDAR Files (*.las *.laz)'
-        )
-        if not output_path:
-            return
-
         loading_dialog = create_loading_dialog(self)
-        loading_dialog.show()
 
         try:
             QApplication.setOverrideCursor(Qt.WaitCursor)
+
+            loading_dialog.show()
             QApplication.processEvents()
 
             las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
@@ -355,6 +351,15 @@ class MyLiDARPlugin:
 
             las_filtered.header.min = [x.min(), y.min(), z.min()]
             las_filtered.header.max = [x.max(), y.max(), z.max()]
+
+            output_path, _ = QFileDialog.getSaveFileName(
+                self.iface.mainWindow(),
+                'Save Thinned Overlap LiDAR File',
+                os.path.splitext(filename)[0] + '_thinned_overlap.laz',
+                'LiDAR Files (*.las *.laz)'
+            )
+            if not output_path:
+                return
 
             las_filtered.write(output_path)
 
