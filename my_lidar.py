@@ -62,8 +62,8 @@ class MyLiDARPlugin:
         self.iface.addToolBarIcon(self.secondary_action)
         self.iface.addPluginToMenu(self.tr('&MyLiDAR'), self.secondary_action)
 
-        self.third_action = QAction(QIcon(overlap_icon_path), self.tr('Reduce overlapping'), self.iface.mainWindow())
-        self.third_action.triggered.connect(self.overlap_reduction)
+        self.third_action = QAction(QIcon(overlap_icon_path), self.tr('Remove overlapping'), self.iface.mainWindow())
+        self.third_action.triggered.connect(self.overlap_removal)
         self.iface.addToolBarIcon(self.third_action)
         self.iface.addPluginToMenu(self.tr('&MyLiDAR'), self.third_action)
 
@@ -298,14 +298,14 @@ class MyLiDARPlugin:
             loading_dialog.close()
             QApplication.restoreOverrideCursor()
 
-    # ------------------------
-    # --- Overlap Reducing ---
-    # ------------------------
+    # -----------------------
+    # --- Overlap Removal ---
+    # -----------------------
 
-    def overlap_reduction(self):
+    def overlap_removal(self):
         filename, _ = QFileDialog.getOpenFileName(
             self.iface.mainWindow(),
-            'Select LiDAR File to Reduce Overlap Density',
+            'Select LiDAR File to Remove Overlap Points',
             '',
             'LiDAR Files (*.las *.laz)'
         )
@@ -323,39 +323,29 @@ class MyLiDARPlugin:
             las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
 
             # Identify overlap points based on classification
-            overlap_classes = {12, 17} # Overlap classes
+            overlap_classes = {12, 17}  # Overlap classification codes
             classifications = las.classification
-            is_overlap = np.isin(classifications, list(overlap_classes))
-            is_non_overlap = ~is_overlap
+            is_non_overlap = ~np.isin(classifications, list(overlap_classes))
 
-            overlap_coords = np.vstack((las.x[is_overlap], las.y[is_overlap], las.z[is_overlap])).T
-            # non_overlap_coords = np.vstack((las.x[is_non_overlap], las.y[is_non_overlap], las.z[is_non_overlap])).T
+            # Filter only non-overlap points
+            non_overlap_indices = np.where(is_non_overlap)[0]
 
-            # Grid filter overlap points
-            voxel_size = 0.5  # 0.5m resolution
-            voxel_indices = np.floor(overlap_coords[:, :2] / voxel_size).astype(np.int32)
-            _, unique_indices = np.unique(voxel_indices, axis=0, return_index=True)
-
-            overlap_filtered_indices = np.where(is_overlap)[0][unique_indices]
-            combined_indices = np.concatenate([np.where(is_non_overlap)[0], overlap_filtered_indices])
-            combined_indices = np.sort(combined_indices)
-
-            # Create a new LasData object with the filtered points
+            # Create a new LasData object with only non-overlap points
             new_header = las.header.copy()
             las_filtered = laspy.LasData(new_header)
-            las_filtered.points = las.points[combined_indices]
+            las_filtered.points = las.points[non_overlap_indices]
 
-            x = las.x[combined_indices]
-            y = las.y[combined_indices]
-            z = las.z[combined_indices]
+            x = las.x[non_overlap_indices]
+            y = las.y[non_overlap_indices]
+            z = las.z[non_overlap_indices]
 
             las_filtered.header.min = [x.min(), y.min(), z.min()]
             las_filtered.header.max = [x.max(), y.max(), z.max()]
 
             output_path, _ = QFileDialog.getSaveFileName(
                 self.iface.mainWindow(),
-                'Save Thinned Overlap LiDAR File',
-                os.path.splitext(filename)[0] + '_thinned_overlap.laz',
+                'Save Non-Overlap LiDAR File',
+                os.path.splitext(filename)[0] + '_non_overlap.laz',
                 'LiDAR Files (*.las *.laz)'
             )
             if not output_path:
@@ -365,18 +355,17 @@ class MyLiDARPlugin:
 
             QMessageBox.information(
                 self.iface.mainWindow(),
-                "Overlap Thinning Complete",
+                "Overlap Removal Complete",
                 f"Original points: {len(las.points):,}\n"
-                f"Non-overlap kept: {np.sum(is_non_overlap):,}\n"
-                f"Overlap points thinned: {len(overlap_filtered_indices):,}\n\n"
-                f"Total remaining: {len(combined_indices):,}\n\n"
+                f"Overlap points removed: {np.sum(~is_non_overlap):,}\n"
+                f"Remaining points: {len(non_overlap_indices):,}\n\n"
                 f"Filtered file saved to:\n{output_path}"
             )
 
         except Exception as e:
             QMessageBox.critical(
                 self.iface.mainWindow(),
-                "Error During Overlap Filtering",
+                "Error During Overlap Removal",
                 f"An error occurred:\n{e}"
             )
 
