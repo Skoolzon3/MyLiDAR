@@ -14,6 +14,7 @@ from laspy import LazBackend
 
 # Data handling imports
 import numpy as np
+from sklearn.cluster import DBSCAN
 
 # Spatial data handling imports
 from scipy.spatial import cKDTree
@@ -43,6 +44,8 @@ class MyLiDARPlugin:
         self.plugin_dir = os.path.dirname(__file__)
         self.action = None
         self.secondary_action = None
+        self.third_action = None
+        self.fourth_action = None
 
     def tr(self, message):
         return QCoreApplication.translate('LiDAR Document Generator', message)
@@ -51,6 +54,7 @@ class MyLiDARPlugin:
         report_icon_path = os.path.join(self.plugin_dir, 'icons/report.png')
         cleanup_icon_path = os.path.join(self.plugin_dir, 'icons/cleanup.png')
         overlap_icon_path = os.path.join(self.plugin_dir, 'icons/overlap.png')
+        building_icon_path = os.path.join(self.plugin_dir, 'icons/building.png')
 
         self.action = QAction(QIcon(report_icon_path), self.tr('Generate LiDAR File Report'), self.iface.mainWindow())
         self.action.triggered.connect(self.generate_report)
@@ -67,13 +71,21 @@ class MyLiDARPlugin:
         self.iface.addToolBarIcon(self.third_action)
         self.iface.addPluginToMenu(self.tr('&MyLiDAR'), self.third_action)
 
+        # Toolbar-only actions
+        self.fourth_action = QAction(QIcon(building_icon_path), self.tr('Count buildings'), self.iface.mainWindow())
+        self.fourth_action.triggered.connect(self.building_count)
+        # self.iface.addToolBarIcon(self.fourth_action)
+        self.iface.addPluginToMenu(self.tr('&MyLiDAR'), self.fourth_action)
+
     def unload(self):
         self.iface.removePluginMenu(self.tr('&MyLiDAR'), self.action)
         self.iface.removePluginMenu(self.tr('&MyLiDAR'), self.secondary_action)
         self.iface.removePluginMenu(self.tr('&MyLiDAR'), self.third_action)
+        self.iface.removePluginMenu(self.tr('&MyLiDAR'), self.fourth_action)
         self.iface.removeToolBarIcon(self.action)
         self.iface.removeToolBarIcon(self.secondary_action)
         self.iface.removeToolBarIcon(self.third_action)
+        self.iface.removeToolBarIcon(self.fourth_action)
 
     # -------------------------
     # --- Report Generation ---
@@ -373,9 +385,73 @@ class MyLiDARPlugin:
             loading_dialog.close()
             QApplication.restoreOverrideCursor()
 
-    # ---------------------------
-    # ---  Placeholder method ---
-    # ---------------------------
+    # ----------------------
+    # ---  Builing Count ---
+    # ----------------------
+
+    def building_count(self):
+        filename, _ = QFileDialog.getOpenFileName(
+            self.iface.mainWindow(),
+            'Select LiDAR File to Count Buildings',
+            '',
+            'LiDAR Files (*.las *.laz)'
+        )
+        if not filename:
+            return
+
+        loading_dialog = create_loading_dialog(self)
+
+        try:
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            loading_dialog.show()
+            QApplication.processEvents()
+
+            las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
+
+            # Filter building-classified points
+            building_class_code = 6
+            classifications = las.classification
+            is_building = classifications == building_class_code
+
+            if np.sum(is_building) == 0:
+                QMessageBox.information(
+                    self.iface.mainWindow(),
+                    "No Buildings Found",
+                    "No buildings were found in this file."
+                )
+                return
+
+            # Extract X and Y for clustering
+            coords = np.vstack((las.x[is_building], las.y[is_building])).T
+
+            # DBSCAN clustering
+            db = DBSCAN(eps=2.0, min_samples=30).fit(coords)
+            labels = db.labels_
+
+            # Count clusters (excluding noise points labeled -1)
+            num_buildings = len(set(labels)) - (1 if -1 in labels else 0)
+
+            QMessageBox.information(
+                self.iface.mainWindow(),
+                "Building Detection Complete",
+                f"Building points detected: {np.sum(is_building):,}\n"
+                f"Approximate number of building detected: {num_buildings:,}"
+            )
+
+        except Exception as e:
+            QMessageBox.critical(
+                self.iface.mainWindow(),
+                "Error Detecting Buildings",
+                f"An error occurred:\n{e}"
+            )
+
+        finally:
+            loading_dialog.close()
+            QApplication.restoreOverrideCursor()
+
+    # --------------------------
+    # --- Placeholder method ---
+    # --------------------------
 
     def placeholder(self):
         QMessageBox.information(self.iface.mainWindow(), "Title", f"Coming soon!")
