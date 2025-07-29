@@ -36,6 +36,9 @@
                             <property name="decimals">
                                 <number>2</number>
                             </property>
+                            <property name="toolTip">
+                                <string>Neighborhood search radius. Points with too few neighbors within this radius are considered outliers</string>
+                            </property>
                         </widget>
                     </item>
                     <item row="1" column="0">
@@ -55,6 +58,9 @@
                             </property>
                             <property name="value">
                                 <number>5</number>
+                            </property>
+                            <property name="toolTip">
+                                <string>Minimum number of neighbors required within the radius to retain a point. Points with fewer are removed as outliers</string>
                             </property>
                         </widget>
                     </item>

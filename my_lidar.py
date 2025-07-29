@@ -18,7 +18,7 @@ from sklearn.cluster import DBSCAN
 
 # Spatial data handling imports
 from scipy.spatial import cKDTree
-from scipy.interpolate import griddata
+# from scipy.interpolate import griddata
 
 # External utility functions
 from .utils import format_global_encoding, format_point_format
@@ -35,6 +35,7 @@ from .report_functions import generate_txt_report, generate_markdown_report, gen
 # Dialog imports
 from .report_dialog import ReportDialog
 from .outlier_removal_dialog import OutlierRemovalDialog
+from .building_count_dialog import BuildingParamsDialog
 
 # -----------------------------
 # --- My LiDAR Plugin Class ---
@@ -393,9 +394,9 @@ class MyLiDARPlugin:
             loading_dialog.close()
             QApplication.restoreOverrideCursor()
 
-    # ----------------------
-    # ---  Builing Count ---
-    # ----------------------
+    # ---------------------
+    # --- Builing Count ---
+    # ---------------------
 
     def building_count(self):
         filename, _ = QFileDialog.getOpenFileName(
@@ -407,12 +408,19 @@ class MyLiDARPlugin:
         if not filename:
             return
 
+        param_dialog = BuildingParamsDialog(self.iface.mainWindow())
+        if not param_dialog.exec_():
+            return
+
+        eps, min_samples = param_dialog.get_params()
+
         loading_dialog = create_loading_dialog(self)
 
         try:
             QApplication.setOverrideCursor(Qt.WaitCursor)
             loading_dialog.show()
             QApplication.processEvents()
+            QTest.qWait(100)
 
             las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
 
@@ -433,7 +441,7 @@ class MyLiDARPlugin:
             coords = np.vstack((las.x[is_building], las.y[is_building])).T
 
             # DBSCAN clustering
-            db = DBSCAN(eps=2.0, min_samples=30).fit(coords)
+            db = DBSCAN(eps=eps, min_samples=min_samples).fit(coords)
             labels = db.labels_
 
             # Count clusters (excluding noise points labeled -1)

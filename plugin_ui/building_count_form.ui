@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>BuildingParametersDialog</class>
+ <widget class="QDialog" name="BuildingParametersDialog">
+  <property name="windowTitle">
+   <string>Building Detection Parameters</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_eps">
+       <property name="text">
+        <string>DBSCAN Epsilon:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QDoubleSpinBox" name="epsSpin">
+       <property name="minimum">
+        <double>0.1</double>
+       </property>
+       <property name="maximum">
+        <double>100.0</double>
+       </property>
+       <property name="value">
+        <double>2.0</double>
+       </property>
+       <property name="singleStep">
+        <double>0.1</double>
+       </property>
+       <property name="toolTip">
+           <string>Maximum distance between points to be considered neighbors</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_min_samples">
+       <property name="text">
+        <string>Min Samples:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QSpinBox" name="minSamplesSpin">
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>1000</number>
+       </property>
+       <property name="value">
+        <number>30</number>
+       </property>
+       <property name="toolTip">
+           <string>Minimum number of points required to form a cluster</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
