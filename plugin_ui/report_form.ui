@@ -37,12 +37,18 @@
                                         <property name="checked">
                                             <bool>true</bool>
                                         </property>
+                                        <property name="toolTip">
+                                            <string>File name of the LiDAR dataset</string>
+                                        </property>
                                     </widget>
                                 </item>
                                 <item>
                                     <widget class="QCheckBox" name="checkFileSource">
                                         <property name="text">
                                             <string>File Source</string>
+                                        </property>
+                                        <property name="toolTip">
+                                            <string>Source ID specified in the LAS file header, identifying the generating system</string>
                                         </property>
                                     </widget>
                                 </item>
@@ -51,6 +57,9 @@
                                         <property name="text">
                                             <string>Global Encoding</string>
                                         </property>
+                                        <property name="toolTip">
+                                            <string>Flags describing GPS time type, waveform data and other global settings</string>
+                                        </property>
                                     </widget>
                                 </item>
                                 <item>
@@ -58,12 +67,18 @@
                                         <property name="text">
                                             <string>System ID</string>
                                         </property>
+                                        <property name="toolTip">
+                                            <string>Identifier of the system that created the file</string>
+                                        </property>
                                     </widget>
                                 </item>
                                 <item>
                                     <widget class="QCheckBox" name="checkGenSoftware">
                                         <property name="text">
                                             <string>Generating Software</string>
+                                        </property>
+                                        <property name="toolTip">
+                                            <string>Name of the software that generated the LAS file</string>
                                         </property>
                                     </widget>
                                 </item>
@@ -75,6 +90,9 @@
                                         <property name="checked">
                                             <bool>true</bool>
                                         </property>
+                                        <property name="toolTip">
+                                            <string>LAS file format version (e.g., 1.2, 1.4)</string>
+                                        </property>
                                     </widget>
                                 </item>
                                 <item>
@@ -85,12 +103,18 @@
                                         <property name="checked">
                                             <bool>true</bool>
                                         </property>
+                                        <property name="toolTip">
+                                            <string>Point data record format used in the LAS file (e.g., Format 0, 1, 6) and its corresponding byte size</string>
+                                        </property>
                                     </widget>
                                 </item>
                                 <item>
                                     <widget class="QCheckBox" name="checkCreationDate">
                                         <property name="text">
                                             <string>Creation Date</string>
+                                        </property>
+                                        <property name="toolTip">
+                                            <string>Date the LAS file was created, extracted from the file's header</string>
                                         </property>
                                     </widget>
                                 </item>
@@ -118,6 +142,9 @@
                                         <property name="checked">
                                             <bool>true</bool>
                                         </property>
+                                        <property name="toolTip">
+                                            <string>Total number of points in the dataset</string>
+                                        </property>
                                     </widget>
                                 </item>
                                 <item>
@@ -125,12 +152,18 @@
                                         <property name="text">
                                             <string>Area</string>
                                         </property>
+                                        <property name="toolTip">
+                                            <string>Area covered by the point cloud, based on spatial extent</string>
+                                        </property>
                                     </widget>
                                 </item>
                                 <item>
                                     <widget class="QCheckBox" name="checkDensity">
                                         <property name="text">
                                             <string>Density</string>
+                                        </property>
+                                        <property name="toolTip">
+                                            <string>Average number of points per unit area (e.g., points per square meter)</string>
                                         </property>
                                     </widget>
                                 </item>
@@ -142,6 +175,9 @@
                                         <property name="checked">
                                             <bool>true</bool>
                                         </property>
+                                        <property name="toolTip">
+                                            <string>Minimum and maximum coordinates (X, Y, Z) bounding the dataset</string>
+                                        </property>
                                     </widget>
                                 </item>
                                 <item>
@@ -152,6 +188,9 @@
                                         <property name="checked">
                                             <bool>false</bool>
                                         </property>
+                                        <property name="toolTip">
+                                            <string>Minimum and maximum X-axis values in the dataset</string>
+                                        </property>
                                     </widget>
                                 </item>
                                 <item>
@@ -161,6 +200,9 @@
                                         </property>
                                         <property name="checked">
                                             <bool>false</bool>
+                                        </property>
+                                        <property name="toolTip">
+                                            <string>Minimum and maximum Y-axis values in the dataset</string>
                                         </property>
                                     </widget>
                                 </item>
@@ -185,12 +227,18 @@
                                         <property name="text">
                                             <string>Min Intensity</string>
                                         </property>
+                                        <property name="toolTip">
+                                            <string>Lowest recorded intensity value in the dataset</string>
+                                        </property>
                                     </widget>
                                 </item>
                                 <item>
                                     <widget class="QCheckBox" name="checkMaxIntensity">
                                         <property name="text">
                                             <string>Max Intensity</string>
+                                        </property>
+                                        <property name="toolTip">
+                                            <string>Highest recorded intensity value in the dataset</string>
                                         </property>
                                     </widget>
                                 </item>
@@ -215,12 +263,18 @@
                                         <property name="text">
                                             <string>Min Time</string>
                                         </property>
+                                        <property name="toolTip">
+                                            <string>Earliest timestamp recorded in the dataset</string>
+                                        </property>
                                     </widget>
                                 </item>
                                 <item>
                                     <widget class="QCheckBox" name="checkMaxTime">
                                         <property name="text">
                                             <string>Max Time</string>
+                                        </property>
+                                        <property name="toolTip">
+                                            <string>Latest timestamp recorded in the dataset</string>
                                         </property>
                                     </widget>
                                 </item>
@@ -247,12 +301,18 @@
                                 <property name="text">
                                     <string>Class Counts</string>
                                 </property>
+                                <property name="toolTip">
+                                    <string>Counts of points by classification codes (e.g., ground, vegetation, building...)</string>
+                                </property>
                             </widget>
                         </item>
                         <item>
                             <widget class="QCheckBox" name="checkReturnCounts">
                                 <property name="text">
                                     <string>Return Counts</string>
+                                </property>
+                                <property name="toolTip">
+                                    <string>Counts of points by return number (first, last...)</string>
                                 </property>
                             </widget>
                         </item>
