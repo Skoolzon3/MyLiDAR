@@ -12,7 +12,7 @@ from scipy.spatial import cKDTree
 
 from .outlier_removal_dialog import OutlierRemovalDialog
 
-from .utils import create_loading_dialog
+from ..utils import create_loading_dialog
 
 # -----------------------
 # --- Outlier Removal ---

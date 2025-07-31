@@ -8,7 +8,7 @@ from laspy import LazBackend
 import numpy as np
 from sklearn.cluster import DBSCAN
 
-from .utils import create_loading_dialog
+from ..utils import create_loading_dialog
 from .building_count_dialog import BuildingParamsDialog
 
 # ---------------------

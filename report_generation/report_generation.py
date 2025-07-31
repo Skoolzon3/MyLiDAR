@@ -11,8 +11,8 @@ import numpy as np
 from .report_dialog import ReportDialog
 from .report_data import ReportData
 
-from .utils import format_global_encoding, format_point_format
-from .utils import gps_time_to_datetime, create_loading_dialog
+from ..utils import format_global_encoding, format_point_format
+from ..utils import gps_time_to_datetime, create_loading_dialog
 
 from .report_functions import generate_txt_report, generate_markdown_report, generate_pdf_report
 

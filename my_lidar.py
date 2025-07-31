@@ -22,10 +22,10 @@ import numpy as np
 from .utils import create_loading_dialog
 
 # --- Method imports ---
-from .report_generation import generate_report
-from .outlier_removal import remove_outliers
-from .overlap_removal import remove_overlap
-from .building_count import count_buildings
+from .report_generation.report_generation import generate_report
+from .outlier_removal.outlier_removal import remove_outliers
+from .overlap_removal.overlap_removal import remove_overlap
+from .building_count.building_count import count_buildings
 
 # -----------------------------
 # --- My LiDAR Plugin Class ---

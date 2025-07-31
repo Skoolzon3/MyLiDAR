@@ -3,9 +3,9 @@ from PyQt5 import uic
 import os
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), './plugin_ui/outlier_removal_form.ui'))
+    os.path.dirname(__file__), './building_count_form.ui'))
 
-class OutlierRemovalDialog(QDialog, FORM_CLASS):
+class BuildingParamsDialog(QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
@@ -13,7 +13,7 @@ class OutlierRemovalDialog(QDialog, FORM_CLASS):
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
 
-    def get_values(self):
-        radius = self.spinRadius.value()
-        min_neighbors = self.spinMinNeighbors.value()
-        return radius, min_neighbors
+    def get_params(self):
+        eps = self.epsSpin.value()
+        min_samples = self.minSamplesSpin.value()
+        return eps, min_samples
