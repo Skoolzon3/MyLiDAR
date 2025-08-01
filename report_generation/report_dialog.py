@@ -42,6 +42,7 @@ class ReportDialog(QDialog, form_class):
             self.checkBounds,
             self.checkXAxisBounds,
             self.checkYAxisBounds,
+            self.checkZAxisBounds,
 
             # GPS time checkboxes
             self.checkMinTime,
@@ -100,6 +101,7 @@ class ReportDialog(QDialog, form_class):
         self.checkBounds.setEnabled(checked)
         self.checkXAxisBounds.setEnabled(checked)
         self.checkYAxisBounds.setEnabled(checked)
+        self.checkZAxisBounds.setEnabled(checked)
 
         if checked:
             self.checkNumPoints.setChecked(True)
@@ -108,6 +110,7 @@ class ReportDialog(QDialog, form_class):
             self.checkBounds.setChecked(True)
             self.checkXAxisBounds.setChecked(True)
             self.checkYAxisBounds.setChecked(True)
+            self.checkZAxisBounds.setChecked(True)
         else:
             self.checkNumPoints.setChecked(False)
             self.checkArea.setChecked(False)
@@ -115,6 +118,7 @@ class ReportDialog(QDialog, form_class):
             self.checkBounds.setChecked(False)
             self.checkXAxisBounds.setChecked(False)
             self.checkYAxisBounds.setChecked(False)
+            self.checkZAxisBounds.setChecked(False)
 
         self.update_ok_button()
 

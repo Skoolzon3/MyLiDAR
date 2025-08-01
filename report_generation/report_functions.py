@@ -68,6 +68,8 @@ def generate_txt_report(self, path, data: ReportData):
                 f.write(f"X-Axis Bounds: {data.x_axis_bounds}\n")
             if data.y_axis_bounds:
                 f.write(f"Y-Axis Bounds: {data.y_axis_bounds}\n")
+            if data.z_axis_bounds:
+                f.write(f"Z-Axis Bounds: {data.z_axis_bounds}\n")
             f.write("\n")
 
         # -- GPS Time --
@@ -152,6 +154,8 @@ def generate_markdown_report(self, path, data: ReportData):
                 f.write(f"- **X-Axis Bounds:** `{data.x_axis_bounds}`\n")
             if data.y_axis_bounds:
                 f.write(f"- **Y-Axis Bounds:** `{data.y_axis_bounds}`\n")
+            if data.z_axis_bounds:
+                f.write(f"- **Z-Axis Bounds:** `{data.z_axis_bounds}`\n")
             f.write("\n")
 
         # -- GPS Time --
@@ -281,6 +285,8 @@ def generate_pdf_report(self, path, data: ReportData):
             write_item("X-Axis Bounds", data.x_axis_bounds)
         if data.y_axis_bounds:
             write_item("Y-Axis Bounds", data.y_axis_bounds)
+        if data.z_axis_bounds:
+            write_item("Z-Axis Bounds", data.z_axis_bounds)
 
     # -- GPS Time --
     if (data.min_time or data.max_time):

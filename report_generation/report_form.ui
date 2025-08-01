@@ -206,6 +206,19 @@
                                         </property>
                                     </widget>
                                 </item>
+                                <item>
+                                    <widget class="QCheckBox" name="checkZAxisBounds">
+                                        <property name="text">
+                                            <string>Z-Axis Bounds</string>
+                                        </property>
+                                        <property name="checked">
+                                            <bool>false</bool>
+                                        </property>
+                                        <property name="toolTip">
+                                            <string>Minimum and maximum Z-axis values in the dataset</string>
+                                        </property>
+                                    </widget>
+                                </item>
                             </layout>
                         </widget>
                     </item>

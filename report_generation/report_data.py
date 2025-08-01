@@ -3,7 +3,7 @@
 # -------------------------
 class ReportData:
     def __init__(self, file_name, version, point_format,
-        num_points, bounds, x_axis_bounds, y_axis_bounds,
+        num_points, bounds, x_axis_bounds, y_axis_bounds, z_axis_bounds,
         file_source=None, global_encoding=None, system_id=None, gen_software=None,
         creation_date=None, unique_classes=None, class_counts=None, unique_returns=None,
         return_counts=None, min_intensity=None, max_intensity=None, min_time=None,
@@ -30,6 +30,7 @@ class ReportData:
         self.bounds = bounds
         self.x_axis_bounds = x_axis_bounds
         self.y_axis_bounds = y_axis_bounds
+        self.z_axis_bounds = z_axis_bounds
 
         # -- GPS Time --
         self.min_time = min_time

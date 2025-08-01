@@ -41,9 +41,9 @@ def generate_report(self):
 
             las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
 
-            bounds = las.header.mins, las.header.maxs           # Bounds of the point cloud
             x_axis_bounds = las.header.x_max, las.header.x_min  # Bounds for X-axis
             y_axis_bounds = las.header.y_max, las.header.y_min  # Bounds for Y-axis
+            z_axis_bounds = las.header.z_max, las.header.z_min  # Bounds for Z-axis
 
             unique_classes, class_counts = np.unique(las.classification, return_counts=True)  # Classification values and their counts
             unique_returns, ret_counts = np.unique(las.return_number, return_counts=True)   # Return number values and their counts
@@ -63,6 +63,7 @@ def generate_report(self):
             f"File Name: {os.path.basename(filename)}\n"
             f"File Source ID: {las.header.file_source_id}\n"
             f"System ID: {las.header.system_identifier}"
+            f"Z-axis Bounds: {las.header.z_max}, {las.header.z_min}\n"
         )
 
         dialog = ReportDialog(self.iface.mainWindow())
@@ -113,9 +114,10 @@ def generate_report(self):
             density=las.header.point_count / (
                 (las.header.x_max - las.header.x_min) * (las.header.y_max - las.header.y_min)
             ) if dialog.checkDensity.isChecked() else None,                                                 # Density of points (points per square unit)
-            bounds=bounds if dialog.checkBounds.isChecked() else None,                                      # Bounds of the point cloud (min, max)
-            x_axis_bounds=x_axis_bounds if dialog.checkXAxisBounds.isChecked() else None,                   # Bounds for X-axis
-            y_axis_bounds=y_axis_bounds if dialog.checkYAxisBounds.isChecked() else None,                   # Bounds for Y-axis
+            bounds=(las.header.mins, las.header.maxs) if dialog.checkBounds.isChecked() else None,                  # Bounds of the point cloud (min, max)
+            x_axis_bounds=(las.header.x_min, las.header.x_max) if dialog.checkXAxisBounds.isChecked() else None,    # Bounds for X-axis
+            y_axis_bounds=(las.header.y_min, las.header.y_max) if dialog.checkYAxisBounds.isChecked() else None,    # Bounds for Y-axis
+            z_axis_bounds=(las.header.z_min, las.header.z_max) if dialog.checkZAxisBounds.isChecked() else None,    # Bounds for Z-axis
 
             # -- GPS Time --
             min_time=dt_min if dialog.checkMinTime.isChecked() else None,                                   # Minimum GPS time
