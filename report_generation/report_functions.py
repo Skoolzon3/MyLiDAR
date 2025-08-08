@@ -2,9 +2,12 @@ from .report_data import ReportData
 from datetime import datetime
 
 # PDF generation imports
+from reportlab.lib.utils import ImageReader # TODO: Add graphs into PDF reports
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
+
+from ..utils import generate_pie_chart_from_counts, generate_return_bar_chart
 
 # --- Text Report Generation ---
 
@@ -188,10 +191,19 @@ def generate_pdf_report(self, path, data: ReportData):
     width, height = A4
     y = height - 2 * cm
 
+    def draw_page_number():
+        canvas.setFont("Helvetica", 10)
+        page_num_text = f"{canvas.getPageNumber()}"
+        canvas.drawRightString(width - 2 * cm, 1.5 * cm, page_num_text)
+
     def check_page_space(lines_needed=1):
         nonlocal y
         if y < lines_needed * 1.2 * cm:
+
+            draw_page_number()
             canvas.showPage()
+            y = height - 2 * cm
+
             y = height - 2 * cm
             canvas.setFont("Helvetica", 12)
 
@@ -296,16 +308,51 @@ def generate_pdf_report(self, path, data: ReportData):
         if data.max_time:
             write_item("Max GPS Time", data.max_time)
 
+    draw_page_number()
+    canvas.showPage()
+    canvas.setFont("Helvetica", 12)
+    y = height - 2 * cm
+
     # -- Classifications --
     if data.unique_classes is not None and data.class_counts is not None:
         write_heading("Classification Counts", level=2)
+
+        # -- Classification distribution pie chart --
+        chart_buf = generate_pie_chart_from_counts(data.unique_classes, data.class_counts)
+        chart_img = ImageReader(chart_buf)
+        chart_width, chart_height = 12 * cm, 10 * cm
+        center_x = (width - chart_width) / 2
+        if y - chart_height < 2 * cm:
+            canvas.showPage()
+            y = height - 2 * cm
+        canvas.drawImage(chart_img, center_x, y - chart_height, width=chart_width, height=chart_height)
+        y -= chart_height + 0.5 * cm
+
         for cls, count in zip(data.unique_classes, data.class_counts):
             write_item(f"Class {cls}", count)
+
+    draw_page_number()
+    canvas.showPage()
+    canvas.setFont("Helvetica", 12)
+    y = height - 2 * cm
 
     # -- Returns --
     if data.unique_returns is not None and data.return_counts is not None:
         write_heading("Return Number Counts", level=2)
+
+        # -- Return number bar chart --
+        return_chart_buf = generate_return_bar_chart(data.unique_returns, data.return_counts)
+        return_chart_img = ImageReader(return_chart_buf)
+        chart_width, chart_height = 12 * cm, 10 * cm
+        center_x = (width - chart_width) / 2
+        if y - chart_height < 2 * cm:
+            canvas.showPage()
+            y = height - 2 * cm
+        canvas.drawImage(return_chart_img, center_x, y - chart_height, width=chart_width, height=chart_height)
+        y -= chart_height + 0.5 * cm
+
         for ret, count in zip(data.unique_returns, data.return_counts):
             write_item(f"Return {ret}", count)
 
+    draw_page_number()
     canvas.save()

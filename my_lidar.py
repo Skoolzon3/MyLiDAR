@@ -26,6 +26,7 @@ from .report_generation.report_generation import generate_report
 from .outlier_removal.outlier_removal import remove_outliers
 from .overlap_removal.overlap_removal import remove_overlap
 from .building_count.building_count import count_buildings
+from .statistics_generation.statistics_generation import generate_statistics
 
 # -----------------------------
 # --- My LiDAR Plugin Class ---
@@ -39,6 +40,7 @@ class MyLiDARPlugin:
         self.third_action = None
         self.fourth_action = None
         self.fifth_action = None
+        self.sixth_action = None
 
     def tr(self, message):
         return QCoreApplication.translate('LiDAR Document Generator', message)
@@ -49,6 +51,7 @@ class MyLiDARPlugin:
         overlap_icon_path = os.path.join(self.plugin_dir, 'icons/overlap.png')
         building_icon_path = os.path.join(self.plugin_dir, 'icons/building.png')
         vegetation_icon_path = os.path.join(self.plugin_dir, 'icons/vegetation.png')
+        statistics_icon_path = os.path.join(self.plugin_dir, 'icons/statistics.png')
 
         self.menu = QMenu(self.tr("MyLiDAR"), self.iface.mainWindow().menuBar())
         self.iface.mainWindow().menuBar().insertMenu(
@@ -79,6 +82,10 @@ class MyLiDARPlugin:
         self.fifth_action = QAction(QIcon(vegetation_icon_path), self.tr('Classify vegetation'), self.iface.mainWindow())
         self.fifth_action.triggered.connect(self.classify_vegetation)
         self.menu.addAction(self.fifth_action)
+
+        self.sixth_action = QAction(QIcon(statistics_icon_path), self.tr('View file statistics'), self.iface.mainWindow())
+        self.sixth_action.triggered.connect(self.statistics_generation)
+        self.menu.addAction(self.sixth_action)
 
     def unload(self):
         self.menu.removeAction(self.action)
@@ -326,6 +333,9 @@ class MyLiDARPlugin:
     #     finally:
     #         loading_dialog.close()
     #         QApplication.restoreOverrideCursor()
+
+    def statistics_generation(self):
+        generate_statistics(self)
 
     # --------------------------
     # --- Placeholder method ---

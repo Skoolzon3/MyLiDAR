@@ -41,10 +41,6 @@ def generate_report(self):
 
             las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
 
-            x_axis_bounds = las.header.x_max, las.header.x_min  # Bounds for X-axis
-            y_axis_bounds = las.header.y_max, las.header.y_min  # Bounds for Y-axis
-            z_axis_bounds = las.header.z_max, las.header.z_min  # Bounds for Z-axis
-
             unique_classes, class_counts = np.unique(las.classification, return_counts=True)  # Classification values and their counts
             unique_returns, ret_counts = np.unique(las.return_number, return_counts=True)   # Return number values and their counts
 
@@ -62,8 +58,7 @@ def generate_report(self):
         QMessageBox.information(self.iface.mainWindow(), "File Info",
             f"File Name: {os.path.basename(filename)}\n"
             f"File Source ID: {las.header.file_source_id}\n"
-            f"System ID: {las.header.system_identifier}"
-            f"Z-axis Bounds: {las.header.z_max}, {las.header.z_min}\n"
+            f"System ID: {las.header.system_identifier}\n"
         )
 
         dialog = ReportDialog(self.iface.mainWindow())
