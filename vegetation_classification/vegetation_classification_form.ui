@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+    <class>VegetationThresholdsForm</class>
+    <widget class="QDialog" name="VegetationThresholdsForm">
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>280</width>
+                <height>150</height>
+            </rect>
+        </property>
+        <property name="windowTitle">
+            <string>Vegetation Thresholds</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+                <widget class="QLabel" name="labelLow">
+                    <property name="text">
+                        <string>Low Vegetation Threshold (m):</string>
+                    </property>
+                </widget>
+            </item>
+            <item>
+                <widget class="QDoubleSpinBox" name="spinLow">
+                    <property name="minimum">
+                        <double>0.10</double>
+                    </property>
+                    <property name="maximum">
+                        <double>100.00</double>
+                    </property>
+                    <property name="singleStep">
+                        <double>0.10</double>
+                    </property>
+                    <property name="value">
+                        <double>1.00</double>
+                    </property>
+                </widget>
+            </item>
+            <item>
+                <widget class="QLabel" name="labelHigh">
+                    <property name="text">
+                        <string>High Vegetation Threshold (m):</string>
+                    </property>
+                </widget>
+            </item>
+            <item>
+                <widget class="QDoubleSpinBox" name="spinHigh">
+                    <property name="minimum">
+                        <double>0.10</double>
+                    </property>
+                    <property name="maximum">
+                        <double>100.00</double>
+                    </property>
+                    <property name="singleStep">
+                        <double>0.10</double>
+                    </property>
+                    <property name="value">
+                        <double>3.00</double>
+                    </property>
+                </widget>
+            </item>
+            <item>
+                <widget class="QDialogButtonBox" name="buttonBox">
+                    <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="standardButtons">
+                        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+                    </property>
+                </widget>
+            </item>
+        </layout>
+    </widget>
+    <resources/>
+    <connections/>
+</ui>

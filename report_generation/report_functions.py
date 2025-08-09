@@ -2,7 +2,7 @@ from .report_data import ReportData
 from datetime import datetime
 
 # PDF generation imports
-from reportlab.lib.utils import ImageReader # TODO: Add graphs into PDF reports
+from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
@@ -336,7 +336,7 @@ def generate_pdf_report(self, path, data: ReportData):
     canvas.setFont("Helvetica", 12)
     y = height - 2 * cm
 
-    # -- Returns --
+    # -- Return number --
     if data.unique_returns is not None and data.return_counts is not None:
         write_heading("Return Number Counts", level=2)
 

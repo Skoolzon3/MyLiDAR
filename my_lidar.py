@@ -8,6 +8,8 @@ from PyQt5.QtWidgets import QApplication, QMessageBox, QMenu
 from PyQt5.QtTest import QTest
 from PyQt5.QtCore import Qt
 
+from scipy.spatial import cKDTree
+
 # Backend imports
 import laspy
 from laspy import LazBackend
@@ -27,6 +29,7 @@ from .outlier_removal.outlier_removal import remove_outliers
 from .overlap_removal.overlap_removal import remove_overlap
 from .building_count.building_count import count_buildings
 from .statistics_generation.statistics_generation import generate_statistics
+from .vegetation_classification.vegetation_classification import classify_vegetation
 
 # -----------------------------
 # --- My LiDAR Plugin Class ---
@@ -80,7 +83,7 @@ class MyLiDARPlugin:
         self.menu.addAction(self.fourth_action)
 
         self.fifth_action = QAction(QIcon(vegetation_icon_path), self.tr('Classify vegetation'), self.iface.mainWindow())
-        self.fifth_action.triggered.connect(self.classify_vegetation)
+        self.fifth_action.triggered.connect(self.vegetation_classification)
         self.menu.addAction(self.fifth_action)
 
         self.sixth_action = QAction(QIcon(statistics_icon_path), self.tr('View file statistics'), self.iface.mainWindow())
@@ -93,12 +96,14 @@ class MyLiDARPlugin:
         self.menu.removeAction(self.third_action)
         self.menu.removeAction(self.fourth_action)
         self.menu.removeAction(self.fifth_action)
+        self.menu.removeAction(self.sixth_action)
 
         self.iface.removeToolBarIcon(self.action)
         self.iface.removeToolBarIcon(self.secondary_action)
         self.iface.removeToolBarIcon(self.third_action)
         self.iface.removeToolBarIcon(self.fourth_action)
         self.iface.removeToolBarIcon(self.fifth_action)
+        self.iface.removeToolBarIcon(self.sixth_action)
 
         self.iface.mainWindow().menuBar().removeAction(self.menu.menuAction())
 
@@ -118,228 +123,14 @@ class MyLiDARPlugin:
     def building_count(self):
         count_buildings(self)
 
-    # ---------------------------------
     # --- Vegetation Classification ---
-    # ---------------------------------
+    def vegetation_classification(self):
+        classify_vegetation(self)
 
-    def classify_vegetation(self):
-        filename, _ = QFileDialog.getOpenFileName(
-            self.iface.mainWindow(),
-            'Select LiDAR File to Classify Vegetation',
-            '',
-            'LiDAR Files (*.las *.laz)'
-        )
-        if not filename:
-            return
-
-        loading_dialog = create_loading_dialog(self)
-
-        try:
-            QApplication.setOverrideCursor(Qt.WaitCursor)
-
-            loading_dialog.show()
-            QApplication.processEvents()
-
-            las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
-
-            # Class codes
-            low_class = 3
-            medium_class = 4
-            high_class = 5
-
-            classifications = las.classification
-            is_original = classifications == high_class
-            original_indices = np.where(is_original)[0]
-
-            if len(original_indices) == 0:
-                QMessageBox.information(
-                    self.iface.mainWindow(),
-                    "No High Vegetation Points",
-                    "No high vegetation points (classification code 5) found in the selected file."
-                )
-                return
-
-            z_vals = np.asarray(las.z[original_indices])
-            mean_z = z_vals.mean()
-            delta = 2.0  # You can adjust this threshold buffer (in meters)
-
-            # Classification based on thresholds
-            low_mask = z_vals < (mean_z - delta)
-            medium_mask = (z_vals >= (mean_z - delta)) & (z_vals <= (mean_z + delta))
-            high_mask = z_vals > (mean_z + delta)
-
-            las.classification[original_indices[low_mask]] = low_class
-            las.classification[original_indices[medium_mask]] = medium_class
-            las.classification[original_indices[high_mask]] = high_class  # Optionally redundant
-
-            output_path, _ = QFileDialog.getSaveFileName(
-                self.iface.mainWindow(),
-                'Save Reclassified Vegetation File',
-                os.path.splitext(filename)[0] + '_classified_vegetation.laz',
-                'LiDAR Files (*.las *.laz)'
-            )
-            if not output_path:
-                return
-
-            las.write(output_path)
-
-            QMessageBox.information(
-                self.iface.mainWindow(),
-                "Vegetation Reclassification Complete",
-                f"Original high veg points: {len(original_indices):,}\n"
-                f"Mean height (Z): {mean_z:.2f} m\n"
-                f"Threshold delta: ±{delta:.2f} m\n\n"
-                f"Low vegetation (class 3): {np.sum(low_mask):,}\n"
-                f"Medium vegetation (class 4): {np.sum(medium_mask):,}\n"
-                f"High vegetation (class 5): {np.sum(high_mask):,}\n\n"
-                f"Updated file saved to:\n{output_path}"
-            )
-
-        except Exception as e:
-            QMessageBox.critical(
-                self.iface.mainWindow(),
-                "Error During Classification",
-                f"An error occurred:\n{e}"
-            )
-
-        finally:
-            loading_dialog.close()
-            QApplication.restoreOverrideCursor()
-
-
-    # ----------------------------------------------
-    # --- Vegetation Classification (normalized) ---
-    # ----------------------------------------------
-    # Currently disabled due to efficiency issues with large datasets
-
-    # def classify_vegetation(self):
-    #     filename, _ = QFileDialog.getOpenFileName(
-    #         self.iface.mainWindow(),
-    #         'Select LiDAR File to Classify Vegetation (Normalized)',
-    #         '',
-    #         'LiDAR Files (*.las *.laz)'
-    #     )
-    #     if not filename:
-    #         return
-
-    #     loading_dialog = create_loading_dialog(self)
-
-    #     try:
-    #         QApplication.setOverrideCursor(Qt.WaitCursor)
-
-    #         loading_dialog.show()
-    #         QApplication.processEvents()
-
-    #         las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
-
-    #         # --- Extract Ground Points ---
-    #         ground_class_code = 2
-    #         ground_mask = las.classification == ground_class_code
-
-    #         if np.sum(ground_mask) < 3:
-    #             QMessageBox.warning(
-    #                 self.iface.mainWindow(),
-    #                 "Insufficient Ground Points",
-    #                 "Fewer than 3 ground points found — cannot interpolate terrain surface."
-    #             )
-    #             return
-
-    #         ground_x = las.x[ground_mask]
-    #         ground_y = las.y[ground_mask]
-    #         ground_z = las.z[ground_mask]
-
-    #         # --- Interpolate Ground Surface (DTM) ---
-    #         all_x = las.x
-    #         all_y = las.y
-
-    #         terrain = griddata(
-    #             points=(ground_x, ground_y),
-    #             values=ground_z,
-    #             xi=(all_x, all_y),
-    #             method='linear'
-    #         )
-
-    #         if np.any(np.isnan(terrain)):
-    #             QMessageBox.warning(
-    #                 self.iface.mainWindow(),
-    #                 "Interpolation Error",
-    #                 "Some terrain heights could not be interpolated. Consider using denser ground points."
-    #             )
-    #             return
-
-    #         # --- Compute Height Above Ground ---
-    #         height_above_ground = np.asarray(las.z) - terrain
-
-    #         # --- Reclassify Vegetation Based on Normalized Height ---
-    #         original_veg_class = 5
-    #         low_class = 3
-    #         med_class = 4
-    #         high_class = 5
-
-    #         veg_mask = las.classification == original_veg_class
-    #         veg_indices = np.where(veg_mask)[0]
-
-    #         if len(veg_indices) == 0:
-    #             QMessageBox.information(
-    #                 self.iface.mainWindow(),
-    #                 "No Vegetation Points",
-    #                 "No high vegetation points (class 5) found to reclassify."
-    #             )
-    #             return
-
-    #         veg_heights = height_above_ground[veg_mask]
-
-    #         low_thresh = 2.0
-    #         high_thresh = 10.0
-
-    #         low_mask = veg_heights < low_thresh
-    #         med_mask = (veg_heights >= low_thresh) & (veg_heights <= high_thresh)
-    #         high_mask = veg_heights > high_thresh
-
-    #         # Update classifications
-    #         las.classification[veg_indices[low_mask]] = low_class
-    #         las.classification[veg_indices[med_mask]] = med_class
-    #         las.classification[veg_indices[high_mask]] = high_class  # Redundant but safe
-
-    #         # --- Save Output File ---
-    #         output_path, _ = QFileDialog.getSaveFileName(
-    #             self.iface.mainWindow(),
-    #             'Save Terrain-Normalized Vegetation File',
-    #             os.path.splitext(filename)[0] + '_veg_normalized.laz',
-    #             'LiDAR Files (*.las *.laz)'
-    #         )
-    #         if not output_path:
-    #             return
-
-    #         las.write(output_path)
-
-    #         QMessageBox.information(
-    #             self.iface.mainWindow(),
-    #             "Vegetation Classification Complete",
-    #             f"Total high vegetation points processed: {len(veg_indices):,}\n"
-    #             f"Low vegetation (< {low_thresh} m): {np.sum(low_mask):,}\n"
-    #             f"Medium vegetation ({low_thresh}-{high_thresh} m): {np.sum(med_mask):,}\n"
-    #             f"High vegetation (> {high_thresh} m): {np.sum(high_mask):,}\n\n"
-    #             f"Output saved to:\n{output_path}"
-    #         )
-
-    #     except Exception as e:
-    #         QMessageBox.critical(
-    #             self.iface.mainWindow(),
-    #             "Error During Classification",
-    #             f"An error occurred:\n{e}"
-    #         )
-
-    #     finally:
-    #         loading_dialog.close()
-    #         QApplication.restoreOverrideCursor()
-
+    # --- Statistics Generation ---
     def statistics_generation(self):
         generate_statistics(self)
 
-    # --------------------------
     # --- Placeholder method ---
-    # --------------------------
-
     def placeholder(self):
         QMessageBox.information(self.iface.mainWindow(), "Title", f"Coming soon!")
