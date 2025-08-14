@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout, QApplication
+from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout, QProgressBar
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 
@@ -103,7 +103,7 @@ def generate_return_bar_chart(unique_returns, return_counts):
 
 # --- Dialog creation for loading LiDAR files ---
 
-def create_loading_dialog(self):
+def create_loading_dialog(self, message="Loading LiDAR file...", show_progress=True):
     loading_dialog = QDialog(self.iface.mainWindow())
     loading_dialog.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
     loading_dialog.setModal(True)
@@ -111,21 +111,43 @@ def create_loading_dialog(self):
 
     loading_dialog.setStyleSheet("""
         QDialog {
-            background-color: #f0f0f0;
-            border: 1px solid #444;
+            background-color: #ffffff;
+            border: 1px solid #ccc;
         }
         QLabel {
             font-size: 14px;
+            font-weight: bold;
             color: #333;
+        }
+        QProgressBar {
+            border: 1px solid #bbb;
+            border-radius: 6px;
+            text-align: center;
+            height: 16px;
+        }
+        QProgressBar::chunk {
+            background-color: #4a90e2;
+            border-radius: 6px;
         }
     """)
 
     layout = QVBoxLayout()
     layout.setContentsMargins(20, 20, 20, 20)
-    label = QLabel("Loading LiDAR file...\nPlease wait.")
+
+    label = QLabel(message)
     label.setAlignment(Qt.AlignCenter)
-    label.setFont(QFont("Segoe UI", 10))
+    label.setFont(QFont("Segoe UI", 12))
     layout.addWidget(label)
+
+    # Progress bar (indeterminate mode if no updates given)
+    progress_bar = None
+    if show_progress:
+        progress_bar = QProgressBar()
+        progress_bar.setRange(0, 0)  # Indeterminate initially
+        layout.addWidget(progress_bar)
+
     loading_dialog.setLayout(layout)
-    loading_dialog.setFixedSize(300, 100)
+    loading_dialog.setFixedSize(320, 140)
+
+    # Note: progress bar not yet returned
     return loading_dialog
