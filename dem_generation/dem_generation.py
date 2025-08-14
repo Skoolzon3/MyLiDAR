@@ -1,0 +1,141 @@
+import os
+
+from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox, QDialog, QInputDialog
+from PyQt5.QtWidgets import QApplication, QMessageBox, QDialog, QInputDialog
+from PyQt5.QtTest import QTest
+from PyQt5.QtCore import Qt
+
+from osgeo import gdal, osr
+import laspy
+from laspy import LazBackend
+import numpy as np
+
+# from .outlier_removal_dialog import OutlierRemovalDialog
+
+from ..utils import create_loading_dialog
+
+# ---------------------------------
+# --- Bare Earth DEM Generation ---
+# ---------------------------------
+
+def generate_bare_earth_dem(self):
+    filename, _ = QFileDialog.getOpenFileName(
+        self.iface.mainWindow(),
+        'Select LiDAR File for Bare Earth DEM',
+        '',
+        'LiDAR Files (*.las *.laz)'
+    )
+    if not filename:
+        return
+
+    # Dialog to let user select DEM resolution
+    dialog = QInputDialog(self.iface.mainWindow())
+    dialog.setWindowTitle("DEM Resolution")
+    dialog.setLabelText("Enter DEM cell size (meters):")
+    dialog.setInputMode(QInputDialog.DoubleInput)
+    dialog.setDoubleDecimals(2)
+    dialog.setDoubleMinimum(0.1)
+    dialog.setDoubleValue(1.0)  # Default 1 m cell size
+    if dialog.exec_() != QDialog.Accepted:
+        return
+    cell_size = dialog.doubleValue()
+
+    loading_dialog = create_loading_dialog(self)
+
+    try:
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+
+        loading_dialog.show()
+        QApplication.processEvents()
+        QTest.qWait(100)
+
+        las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
+
+        # Filter to only ground points (ASPRS classification code 2)
+        ground_mask = (las.classification == 2)
+        if not np.any(ground_mask):
+            raise ValueError("No ground points found in the file.")
+
+        x = las.x[ground_mask]
+        y = las.y[ground_mask]
+        z = las.z[ground_mask]
+        min_x, max_x = x.min(), x.max()
+        min_y, max_y = y.min(), y.max()
+        cols = int(np.ceil((max_x - min_x) / cell_size))
+        rows = int(np.ceil((max_y - min_y) / cell_size))
+
+        # Initialize DEM array with NaNs
+        dem = np.full((rows, cols), np.nan, dtype=np.float32)
+
+        # Convert point coords to raster indices
+        col_idx = ((x - min_x) / cell_size).astype(int)
+        row_idx = ((max_y - y) / cell_size).astype(int)  # Flip Y for raster
+
+        # Assign minimum Z to each cell (bare earth assumption)
+        for r, c, z_val in zip(row_idx, col_idx, z):
+            if 0 <= r < rows and 0 <= c < cols:
+                if np.isnan(dem[r, c]) or z_val < dem[r, c]:
+                    dem[r, c] = z_val
+
+        # Fill small gaps with nearest-neighbor
+        from scipy.ndimage import generic_filter
+        def nan_fill(values):
+            vals = values[~np.isnan(values)]
+            return vals[0] if len(vals) else np.nan
+
+        dem_filled = generic_filter(dem, nan_fill, size=3, mode='nearest')
+
+        # Replace NaNs with NoData value
+        dem_filled = np.where(np.isnan(dem_filled), -9999, dem_filled)
+
+        output_path, _ = QFileDialog.getSaveFileName(
+            self.iface.mainWindow(),
+            'Save Bare Earth DEM',
+            os.path.splitext(filename)[0] + '_bare_earth_dem.tif',
+            'GeoTIFF (*.tif)'
+        )
+        if not output_path:
+            return
+
+        driver = gdal.GetDriverByName('GTiff')
+        out_raster = driver.Create(output_path, cols, rows, 1, gdal.GDT_Float32)
+        out_raster.SetGeoTransform((min_x, cell_size, 0, max_y, 0, -cell_size))
+
+        srs = osr.SpatialReference()
+
+        try:
+            # Try to extract WKT from VLRs (common for newer LAS 1.4 files)
+            from laspy.vlrs.known import WktCoordinateSystemVlr
+            wkt_vlrs = [vlr for vlr in las.header.vlrs if isinstance(vlr, WktCoordinateSystemVlr)]
+            if wkt_vlrs:
+                srs.ImportFromWkt(wkt_vlrs[0].wkt)
+            else:
+                # No WKT found, fallback to EPSG:4326
+                srs.ImportFromEPSG(4326)
+        except Exception:
+            srs.ImportFromEPSG(4326)  # Safe fallback
+
+        out_raster.SetProjection(srs.ExportToWkt())
+
+        out_band = out_raster.GetRasterBand(1)
+        out_band.WriteArray(dem_filled)
+        out_band.SetNoDataValue(-9999)
+        out_band.FlushCache()
+
+        QMessageBox.information(
+            self.iface.mainWindow(),
+            "Bare Earth DEM Generated",
+            f"DEM successfully generated from ground points.\n"
+            f"Output saved to:\n{output_path}"
+        )
+
+    except Exception as e:
+        QMessageBox.critical(
+            self.iface.mainWindow(),
+            "Error Generating Bare Earth DEM",
+            f"An error occurred:\n{e}"
+        )
+
+    finally:
+        loading_dialog.close()
+        QApplication.restoreOverrideCursor()

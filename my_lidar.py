@@ -13,6 +13,7 @@ from .overlap_removal.overlap_removal import remove_overlap
 from .building_count.building_count import count_buildings
 from .statistics_generation.statistics_generation import generate_statistics
 from .vegetation_classification.vegetation_classification import classify_vegetation
+from .dem_generation.dem_generation import generate_bare_earth_dem
 
 # -----------------------------
 # --- My LiDAR Plugin Class ---
@@ -27,6 +28,7 @@ class MyLiDARPlugin:
         self.fourth_action = None
         self.fifth_action = None
         self.sixth_action = None
+        self.seventh_action = None
 
     def tr(self, message):
         return QCoreApplication.translate('LiDAR Document Generator', message)
@@ -74,6 +76,10 @@ class MyLiDARPlugin:
         self.sixth_action.triggered.connect(self.statistics_generation)
         self.menu.addAction(self.sixth_action)
 
+        self.seventh_action = QAction(QIcon(statistics_icon_path), self.tr('Generate Bare Earth DEM'), self.iface.mainWindow())
+        self.seventh_action.triggered.connect(self.bare_earth_dem_generation)
+        self.menu.addAction(self.seventh_action)
+
     def unload(self):
         self.menu.removeAction(self.action)
         self.menu.removeAction(self.secondary_action)
@@ -81,6 +87,7 @@ class MyLiDARPlugin:
         self.menu.removeAction(self.fourth_action)
         self.menu.removeAction(self.fifth_action)
         self.menu.removeAction(self.sixth_action)
+        self.menu.removeAction(self.seventh_action)
 
         self.iface.removeToolBarIcon(self.action)
         self.iface.removeToolBarIcon(self.secondary_action)
@@ -88,6 +95,7 @@ class MyLiDARPlugin:
         self.iface.removeToolBarIcon(self.fourth_action)
         self.iface.removeToolBarIcon(self.fifth_action)
         self.iface.removeToolBarIcon(self.sixth_action)
+        # self.iface.removeToolBarIcon(self.seventh_action)
 
         self.iface.mainWindow().menuBar().removeAction(self.menu.menuAction())
 
@@ -114,6 +122,10 @@ class MyLiDARPlugin:
     # --- Statistics Generation ---
     def statistics_generation(self):
         generate_statistics(self)
+
+    # --- Bare Earth DEM Generation ---
+    def bare_earth_dem_generation(self):
+        generate_bare_earth_dem(self)
 
     # --- Placeholder method ---
     def placeholder(self):
