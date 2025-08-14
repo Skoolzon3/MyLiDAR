@@ -2,26 +2,9 @@ import os
 
 # QGIS and PyQt imports
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.PyQt.QtWidgets import QAction, QFileDialog, QMessageBox
+from qgis.PyQt.QtWidgets import QAction, QMessageBox
 from qgis.PyQt.QtGui import QIcon
-from PyQt5.QtWidgets import QApplication, QMessageBox, QMenu
-from PyQt5.QtTest import QTest
-from PyQt5.QtCore import Qt
-
-from scipy.spatial import cKDTree
-
-# Backend imports
-import laspy
-from laspy import LazBackend
-
-# Data handling imports
-import numpy as np
-
-# Spatial data handling imports
-# from scipy.interpolate import griddata
-
-# External utility functions
-from .utils import create_loading_dialog
+from PyQt5.QtWidgets import QMessageBox, QMenu
 
 # --- Method imports ---
 from .report_generation.report_generation import generate_report
@@ -58,7 +41,7 @@ class MyLiDARPlugin:
 
         self.menu = QMenu(self.tr("MyLiDAR"), self.iface.mainWindow().menuBar())
         self.iface.mainWindow().menuBar().insertMenu(
-            self.iface.mainWindow().menuBar().actions()[-1],  # Insert before "Help"
+            self.iface.mainWindow().menuBar().actions()[-1],
             self.menu
         )
 
@@ -77,14 +60,15 @@ class MyLiDARPlugin:
         self.iface.addToolBarIcon(self.third_action)
         self.menu.addAction(self.third_action)
 
+        self.fifth_action = QAction(QIcon(vegetation_icon_path), self.tr('Classify vegetation'), self.iface.mainWindow())
+        self.fifth_action.triggered.connect(self.vegetation_classification)
+        self.iface.addToolBarIcon(self.fifth_action)
+        self.menu.addAction(self.fifth_action)
+
         # Toolbar-only actions
         self.fourth_action = QAction(QIcon(building_icon_path), self.tr('Count buildings'), self.iface.mainWindow())
         self.fourth_action.triggered.connect(self.building_count)
         self.menu.addAction(self.fourth_action)
-
-        self.fifth_action = QAction(QIcon(vegetation_icon_path), self.tr('Classify vegetation'), self.iface.mainWindow())
-        self.fifth_action.triggered.connect(self.vegetation_classification)
-        self.menu.addAction(self.fifth_action)
 
         self.sixth_action = QAction(QIcon(statistics_icon_path), self.tr('View file statistics'), self.iface.mainWindow())
         self.sixth_action.triggered.connect(self.statistics_generation)
