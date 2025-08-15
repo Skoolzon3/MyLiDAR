@@ -9,7 +9,7 @@ from laspy import LazBackend
 import numpy as np
 from scipy.spatial import cKDTree
 
-from ..utils import create_loading_dialog
+from ...utils import create_loading_dialog
 from .vegetation_classification_dialog import VegetationClassificationDialog
 
 # ---------------------------------

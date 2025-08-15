@@ -8,13 +8,13 @@ from qgis.PyQt.QtGui import QIcon
 from PyQt5.QtWidgets import QMessageBox, QMenu
 
 # --- Method-specific imports ---
-from .report_generation.report_generation import generate_report
-from .outlier_removal.outlier_removal import remove_outliers
-from .overlap_removal.overlap_removal import remove_overlap
-from .building_count.building_count import count_buildings
-from .statistics_generation.statistics_generation import generate_statistics
-from .vegetation_classification.vegetation_classification import classify_vegetation
-from .dem_generation.dem_generation import generate_bare_earth_dem
+from .tools_suite.report_generation.report_generation import generate_report
+from .tools_suite.outlier_removal.outlier_removal import remove_outliers
+from .tools_suite.overlap_removal.overlap_removal import remove_overlap
+from .tools_suite.building_count.building_count import count_buildings
+from .tools_suite.statistics_generation.statistics_generation import generate_statistics
+from .tools_suite.vegetation_classification.vegetation_classification import classify_vegetation
+from .tools_suite.dem_generation.dem_generation import generate_bare_earth_dem
 
 # -----------------------------
 # --- My LiDAR Plugin Class ---

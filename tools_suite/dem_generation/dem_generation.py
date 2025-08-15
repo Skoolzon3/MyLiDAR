@@ -12,7 +12,7 @@ import numpy as np
 
 from .dem_generation_dialog import BareEarthDemDialog
 
-from ..utils import create_loading_dialog
+from ...utils import create_loading_dialog
 
 # ---------------------------------
 # --- Bare Earth DEM Generation ---

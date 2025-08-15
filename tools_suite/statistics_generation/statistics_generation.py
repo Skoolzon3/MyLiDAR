@@ -7,7 +7,7 @@ from laspy import LazBackend
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ..utils import create_loading_dialog
+from ...utils import create_loading_dialog
 
 # -----------------------------
 # --- Statistics Generation ---

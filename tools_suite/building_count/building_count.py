@@ -8,12 +8,12 @@ from laspy import LazBackend
 import numpy as np
 from sklearn.cluster import DBSCAN
 
-from ..utils import create_loading_dialog
+from ...utils import create_loading_dialog
 from .building_count_dialog import BuildingParamsDialog
 
-# ---------------------
-# --- Builing Count ---
-# ---------------------
+# ----------------------
+# --- Building Count ---
+# ----------------------
 
 def count_buildings(self):
     filename, _ = QFileDialog.getOpenFileName(

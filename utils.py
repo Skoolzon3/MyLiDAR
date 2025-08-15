@@ -5,7 +5,6 @@ from PyQt5.QtGui import QFont
 
 from io import BytesIO
 from matplotlib import pyplot as plt
-import numpy as np
 
 # --- Formatting functions for LiDAR data processing ---
 

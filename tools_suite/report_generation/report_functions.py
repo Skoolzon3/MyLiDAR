@@ -7,7 +7,7 @@ from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 
-from ..utils import generate_pie_chart_from_counts, generate_return_bar_chart
+from ...utils import generate_pie_chart_from_counts, generate_return_bar_chart
 
 # --- Text Report Generation ---
 
