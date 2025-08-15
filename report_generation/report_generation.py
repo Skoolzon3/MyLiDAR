@@ -132,7 +132,7 @@ def generate_report(self):
         else:
             generate_txt_report(self, report_path, data)
 
-        QMessageBox.information(self.iface.mainWindow(), "Success", f"Report created at {report_path}")
+        QMessageBox.information(self.iface.mainWindow(), "Success", f"Report created at:\n{report_path}")
 
     except Exception as e:
         QMessageBox.critical(self.iface.mainWindow(), "Error", f"Failed to process file:\n{e}")

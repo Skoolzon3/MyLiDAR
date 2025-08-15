@@ -1,7 +1,7 @@
 import os
 
-from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox, QDialog, QInputDialog
-from PyQt5.QtWidgets import QApplication, QMessageBox, QDialog, QInputDialog
+from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox, QDialog
+from PyQt5.QtWidgets import QApplication, QMessageBox, QDialog
 from PyQt5.QtTest import QTest
 from PyQt5.QtCore import Qt
 
@@ -10,7 +10,7 @@ import laspy
 from laspy import LazBackend
 import numpy as np
 
-# from .outlier_removal_dialog import OutlierRemovalDialog
+from .dem_generation_dialog import BareEarthDemDialog
 
 from ..utils import create_loading_dialog
 
@@ -28,17 +28,10 @@ def generate_bare_earth_dem(self):
     if not filename:
         return
 
-    # Dialog to let user select DEM resolution
-    dialog = QInputDialog(self.iface.mainWindow())
-    dialog.setWindowTitle("DEM Resolution")
-    dialog.setLabelText("Enter DEM cell size (meters):")
-    dialog.setInputMode(QInputDialog.DoubleInput)
-    dialog.setDoubleDecimals(2)
-    dialog.setDoubleMinimum(0.1)
-    dialog.setDoubleValue(1.0)  # Default 1 m cell size
-    if dialog.exec_() != QDialog.Accepted:
+    dlg = BareEarthDemDialog(self.iface.mainWindow())
+    if dlg.exec_() != QDialog.Accepted:
         return
-    cell_size = dialog.doubleValue()
+    cell_size = dlg.get_values()
 
     loading_dialog = create_loading_dialog(self)
 
@@ -51,7 +44,7 @@ def generate_bare_earth_dem(self):
 
         las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
 
-        # Filter to only ground points (ASPRS classification code 2)
+        # Filter ground points (ASPRS classification code 2)
         ground_mask = (las.classification == 2)
         if not np.any(ground_mask):
             raise ValueError("No ground points found in the file.")
@@ -116,7 +109,6 @@ def generate_bare_earth_dem(self):
             srs.ImportFromEPSG(4326)  # Safe fallback
 
         out_raster.SetProjection(srs.ExportToWkt())
-
         out_band = out_raster.GetRasterBand(1)
         out_band.WriteArray(dem_filled)
         out_band.SetNoDataValue(-9999)
@@ -126,13 +118,13 @@ def generate_bare_earth_dem(self):
             self.iface.mainWindow(),
             "Bare Earth DEM Generated",
             f"DEM successfully generated from ground points.\n"
-            f"Output saved to:\n{output_path}"
+            f"Output saved at:\n{output_path}"
         )
 
     except Exception as e:
         QMessageBox.critical(
             self.iface.mainWindow(),
-            "Error Generating Bare Earth DEM",
+            "Error whilst generating Bare Earth DEM",
             f"An error occurred:\n{e}"
         )
 

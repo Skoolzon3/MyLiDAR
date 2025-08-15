@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+    <class>BareEarthDemDialog</class>
+    <widget class="QDialog" name="BareEarthDemDialog">
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>300</width>
+                <height>100</height>
+            </rect>
+        </property>
+        <property name="windowTitle">
+            <string>Bare Earth DEM Settings</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+                <widget class="QLabel" name="label">
+                    <property name="text">
+                        <string>Enter DEM cell size (meters):</string>
+                    </property>
+                </widget>
+            </item>
+            <item>
+                <widget class="QDoubleSpinBox" name="cellSizeSpinBox">
+                    <property name="decimals">
+                        <number>2</number>
+                    </property>
+                    <property name="minimum">
+                        <double>0.10</double>
+                    </property>
+                    <property name="maximum">
+                        <double>1000.00</double>
+                    </property>
+                    <property name="singleStep">
+                        <double>0.10</double>
+                    </property>
+                    <property name="value">
+                        <double>1.00</double>
+                    </property>
+                </widget>
+            </item>
+            <item>
+                <widget class="QDialogButtonBox" name="buttonBox">
+                    <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="standardButtons">
+                        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+                    </property>
+                </widget>
+            </item>
+        </layout>
+    </widget>
+<resources/>
+<connections>
+<connection>
+<sender>buttonBox</sender>
+<signal>accepted()</signal>
+<receiver>BareEarthDemDialog</receiver>
+<slot>accept()</slot>
+<hints>
+<hint type="sourcelabel">
+    <x>220</x>
+    <y>100</y>
+</hint>
+<hint type="destinationlabel">
+    <x>150</x>
+    <y>60</y>
+</hint>
+</hints>
+</connection>
+<connection>
+<sender>buttonBox</sender>
+<signal>rejected()</signal>
+<receiver>BareEarthDemDialog</receiver>
+<slot>reject()</slot>
+<hints>
+<hint type="sourcelabel">
+    <x>260</x>
+    <y>100</y>
+</hint>
+<hint type="destinationlabel">
+    <x>150</x>
+    <y>60</y>
+</hint>
+</hints>
+</connection>
+</connections>
+</ui>
