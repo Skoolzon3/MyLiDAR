@@ -1,17 +1,23 @@
+# --- General imports ---
 import os
-
-from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
-from PyQt5.QtWidgets import QApplication, QMessageBox
-from PyQt5.QtCore import Qt
-
 import laspy
 from laspy import LazBackend
 import numpy as np
 
+# --- QGIS and PyQt imports ---
+from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtCore import Qt
+
+# --- Dialog imports ---
 from ...utils import create_loading_dialog
 
 # -----------------------
 # --- Overlap Removal ---
+# -----------------------
+# Description:
+# This function removes overlap points from a LiDAR file based on classification codes, by
+# filting out points classified as overlap and saving the remaining points to a new point cloud.
 # -----------------------
 
 def remove_overlap(self):

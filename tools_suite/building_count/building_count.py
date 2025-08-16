@@ -1,18 +1,28 @@
+# --- General imports ---
+import laspy
+from laspy import LazBackend
+import numpy as np
+
+# --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.QtWidgets import QApplication, QMessageBox
 from PyQt5.QtTest import QTest
 from PyQt5.QtCore import Qt
 
-import laspy
-from laspy import LazBackend
-import numpy as np
+# --- Method-specific imports ---
 from sklearn.cluster import DBSCAN
 
+# --- Dialog imports ---
 from ...utils import create_loading_dialog
 from .building_count_dialog import BuildingParamsDialog
 
 # ----------------------
 # --- Building Count ---
+# ----------------------
+# Description:
+# This function counts buildings in LiDAR point clouds through DBSCAN clustering
+# on building-classified points, providing an approximate count of buildings based on its results.
+# Users can specify parameters for clustering (eps and min_samples).
 # ----------------------
 
 def count_buildings(self):

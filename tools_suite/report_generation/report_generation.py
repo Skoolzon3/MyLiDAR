@@ -1,23 +1,29 @@
+# --- General imports ---
 import os
-
-from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox, QDialog
-from PyQt5.QtWidgets import QApplication, QMessageBox, QDialog
-from PyQt5.QtCore import Qt
-
 import laspy
 from laspy import LazBackend
 import numpy as np
 
-from .report_dialog import ReportDialog
+# --- QGIS and PyQt imports ---
+from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox, QDialog
+from PyQt5.QtWidgets import QApplication, QMessageBox, QDialog
+from PyQt5.QtCore import Qt
+
+# --- Dialogs and Data Classes imports ---
 from .report_data import ReportData
+from .report_dialog import ReportDialog
+from ...utils import create_loading_dialog
 
-from ...utils import format_global_encoding, format_point_format
-from ...utils import gps_time_to_datetime, create_loading_dialog
-
+# --- Utility & Report Generation Functions ---
+from ...utils import format_global_encoding, format_point_format, gps_time_to_datetime
 from .report_functions import generate_txt_report, generate_markdown_report, generate_pdf_report
 
 # -------------------------
 # --- Report Generation ---
+# -------------------------
+# Description:
+# This function generates a report based on the LiDAR file's metadata and statistics,
+# allowing the user to choose the report format (text, markdown, or PDF) and which metadata to include.
 # -------------------------
 
 def generate_report(self):

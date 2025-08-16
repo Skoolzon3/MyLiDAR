@@ -1,21 +1,29 @@
+# --- General imports ---
 import os
+import laspy
+from laspy import LazBackend
+import numpy as np
 
+# --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox, QDialog
 from PyQt5.QtWidgets import QApplication, QMessageBox, QDialog
 from PyQt5.QtTest import QTest
 from PyQt5.QtCore import Qt
 
+# --- Method-specific imports ---
 from osgeo import gdal, osr
-import laspy
-from laspy import LazBackend
-import numpy as np
 
+# --- Dialog imports ---
 from .dem_generation_dialog import BareEarthDemDialog
-
 from ...utils import create_loading_dialog
 
 # ---------------------------------
 # --- Bare Earth DEM Generation ---
+# ---------------------------------
+# Description:
+# This function generates a bare earth DEM from LiDAR point clouds by filtering ground points,
+# creating a raster grid and filling gaps using nearest-neighbor interpolation.
+# It allows users to specify the cell size for the DEM.
 # ---------------------------------
 
 def generate_bare_earth_dem(self):

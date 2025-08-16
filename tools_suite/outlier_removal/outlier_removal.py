@@ -1,21 +1,28 @@
+# --- General imports ---
 import os
+import laspy
+from laspy import LazBackend
+import numpy as np
 
+# --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox, QDialog
 from PyQt5.QtWidgets import QApplication, QMessageBox, QDialog
 from PyQt5.QtTest import QTest
 from PyQt5.QtCore import Qt
 
-import laspy
-from laspy import LazBackend
-import numpy as np
+# --- Method-specific imports ---
 from scipy.spatial import cKDTree
 
+# --- Dialog imports ---
 from .outlier_removal_dialog import OutlierRemovalDialog
-
 from ...utils import create_loading_dialog
 
 # -----------------------
 # --- Outlier Removal ---
+# -----------------------
+# Description:
+# This function removes outliers from a LiDAR file based on a specified radius and minimum number of neighbors.
+# It uses a KD-tree during neighbor searching and allows the user to save the processed file.
 # -----------------------
 
 def remove_outliers(self):

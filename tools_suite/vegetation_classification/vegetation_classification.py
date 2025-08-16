@@ -1,19 +1,27 @@
+# --- General imports ---
 import os
+import laspy
+from laspy import LazBackend
+import numpy as np
 
+# --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox, QDialog
 from PyQt5.QtWidgets import QApplication, QMessageBox, QDialog
 from PyQt5.QtCore import Qt
 
-import laspy
-from laspy import LazBackend
-import numpy as np
+# --- Method-specific imports ---
 from scipy.spatial import cKDTree
 
+# --- Dialog imports ---
 from ...utils import create_loading_dialog
 from .vegetation_classification_dialog import VegetationClassificationDialog
 
 # ---------------------------------
 # --- Vegetation Classification ---
+# ---------------------------------
+# Description:
+# This module classifies vegetation in LiDAR data into low, medium, and high categories,
+# based on user-defined height thresholds.
 # ---------------------------------
 
 def classify_vegetation(self):

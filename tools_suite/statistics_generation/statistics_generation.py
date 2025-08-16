@@ -1,16 +1,23 @@
-from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
-from PyQt5.QtWidgets import QApplication, QMessageBox
-from PyQt5.QtCore import Qt
-
+# --- General imports ---
 import laspy
 from laspy import LazBackend
 import matplotlib.pyplot as plt
 import numpy as np
 
+# --- QGIS and PyQt imports ---
+from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtCore import Qt
+
+# --- Dialog imports ---
 from ...utils import create_loading_dialog
 
 # -----------------------------
 # --- Statistics Generation ---
+# -----------------------------
+# Description:
+# This function generates statistics from a LiDAR file on classification and return number distributions,
+# as well as point density. It visualizes these statistics using pie charts and histograms.
 # -----------------------------
 
 def generate_statistics(self):
