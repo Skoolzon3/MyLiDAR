@@ -34,7 +34,7 @@ def classify_vegetation(self):
     if not filename:
         return
 
-    loading_dialog = create_loading_dialog(self)
+    loading_dialog = create_loading_dialog(self, message="Reclassifying vegetation...")
 
     try:
         QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -63,7 +63,7 @@ def classify_vegetation(self):
         ground_xy = np.vstack((las.x[ground_idx], las.y[ground_idx])).T
         ground_z = las.z[ground_idx]
 
-        # Tree points originally marked as high vegetation
+        # Points originally marked as high vegetation
         high_veg_idx = np.where(classifications == high_class)[0]
         if len(high_veg_idx) == 0:
             QMessageBox.information(

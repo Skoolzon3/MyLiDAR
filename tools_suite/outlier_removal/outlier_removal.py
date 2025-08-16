@@ -40,7 +40,7 @@ def remove_outliers(self):
         return
 
     radius, min_neighbors = dialog.get_values()
-    loading_dialog = create_loading_dialog(self)
+    loading_dialog = create_loading_dialog(self, message="Processing LiDAR file...")
 
     try:
         QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -49,7 +49,7 @@ def remove_outliers(self):
         QApplication.processEvents()
         QTest.qWait(100)
 
-        las = laspy.read(filename, laz_backend=LazBackend.Lazrs) # This call takes some time
+        las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
 
         # Obtain coordinates and build a KD-tree for neighbor search
         coords = np.vstack((las.x, las.y, las.z)).T

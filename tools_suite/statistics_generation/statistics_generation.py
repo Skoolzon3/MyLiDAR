@@ -30,7 +30,7 @@ def generate_statistics(self):
     if not filename:
         return
 
-    loading_dialog = create_loading_dialog(self)
+    loading_dialog = create_loading_dialog(self, message="Generating statistics...")
 
     try:
         QApplication.setOverrideCursor(Qt.WaitCursor)

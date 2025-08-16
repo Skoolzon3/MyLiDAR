@@ -41,7 +41,7 @@ def generate_bare_earth_dem(self):
         return
     cell_size = dlg.get_values()
 
-    loading_dialog = create_loading_dialog(self)
+    loading_dialog = create_loading_dialog(self, message="Generating Bare Earth DEM...")
 
     try:
         QApplication.setOverrideCursor(Qt.WaitCursor)

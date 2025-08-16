@@ -3,9 +3,8 @@ import os
 
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.PyQt.QtWidgets import QAction, QMessageBox
 from qgis.PyQt.QtGui import QIcon
-from PyQt5.QtWidgets import QMessageBox, QMenu
+from qgis.PyQt.QtWidgets import QAction, QMessageBox, QMenu
 
 # --- Method-specific imports ---
 from .tools_suite.report_generation.report_generation import generate_report
@@ -24,7 +23,7 @@ class MyLiDARPlugin:
         self.iface = iface
         self.plugin_dir = os.path.dirname(__file__)
 
-        # Initialize actions
+        # Actions
         self.report_action = None
         self.outliers_action = None
         self.overlap_action = None
@@ -33,75 +32,46 @@ class MyLiDARPlugin:
         self.statistics_action = None
         self.dem_action = None
 
-    def tr(self, message):
-        return QCoreApplication.translate('LiDAR Document Generator', message)
+    def tr(self, message: str) -> str:
+        return QCoreApplication.translate('MyLiDAR', message)
 
     def initGui(self):
-        report_icon_path = os.path.join(self.plugin_dir, 'icons/report.png')
-        cleanup_icon_path = os.path.join(self.plugin_dir, 'icons/cleanup.png')
-        overlap_icon_path = os.path.join(self.plugin_dir, 'icons/overlap.png')
-        building_icon_path = os.path.join(self.plugin_dir, 'icons/building.png')
-        vegetation_icon_path = os.path.join(self.plugin_dir, 'icons/vegetation.png')
-        statistics_icon_path = os.path.join(self.plugin_dir, 'icons/statistics.png')
-        dem_icon_path = os.path.join(self.plugin_dir, 'icons/dem.png')
+        main_win = self.iface.mainWindow()
+        self.menu = self.tr("MyLiDAR")
 
-        self.menu = QMenu(self.tr("MyLiDAR"), self.iface.mainWindow().menuBar())
-        self.iface.mainWindow().menuBar().insertMenu(
-            self.iface.mainWindow().menuBar().actions()[-1],
-            self.menu
-        )
+        toolbar_icon_path = os.path.join(self.plugin_dir, 'icons/mylidar.png')
+        self.toolbar_menu = QMenu(self.tr("MyLiDAR Tools"), main_win)
+        self.toolbar_action = QAction(QIcon(toolbar_icon_path), self.tr("MyLiDAR"), main_win)
+        self.toolbar_action.setMenu(self.toolbar_menu)
+        self.iface.addToolBarIcon(self.toolbar_action)
 
-        self.report_action = QAction(QIcon(report_icon_path), self.tr('Generate LiDAR File Report'), self.iface.mainWindow())
-        self.report_action.triggered.connect(self.report_generation)
-        self.iface.addToolBarIcon(self.report_action)
-        self.menu.addAction(self.report_action)
+        actions = [
+            ("report.png", "Generate LiDAR File Report", self.report_generation),
+            ("cleanup.png", "Remove outlier points", self.outlier_removal),
+            ("overlap.png", "Remove overlapping", self.overlap_removal),
+            ("vegetation.png", "Classify vegetation", self.vegetation_classification),
+            ("building.png", "Count buildings", self.building_count),
+            ("statistics.png", "View file statistics", self.statistics_generation),
+            ("dem.png", "Generate Bare Earth DEM", self.bare_earth_dem_generation),
+        ]
 
-        self.outliers_action = QAction(QIcon(cleanup_icon_path), self.tr('Remove outlier points'), self.iface.mainWindow())
-        self.outliers_action.triggered.connect(self.outlier_removal)
-        self.iface.addToolBarIcon(self.outliers_action)
-        self.menu.addAction(self.outliers_action)
-
-        self.overlap_action = QAction(QIcon(overlap_icon_path), self.tr('Remove overlapping'), self.iface.mainWindow())
-        self.overlap_action.triggered.connect(self.overlap_removal)
-        self.iface.addToolBarIcon(self.overlap_action)
-        self.menu.addAction(self.overlap_action)
-
-        self.vegetation_action = QAction(QIcon(vegetation_icon_path), self.tr('Classify vegetation'), self.iface.mainWindow())
-        self.vegetation_action.triggered.connect(self.vegetation_classification)
-        self.iface.addToolBarIcon(self.vegetation_action)
-        self.menu.addAction(self.vegetation_action)
-
-        # Toolbar-only actions
-        self.count_action = QAction(QIcon(building_icon_path), self.tr('Count buildings'), self.iface.mainWindow())
-        self.count_action.triggered.connect(self.building_count)
-        self.menu.addAction(self.count_action)
-
-        self.statistics_action = QAction(QIcon(statistics_icon_path), self.tr('View file statistics'), self.iface.mainWindow())
-        self.statistics_action.triggered.connect(self.statistics_generation)
-        self.menu.addAction(self.statistics_action)
-
-        self.dem_action = QAction(QIcon(dem_icon_path), self.tr('Generate Bare Earth DEM'), self.iface.mainWindow())
-        self.dem_action.triggered.connect(self.bare_earth_dem_generation)
-        self.menu.addAction(self.dem_action)
+        self.actions = []
+        for icon_file, label, callback in actions:
+            icon_path = os.path.join(self.plugin_dir, 'icons', icon_file)
+            action = QAction(QIcon(icon_path), self.tr(label), main_win)
+            action.triggered.connect(callback)
+            self.iface.addPluginToMenu(self.menu, action)
+            self.toolbar_menu.addAction(action)
+            self.actions.append(action)
 
     def unload(self):
-        self.menu.removeAction(self.report_action)
-        self.menu.removeAction(self.outliers_action)
-        self.menu.removeAction(self.overlap_action)
-        self.menu.removeAction(self.count_action)
-        self.menu.removeAction(self.vegetation_action)
-        self.menu.removeAction(self.statistics_action)
-        self.menu.removeAction(self.dem_action)
-
-        self.iface.removeToolBarIcon(self.report_action)
-        self.iface.removeToolBarIcon(self.outliers_action)
-        self.iface.removeToolBarIcon(self.overlap_action)
-        self.iface.removeToolBarIcon(self.count_action)
-        self.iface.removeToolBarIcon(self.vegetation_action)
-        self.iface.removeToolBarIcon(self.statistics_action)
-        # self.iface.removeToolBarIcon(self.dem_action)
-
-        self.iface.mainWindow().menuBar().removeAction(self.menu.menuAction())
+        for action in self.actions:
+            self.iface.removePluginMenu(self.menu, action)
+        self.iface.removeToolBarIcon(self.toolbar_action)
+        self.actions = []
+        self.menu = None
+        self.toolbar_menu = None
+        self.toolbar_action = None
 
     # --- Report Generation ---
     def report_generation(self):

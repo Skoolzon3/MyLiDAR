@@ -41,7 +41,7 @@ def count_buildings(self):
 
     eps, min_samples = param_dialog.get_params()
 
-    loading_dialog = create_loading_dialog(self)
+    loading_dialog = create_loading_dialog(self, message="Counting buildings...")
 
     try:
         QApplication.setOverrideCursor(Qt.WaitCursor)

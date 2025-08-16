@@ -5,7 +5,7 @@ from laspy import LazBackend
 import numpy as np
 
 # --- QGIS and PyQt imports ---
-from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox, QDialog
+from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.QtWidgets import QApplication, QMessageBox, QDialog
 from PyQt5.QtCore import Qt
 
@@ -48,7 +48,7 @@ def generate_report(self):
             las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
 
             unique_classes, class_counts = np.unique(las.classification, return_counts=True)  # Classification values and their counts
-            unique_returns, ret_counts = np.unique(las.return_number, return_counts=True)   # Return number values and their counts
+            unique_returns, ret_counts = np.unique(las.return_number, return_counts=True)     # Return number values and their counts
 
             if hasattr(las, "gps_time"):    # Check if GPS time is present. This should, in theory, always be true for LAS files.
                     dt_min = gps_time_to_datetime(las.gps_time.min()).isoformat()
@@ -71,7 +71,6 @@ def generate_report(self):
         if dialog.exec_() != QDialog.Accepted:
             return
 
-        # is_txt = dialog.radioTxt.isChecked()
         is_md = dialog.radioMarkdown.isChecked()
         is_pdf = dialog.radioPdf.isChecked()
 
