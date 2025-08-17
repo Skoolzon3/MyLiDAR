@@ -9,6 +9,9 @@ from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.QtWidgets import QApplication, QMessageBox
 from PyQt5.QtCore import Qt
 
+# --- Method-specific imports ---
+from .statistics_generation_dock import LidarStatsDock
+
 # --- Dialog imports ---
 from ...utils import create_loading_dialog
 
@@ -34,15 +37,71 @@ def generate_statistics(self):
 
     try:
         QApplication.setOverrideCursor(Qt.WaitCursor)
-
         loading_dialog.show()
         QApplication.processEvents()
 
         las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
 
-        # Classification values
+        # --- Intensity ---
+        min_intensity = np.min(las.intensity)
+        max_intensity = np.max(las.intensity)
+
+        # --- Spatial Measures ---
+        num_points = len(las.points)
+        x_min, x_max = np.min(las.x), np.max(las.x)
+        y_min, y_max = np.min(las.y), np.max(las.y)
+        z_min, z_max = np.min(las.z), np.max(las.z)
+        area = (x_max - x_min) * (y_max - y_min)
+        density = num_points / area if area > 0 else 0
+
+        bounds = (x_min, x_max, y_min, y_max, z_min, z_max)
+        x_axis_bounds = (x_min, x_max)
+        y_axis_bounds = (y_min, y_max)
+        z_axis_bounds = (z_min, z_max)
+
+        # --- GPS Time ---
+        if "gps_time" in las.point_format.dimension_names:
+            min_time = np.min(las.gps_time)
+            max_time = np.max(las.gps_time)
+        else:
+            min_time, max_time = None, None
+
+        # --- Stats text ---
+        stats_text = f"""
+LiDAR File Statistics
+============================
+
+-- Intensity --
+Min: {min_intensity}
+Max: {max_intensity}
+
+-- Spatial Measures --
+Num Points: {num_points:,}
+Area: {area:,.2f} m²
+Density: {density:.4f} pts/m²
+Bounds: {bounds}
+X-axis: {x_axis_bounds}
+Y-axis: {y_axis_bounds}
+Z-axis: {z_axis_bounds}
+
+-- GPS Time --
+Min: {min_time if min_time else "N/A"}
+Max: {max_time if max_time else "N/A"}
+"""
+
+        if not hasattr(self, "lidar_stats_dock"):
+            self.lidar_stats_dock = LidarStatsDock(self.iface.mainWindow())
+            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.lidar_stats_dock)
+
+        self.lidar_stats_dock.clear()
+        self.lidar_stats_dock.add_text(stats_text)
+
+        # --------------------------
+        # --- Classification Pie ---
+        # --------------------------
         classifications = las.classification
         unique_classes, class_counts = np.unique(classifications, return_counts=True)
+
         classification_info = {
             0: ("Created, Never Classified", "#A0A0A0"), 1: ("Unclassified", "#B0B0B0"),
             2: ("Ground", "#8B4513"), 3: ("Low Vegetation", "#ADFF2F"),
@@ -58,46 +117,40 @@ def generate_statistics(self):
 
         labels = [classification_info.get(c, (f"Class {c}", "#CCCCCC"))[0] for c in unique_classes]
         colors = [classification_info.get(c, ("Unknown", "#CCCCCC"))[1] for c in unique_classes]
-        plt.figure(figsize=(8, 8))
-        plt.pie(
-            class_counts,
-            labels=labels,
-            colors=colors,
-            autopct='%1.1f%%',
-            startangle=140
-        )
-        plt.title("Classification Distribution", fontweight='bold')
-        plt.gcf().canvas.manager.set_window_title("Classification Distribution")
-        plt.tight_layout()
-        plt.show()
 
-        # Return Number
+        fig1, ax1 = plt.subplots(figsize=(8, 6))
+
+        ax1.pie(class_counts, labels=labels, colors=colors, autopct='%1.1f%%', startangle=140)
+        ax1.set_title("Classification Distribution", fontweight='bold')
+        plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
+        self.lidar_stats_dock.add_button_for_figure(fig1, title="Classification Distribution")
+
+        # -------------------------
+        # --- Return Number Bar ---
+        # -------------------------
         return_numbers = las.return_number
         unique_returns, return_counts = np.unique(return_numbers, return_counts=True)
-        return_labels = [f"Return {r}" for r in unique_returns]
+        return_labels = [f"{r}" for r in unique_returns]
 
-        plt.figure(figsize=(6, 4))
-        plt.bar(return_labels, return_counts, color='lightgreen')
-        plt.title("Return Number Distribution", fontweight='bold')
-        plt.gcf().canvas.manager.set_window_title("Return Number Distribution")
-        plt.xlabel("Return Number")
-        plt.ylabel("Count")
-        plt.tight_layout()
-        plt.show()
+        fig2, ax2 = plt.subplots(figsize=(5, 4))
+        ax2.bar(return_labels, return_counts, color='lightgreen')
+        ax2.set_title("Return Number Distribution", fontweight='bold')
+        ax2.set_xlabel("Return Number")
+        ax2.set_ylabel("Count")
+        self.lidar_stats_dock.add_button_for_figure(fig2, title="Return Number Distribution")
 
-        # Point Density
-        x = las.x
-        y = las.y
+        # -----------------------------
+        # --- Point Density Heatmap ---
+        # -----------------------------
+        x, y = las.x, las.y
 
-        plt.figure(figsize=(6, 5))
-        plt.hist2d(x, y, bins=100, cmap='viridis')
-        plt.title("Point Density Distribution", fontweight='bold')
-        plt.gcf().canvas.manager.set_window_title("Point Density Distribution")
-        plt.xlabel("X")
-        plt.ylabel("Y")
-        plt.colorbar(label="Point Count")
-        plt.tight_layout()
-        plt.show()
+        fig3, ax3 = plt.subplots(figsize=(7, 5))
+        h = ax3.hist2d(x, y, bins=100, cmap='viridis')
+        fig3.colorbar(h[3], ax=ax3, label="Point Count")
+        ax3.set_title("Point Density Heatmap", fontweight='bold')
+        ax3.set_xlabel("X")
+        ax3.set_ylabel("Y")
+        self.lidar_stats_dock.add_button_for_figure(fig3, title="Point Density Distribution")
 
     except Exception as e:
         QMessageBox.critical(

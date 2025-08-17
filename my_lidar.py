@@ -23,7 +23,6 @@ class MyLiDARPlugin:
         self.iface = iface
         self.plugin_dir = os.path.dirname(__file__)
 
-        # Actions
         self.report_action = None
         self.outliers_action = None
         self.overlap_action = None
@@ -37,7 +36,19 @@ class MyLiDARPlugin:
 
     def initGui(self):
         main_win = self.iface.mainWindow()
-        self.menu = self.tr("MyLiDAR")
+        self.menu = QMenu(self.tr("MyLiDAR"), main_win)
+
+        menubar = main_win.menuBar()
+        help_menu = None
+        for act in menubar.actions():
+            if act.text().replace("&", "").lower() == "help":
+                help_menu = act
+                break
+
+        if help_menu:
+            menubar.insertMenu(help_menu, self.menu)
+        else:
+            menubar.addMenu(self.menu)
 
         toolbar_icon_path = os.path.join(self.plugin_dir, 'icons/mylidar.png')
         self.toolbar_menu = QMenu(self.tr("MyLiDAR Tools"), main_win)
@@ -45,6 +56,7 @@ class MyLiDARPlugin:
         self.toolbar_action.setMenu(self.toolbar_menu)
         self.iface.addToolBarIcon(self.toolbar_action)
 
+        # --- Actions ---
         actions = [
             ("report.png", "Generate LiDAR File Report", self.report_generation),
             ("cleanup.png", "Remove outlier points", self.outlier_removal),
@@ -60,18 +72,18 @@ class MyLiDARPlugin:
             icon_path = os.path.join(self.plugin_dir, 'icons', icon_file)
             action = QAction(QIcon(icon_path), self.tr(label), main_win)
             action.triggered.connect(callback)
-            self.iface.addPluginToMenu(self.menu, action)
+            self.menu.addAction(action)
             self.toolbar_menu.addAction(action)
             self.actions.append(action)
 
     def unload(self):
-        for action in self.actions:
-            self.iface.removePluginMenu(self.menu, action)
         self.iface.removeToolBarIcon(self.toolbar_action)
-        self.actions = []
+        if self.menu:
+            self.iface.mainWindow().menuBar().removeAction(self.menu.menuAction())
         self.menu = None
-        self.toolbar_menu = None
         self.toolbar_action = None
+        self.toolbar_menu = None
+        self.actions = []
 
     # --- Report Generation ---
     def report_generation(self):
