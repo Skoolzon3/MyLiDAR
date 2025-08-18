@@ -14,6 +14,7 @@ from .statistics_generation_dock import LidarStatsDock
 
 # --- Dialog imports ---
 from ...utils import create_loading_dialog
+from ...utils import gps_time_to_datetime, format_global_encoding, format_point_format
 
 # -----------------------------
 # --- Statistics Generation ---
@@ -42,6 +43,16 @@ def generate_statistics(self):
 
         las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
 
+        # --- Metadata ---
+        header = las.header
+        file_source_id = header.file_source_id
+        global_encoding = header.global_encoding
+        system_id = header.system_identifier
+        generating_software = header.generating_software
+        version = f"{header.version.major}.{header.version.minor}"
+        point_format = header.point_format
+        creation_date = header.creation_date
+
         # --- Intensity ---
         min_intensity = np.min(las.intensity)
         max_intensity = np.max(las.intensity)
@@ -61,30 +72,42 @@ def generate_statistics(self):
 
         # --- GPS Time ---
         if "gps_time" in las.point_format.dimension_names:
-            min_time = np.min(las.gps_time)
-            max_time = np.max(las.gps_time)
+            min_time_raw = np.min(las.gps_time)
+            max_time_raw = np.max(las.gps_time)
+            min_time = gps_time_to_datetime(min_time_raw).isoformat()
+            max_time = gps_time_to_datetime(max_time_raw).isoformat()
         else:
             min_time, max_time = None, None
 
         # --- Stats text ---
-        stats_text = f"""
-LiDAR File Statistics
-============================
+        stats_text = f"""=============================
+--- LiDAR File Statistics ---
+=============================
 
--- Intensity --
+--- Metadata ---
+File name: {filename}
+File source ID: {file_source_id}
+Global encoding: \n{format_global_encoding(global_encoding)}
+System ID: {system_id}
+Generating software: {generating_software}
+LAS version: {version}
+Point format: \n{format_point_format(point_format)}
+Creation date: {creation_date if creation_date else "N/A"}
+
+--- Intensity ---
 Min: {min_intensity}
 Max: {max_intensity}
 
--- Spatial Measures --
+--- Spatial Measures ---
 Num Points: {num_points:,}
 Area: {area:,.2f} m²
 Density: {density:.4f} pts/m²
 Bounds: {bounds}
-X-axis: {x_axis_bounds}
-Y-axis: {y_axis_bounds}
-Z-axis: {z_axis_bounds}
+  - X-axis: {x_axis_bounds}
+  - Y-axis: {y_axis_bounds}
+  - Z-axis: {z_axis_bounds}
 
--- GPS Time --
+--- GPS Time ---
 Min: {min_time if min_time else "N/A"}
 Max: {max_time if max_time else "N/A"}
 """
