@@ -19,6 +19,7 @@ class ReportDialog(QDialog, form_class):
         self.groupSpatial.toggled.connect(self.on_group_spatial_toggled)
         self.groupFileMetadata.toggled.connect(self.on_group_file_metadata_toggled)
         self.groupClassification.toggled.connect(self.on_group_classification_toggled)
+        self.btnSelectAll.clicked.connect(self.on_select_all_clicked)
 
         self.checkboxes = [
             # Metadata checkboxes
@@ -163,5 +164,18 @@ class ReportDialog(QDialog, form_class):
         else:
             self.checkClassCounts.setChecked(False)
             self.checkReturnCounts.setChecked(False)
+
+        self.update_ok_button()
+
+    def on_select_all_clicked(self):
+        for cb in self.checkboxes:
+            cb.setEnabled(True)
+            cb.setChecked(True)
+
+        self.groupFileMetadata.setChecked(True)
+        self.groupSpatial.setChecked(True)
+        self.groupIntensity.setChecked(True)
+        self.groupTime.setChecked(True)
+        self.groupClassification.setChecked(True)
 
         self.update_ok_button()

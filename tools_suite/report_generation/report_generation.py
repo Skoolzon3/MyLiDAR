@@ -61,12 +61,6 @@ def generate_report(self):
             loading_dialog.close()
             QApplication.restoreOverrideCursor()
 
-        QMessageBox.information(self.iface.mainWindow(), "File Info",
-            f"File Name: {os.path.basename(filename)}\n"
-            f"File Source ID: {las.header.file_source_id}\n"
-            f"System ID: {las.header.system_identifier}\n"
-        )
-
         dialog = ReportDialog(self.iface.mainWindow())
         if dialog.exec_() != QDialog.Accepted:
             return

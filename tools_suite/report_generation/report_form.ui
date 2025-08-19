@@ -333,6 +333,13 @@
                 </widget>
             </item>
 
+            <item>
+                <widget class="QPushButton" name="btnSelectAll">
+                    <property name="text">
+                        <string>Select All</string>
+                    </property>
+                </widget>
+            </item>
 
             <item>
                 <widget class="QGroupBox" name="groupOutputFormat">
