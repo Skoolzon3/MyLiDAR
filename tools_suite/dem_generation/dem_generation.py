@@ -9,12 +9,13 @@ from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox, QDialog
 from PyQt5.QtWidgets import QApplication, QMessageBox, QDialog
 from PyQt5.QtTest import QTest
 from PyQt5.QtCore import Qt
+from qgis.core import QgsProject, QgsRasterLayer
 
 # --- Method-specific imports ---
 from osgeo import gdal, osr
 
 # --- Dialog imports ---
-from .dem_generation_dialog import BareEarthDemDialog
+from .dem_generation_dialog import DemGenerationDialog
 from ...utils import create_loading_dialog
 
 # ---------------------------------
@@ -36,7 +37,7 @@ def generate_bare_earth_dem(self):
     if not filename:
         return
 
-    dlg = BareEarthDemDialog(self.iface.mainWindow())
+    dlg = DemGenerationDialog(self.iface.mainWindow())
     if dlg.exec_() != QDialog.Accepted:
         return
     cell_size = dlg.get_values()
@@ -122,11 +123,75 @@ def generate_bare_earth_dem(self):
         out_band.SetNoDataValue(-9999)
         out_band.FlushCache()
 
+        # Force correct min/max statistics for DEM (comprobar)
+        dem_min, dem_max = float(np.nanmin(dem)), float(np.nanmax(dem))
+        out_band.ComputeStatistics(False)
+        out_band.SetStatistics(dem_min, dem_max, 0, 0)
+
+        out_raster = None  # Close dataset so GDAL can read it again
+
+        reply = QMessageBox.question(
+            self.iface.mainWindow(),
+            "Generate Hillshade?",
+            "Do you also want to create a hillshade raster from the DEM?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+
+        hillshade_path = None
+        if reply == QMessageBox.Yes:
+            try:
+                hillshade_path = os.path.splitext(output_path)[0] + "_hillshade.tif"
+
+                # Nodata is respected by rewriting DEM
+                tmp_dem = output_path.replace(".tif", "_tmp.tif")
+                gdal.Translate(tmp_dem, output_path, noData=-9999)
+
+                gdal.DEMProcessing(
+                    hillshade_path,
+                    tmp_dem,
+                    "hillshade",
+                    format="GTiff",
+                    options=gdal.DEMProcessingOptions(
+                        computeEdges=True,
+                        azimuth=315,
+                        altitude=45
+                    )
+                )
+
+                # Compute statistics for hillshade (comprobar)
+                hs_ds = gdal.Open(hillshade_path, gdal.GA_Update)
+                if hs_ds:
+                    hs_band = hs_ds.GetRasterBand(1)
+                    hs_band.ComputeStatistics(False)
+                    hs_ds = None
+
+            except Exception as hs_err:
+                QMessageBox.warning(
+                    self.iface.mainWindow(),
+                    "Hillshade Error",
+                    f"DEM was generated, but hillshade failed:\n{hs_err}"
+                )
+
+        dem_layer_name = os.path.splitext(os.path.basename(output_path))[0]
+        dem_layer = QgsRasterLayer(output_path, dem_layer_name)
+        if dem_layer.isValid():
+            QgsProject.instance().addMapLayer(dem_layer)
+
+        if hillshade_path:
+            hillshade_layer_name = os.path.splitext(os.path.basename(hillshade_path))[0]
+            hillshade_layer = QgsRasterLayer(hillshade_path, hillshade_layer_name)
+            if hillshade_layer.isValid():
+                QgsProject.instance().addMapLayer(hillshade_layer)
+
+        msg = f"DEM successfully generated from ground points.\nOutput saved at:\n{output_path}"
+        if hillshade_path:
+            msg += f"\n\nHillshade saved at:\n{hillshade_path}"
+
         QMessageBox.information(
             self.iface.mainWindow(),
             "Bare Earth DEM Generated",
-            f"DEM successfully generated from ground points.\n"
-            f"Output saved at:\n{output_path}"
+            msg
         )
 
     except Exception as e:

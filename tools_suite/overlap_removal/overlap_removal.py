@@ -8,6 +8,7 @@ import numpy as np
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.QtWidgets import QApplication, QMessageBox
 from PyQt5.QtCore import Qt
+from qgis.core import QgsPointCloudLayer, QgsProject
 
 # --- Dialog imports ---
 from ...utils import create_loading_dialog
@@ -70,6 +71,17 @@ def remove_overlap(self):
             return
 
         las_filtered.write(output_path)
+
+        layer_name = os.path.splitext(os.path.basename(output_path))[0]
+        pc_layer = QgsPointCloudLayer(output_path, layer_name, "pdal")
+        if pc_layer.isValid():
+            QgsProject.instance().addMapLayer(pc_layer)
+        else:
+            QMessageBox.warning(
+                self.iface.mainWindow(),
+                "Layer Load Warning",
+                "The LiDAR file was saved but could not be loaded into QGIS."
+            )
 
         QMessageBox.information(
             self.iface.mainWindow(),

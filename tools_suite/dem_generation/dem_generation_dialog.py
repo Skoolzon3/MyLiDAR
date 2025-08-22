@@ -5,7 +5,7 @@ import os
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), './dem_generation_form.ui'))
 
-class BareEarthDemDialog(QDialog, FORM_CLASS):
+class DemGenerationDialog(QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
