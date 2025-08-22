@@ -38,6 +38,9 @@
                     <property name="value">
                         <double>1.00</double>
                     </property>
+                    <property name="toolTip">
+                        <string>Specify the cell size for the generated DEM in meters. The smaller the cell size, the higher its resolution and detail, but it may also increase processing time and file size</string>
+                    </property>
                 </widget>
             </item>
             <item>

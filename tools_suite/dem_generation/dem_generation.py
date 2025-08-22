@@ -9,7 +9,8 @@ from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox, QDialog
 from PyQt5.QtWidgets import QApplication, QMessageBox, QDialog
 from PyQt5.QtTest import QTest
 from PyQt5.QtCore import Qt
-from qgis.core import QgsProject, QgsRasterLayer
+from qgis.core import QgsProject, QgsRasterLayer, QgsProcessingException
+import processing
 
 # --- Method-specific imports ---
 from osgeo import gdal, osr
@@ -46,7 +47,6 @@ def generate_bare_earth_dem(self):
 
     try:
         QApplication.setOverrideCursor(Qt.WaitCursor)
-
         loading_dialog.show()
         QApplication.processEvents()
         QTest.qWait(100)
@@ -86,8 +86,6 @@ def generate_bare_earth_dem(self):
             return vals[0] if len(vals) else np.nan
 
         dem_filled = generic_filter(dem, nan_fill, size=3, mode='nearest')
-
-        # Replace NaNs with NoData value
         dem_filled = np.where(np.isnan(dem_filled), -9999, dem_filled)
 
         output_path, _ = QFileDialog.getSaveFileName(
@@ -123,7 +121,7 @@ def generate_bare_earth_dem(self):
         out_band.SetNoDataValue(-9999)
         out_band.FlushCache()
 
-        # Force correct min/max statistics for DEM (comprobar)
+        # Force correct min/max statistics for DEM
         dem_min, dem_max = float(np.nanmin(dem)), float(np.nanmax(dem))
         out_band.ComputeStatistics(False)
         out_band.SetStatistics(dem_min, dem_max, 0, 0)
@@ -140,37 +138,28 @@ def generate_bare_earth_dem(self):
 
         hillshade_path = None
         if reply == QMessageBox.Yes:
+
+            hillshade_path = os.path.splitext(output_path)[0] + '_hillshade.tif'
+
             try:
-                hillshade_path = os.path.splitext(output_path)[0] + "_hillshade.tif"
+                # Use the QGIS Processing Framework for hillshade generation
+                processing_params = {
+                    'INPUT': output_path,
+                    'Z_FACTOR': 1.0,
+                    'AZIMUTH': 315.0,
+                    'V_ANGLE': 45.0,
+                    'OUTPUT': hillshade_path
+                }
+                # We use the native:hillshade algorithm for better performance and integration
+                processing.run("native:hillshade", processing_params)
 
-                # Nodata is respected by rewriting DEM
-                tmp_dem = output_path.replace(".tif", "_tmp.tif")
-                gdal.Translate(tmp_dem, output_path, noData=-9999)
-
-                gdal.DEMProcessing(
-                    hillshade_path,
-                    tmp_dem,
-                    "hillshade",
-                    format="GTiff",
-                    options=gdal.DEMProcessingOptions(
-                        computeEdges=True,
-                        azimuth=315,
-                        altitude=45
-                    )
-                )
-
-                # Compute statistics for hillshade (comprobar)
-                hs_ds = gdal.Open(hillshade_path, gdal.GA_Update)
-                if hs_ds:
-                    hs_band = hs_ds.GetRasterBand(1)
-                    hs_band.ComputeStatistics(False)
-                    hs_ds = None
-
-            except Exception as hs_err:
+            except QgsProcessingException as e:
+                # If hillshade fails, inform the user but continue with the DEM
+                hillshade_path = None # Reset path so it's not loaded
                 QMessageBox.warning(
                     self.iface.mainWindow(),
-                    "Hillshade Error",
-                    f"DEM was generated, but hillshade failed:\n{hs_err}"
+                    "Hillshade Generation Failed",
+                    f"Could not generate hillshade. The DEM was saved successfully.\n\nError: {e}"
                 )
 
         dem_layer_name = os.path.splitext(os.path.basename(output_path))[0]
