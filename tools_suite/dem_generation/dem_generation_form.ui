@@ -44,6 +44,16 @@
                 </widget>
             </item>
             <item>
+                <widget class="QCheckBox" name="triangulationCheckBox">
+                    <property name="text">
+                        <string>Use triangulation (TIN) interpolation</string>
+                    </property>
+                    <property name="toolTip">
+                        <string>Warning: This method takes significantly longer to process. For large areas, consider using the default griddata interpolation method for faster results</string>
+                    </property>
+                </widget>
+            </item>
+            <item>
                 <widget class="QDialogButtonBox" name="buttonBox">
                     <property name="orientation">
                         <enum>Qt::Horizontal</enum>

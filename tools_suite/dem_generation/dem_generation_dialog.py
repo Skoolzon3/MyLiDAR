@@ -15,4 +15,5 @@ class DemGenerationDialog(QDialog, FORM_CLASS):
 
     def get_values(self):
         cell_size = self.cellSizeSpinBox.value()
-        return cell_size
+        use_triangulation = self.triangulationCheckBox.isChecked()
+        return cell_size, use_triangulation
