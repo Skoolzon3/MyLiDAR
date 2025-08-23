@@ -82,7 +82,7 @@ def generate_bare_earth_dem(self):
             # Triangulation-based interpolation (TIN)
             grid_x, grid_y = np.meshgrid(
                 np.linspace(min_x, max_x, cols),
-                np.linspace(min_y, max_y, rows)
+                np.linspace(max_y, min_y, rows)
             )
 
             dem = griddata(
@@ -114,10 +114,12 @@ def generate_bare_earth_dem(self):
         # Replace NaNs with -9999 (to mark nodata for GDAL)
         dem = np.where(np.isnan(dem), -9999, dem)
 
+        suffix = "_bare_earth_dem_TIN" if use_triangulation else "_bare_earth_dem"
+        default_name = os.path.splitext(filename)[0] + suffix + ".tif"
         output_path, _ = QFileDialog.getSaveFileName(
             self.iface.mainWindow(),
             'Save Bare Earth DEM',
-            os.path.splitext(filename)[0] + '_bare_earth_dem.tif',
+            default_name,
             'GeoTIFF (*.tif)'
         )
         if not output_path:
@@ -133,7 +135,7 @@ def generate_bare_earth_dem(self):
         out_band.SetNoDataValue(-9999)
         out_band.FlushCache()
 
-        # Hybrid step: Fill Nodata gaps with GDAL’s FillNodata
+        # Hybrid step: Fill Nodata gaps with GDAL's FillNodata
         gdal.FillNodata(targetBand=out_band, maskBand=None,
                         maxSearchDist=10, smoothingIterations=1)
 
@@ -154,7 +156,8 @@ def generate_bare_earth_dem(self):
 
         hillshade_path = None
         if reply == QMessageBox.Yes:
-            hillshade_path = os.path.splitext(output_path)[0] + '_hillshade.tif'
+            suffix = "_hillshade_TIN" if use_triangulation else "_hillshade"
+            hillshade_path = os.path.splitext(output_path)[0] + suffix + '.tif'
             try:
                 processing_params = {
                     'INPUT': output_path,
