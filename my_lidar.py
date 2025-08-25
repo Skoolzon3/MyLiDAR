@@ -28,8 +28,8 @@ class MyLiDARPlugin:
         self.overlap_action = None
         self.count_action = None
         self.vegetation_action = None
-        self.statistics_action = None
         self.dem_action = None
+        self.statistics_action = None
 
     def tr(self, message: str) -> str:
         return QCoreApplication.translate('MyLiDAR', message)
@@ -63,8 +63,8 @@ class MyLiDARPlugin:
             ("overlap.png", "Remove overlapping", self.overlap_removal),
             ("vegetation.png", "Classify vegetation", self.vegetation_classification),
             ("building.png", "Count buildings", self.building_count),
-            ("statistics.png", "View file statistics", self.statistics_generation),
             ("dem.png", "Generate Bare Earth DEM", self.bare_earth_dem_generation),
+            ("statistics.png", "View file statistics", self.statistics_generation),
         ]
 
         self.actions = []
@@ -105,13 +105,13 @@ class MyLiDARPlugin:
     def vegetation_classification(self):
         classify_vegetation(self)
 
-    # --- Statistics Generation ---
-    def statistics_generation(self):
-        generate_statistics(self)
-
     # --- Bare Earth DEM Generation ---
     def bare_earth_dem_generation(self):
         generate_bare_earth_dem(self)
+
+    # --- Statistics Generation ---
+    def statistics_generation(self):
+        generate_statistics(self)
 
     # --- Placeholder method ---
     def placeholder(self):

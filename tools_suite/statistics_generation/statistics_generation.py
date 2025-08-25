@@ -112,7 +112,7 @@ Min: {min_time if min_time else "N/A"}
 Max: {max_time if max_time else "N/A"}
 """
 
-        if not hasattr(self, "lidar_stats_dock"):
+        if not hasattr(self, "lidar_stats_dock") or self.lidar_stats_dock is None or not self.lidar_stats_dock.isVisible():
             self.lidar_stats_dock = LidarStatsDock(self.iface.mainWindow())
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.lidar_stats_dock)
 
@@ -168,7 +168,7 @@ Max: {max_time if max_time else "N/A"}
         x, y = las.x, las.y
 
         fig3, ax3 = plt.subplots(figsize=(7, 5))
-        h = ax3.hist2d(x, y, bins=100, cmap='viridis')
+        h = ax3.hist2d(x, y, bins=300, cmap='viridis')
         fig3.colorbar(h[3], ax=ax3, label="Point Count")
         ax3.set_title("Point Density Heatmap", fontweight='bold')
         ax3.set_xlabel("X")

@@ -91,7 +91,7 @@ def generate_bare_earth_dem(self):
                 method='linear'
             )
 
-            # Fallback: fill gaps with nearest-neighbor
+            # Fill gaps with nearest-neighbor
             dem = np.where(
                 np.isnan(dem),
                 griddata((x, y), z, (grid_x, grid_y), method='nearest'),
@@ -99,13 +99,12 @@ def generate_bare_earth_dem(self):
             )
 
         else:
-            # Minimum-Z rasterization (bare earth assumption)
+            # Cell-based minimum Z value (bare earth assumption)
             dem = np.full((rows, cols), np.nan, dtype=np.float32)
 
             col_idx = ((x - min_x) / cell_size).astype(int)
-            row_idx = ((max_y - y) / cell_size).astype(int)  # Flip Y for raster
+            row_idx = ((max_y - y) / cell_size).astype(int)
 
-            # Assign minimum Z to each cell (bare earth assumption)
             for r, c, z_val in zip(row_idx, col_idx, z):
                 if 0 <= r < rows and 0 <= c < cols:
                     if np.isnan(dem[r, c]) or z_val < dem[r, c]:
@@ -139,12 +138,10 @@ def generate_bare_earth_dem(self):
         gdal.FillNodata(targetBand=out_band, maskBand=None,
                         maxSearchDist=10, smoothingIterations=1)
 
-        # Update statistics
         dem_min, dem_max = float(np.nanmin(dem[dem != -9999])), float(np.nanmax(dem[dem != -9999]))
         out_band.ComputeStatistics(False)
         out_band.SetStatistics(dem_min, dem_max, 0, 0)
-
-        out_raster = None  # Close dataset so GDAL can read it again
+        out_raster = None
 
         reply = QMessageBox.question(
             self.iface.mainWindow(),
