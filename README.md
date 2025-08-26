@@ -1,6 +1,6 @@
 # MyLiDAR
 
-[English](#english) | [Español](#español)
+[Español](#español) | [English](#english)
 
 ## English
 
@@ -92,14 +92,14 @@ Este complemento requiere las siguientes bibliotecas de Python:
 - **numpy** para cálculos numéricos y consultas estadísticas.
 - **scipy** para el procesamiento y análisis de datos científicos.
 - **reportlab** para la generación de informes en PDF.
-- **GDAL** y **osr** para la manipulación de datos geoespaciales.
+- **GDAL** y **OSR** para la manipulación de datos geoespaciales.
 
 Nota: durante la instalación de laspy, se integra junto a esta la dependencia de numpy utilizada en el proyecto, por lo que no es necesaria su instalación posterior.
 
 #### Cómo instalar las dependencias
 - **Windows (QGIS instalado a través de OSGeo4W)**:
   Abra el shell de OSGeo4W y ejecute:
-```bash
+  ```bash
   python -m pip install laspy scipy GDAL OSR matplotlib reportlab
 
 ### Créditos
