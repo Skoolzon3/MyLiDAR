@@ -68,7 +68,7 @@ Además de generar informes detallados a partir de archivos LAS/LAZ, el compleme
 - **Borrado de puntos superpuestos** o redundantes.
 - **Recuento de edificios** detectados en el conjunto de datos.
 - **Clasificación de la vegetación** en función de su altura relativa.
-- **Generación de modelos digitales de elevación (DEM) del terreno desnudo** a partir de archivos LiDAR, así como su correspondientes mapa de sombras de relieve.
+- **Generación de modelos digitales de elevación (DEM) del terreno desnudo**, junto con sus correspondientes mapas de sombras del relieve.
 - **Visualización de estadísticas de archivos LAS/LAZ**, incluyendo la densidad, los rangos y los recuentos de clasificación.
 
 Estas funciones son compatibles con archivos LiDAR `.las` y `.laz`, y su ejecución se ayuda de una interfaz de usuario intuitiva, integrada directamente dentro del menú de QGIS.

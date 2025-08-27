@@ -36,7 +36,7 @@ class MyLiDARPlugin:
 
     def initGui(self):
         main_win = self.iface.mainWindow()
-        self.menu = QMenu(self.tr("MyLiDAR"), main_win)
+        self.menu = QMenu("MyLiDAR", main_win)
 
         menubar = main_win.menuBar()
         help_menu = None
@@ -52,19 +52,18 @@ class MyLiDARPlugin:
 
         toolbar_icon_path = os.path.join(self.plugin_dir, 'icons/mylidar.png')
         self.toolbar_menu = QMenu(self.tr("MyLiDAR Tools"), main_win)
-        self.toolbar_action = QAction(QIcon(toolbar_icon_path), self.tr("MyLiDAR"), main_win)
+        self.toolbar_action = QAction(QIcon(toolbar_icon_path), "MyLiDAR", main_win)
         self.toolbar_action.setMenu(self.toolbar_menu)
         self.iface.addToolBarIcon(self.toolbar_action)
 
-        # --- Actions ---
         actions = [
-            ("report.png", "Generate LiDAR File Report", self.report_generation),
-            ("cleanup.png", "Remove outlier points", self.outlier_removal),
-            ("overlap.png", "Remove overlapping", self.overlap_removal),
-            ("vegetation.png", "Classify vegetation", self.vegetation_classification),
-            ("building.png", "Count buildings", self.building_count),
-            ("dem.png", "Generate Bare Earth DEM", self.bare_earth_dem_generation),
-            ("statistics.png", "View file statistics", self.statistics_generation),
+            ("report.png", self.tr("Generate LiDAR File Report"), self.report_generation),
+            ("cleanup.png", self.tr("Remove outlier points"), self.outlier_removal),
+            ("overlap.png", self.tr("Remove overlapping"), self.overlap_removal),
+            ("vegetation.png", self.tr("Classify vegetation"), self.vegetation_classification),
+            ("building.png", self.tr("Count buildings"), self.building_count),
+            ("dem.png", self.tr("Generate Bare Earth DEM"), self.bare_earth_dem_generation),
+            ("statistics.png", self.tr("View file statistics"), self.statistics_generation),
         ]
 
         self.actions = []
