@@ -74,7 +74,7 @@ def count_buildings(self):
         # Count clusters (excluding noise points labeled -1)
         num_buildings = len(set(labels)) - (1 if -1 in labels else 0)
 
-        # QGIS polygon layer
+        # --- QGIS polygon layer ---
         crs = None
         try:
             crs = las.header.parse_crs().to_epsg()
@@ -101,18 +101,20 @@ def count_buildings(self):
 
             # Convex hull polygon of the cluster
             poly = MultiPoint(cluster_coords).convex_hull
-
             feat = QgsFeature()
             feat.setGeometry(QgsGeometry.fromWkt(poly.wkt))
             feat.setAttributes([int(cluster_id), len(cluster_coords), poly.area])
             pr.addFeature(feat)
-
             symbol = QgsFillSymbol.createSimple({
                 'color': '0,0,255,50',          # Blue w/ alpha=50 (~20% opacity)
                 'outline_color': '0,0,0,100',
                 'outline_width': '0.4'
             })
             vl.renderer().setSymbol(symbol)
+
+            # Expression displayed when hovering over polygons (PD: View → Map Tips must be enabled)
+            expr = "concat('ID: ', cluster_id, '\nArea: ', round(area_m2,1), ' m²')"
+            vl.setDisplayExpression(expr)
 
         QgsProject.instance().addMapLayer(vl)
 
