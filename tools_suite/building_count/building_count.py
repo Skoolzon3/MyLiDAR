@@ -7,10 +7,12 @@ import numpy as np
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.QtWidgets import QApplication, QMessageBox
 from PyQt5.QtTest import QTest
-from PyQt5.QtCore import Qt
+from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsField, QgsProject, QgsFillSymbol
+from PyQt5.QtCore import Qt, QVariant
 
 # --- Method-specific imports ---
 from sklearn.cluster import DBSCAN
+from shapely.geometry import MultiPoint
 
 # --- Dialog imports ---
 from ...utils import create_loading_dialog
@@ -66,13 +68,53 @@ def count_buildings(self):
 
         # Extract X and Y for clustering
         coords = np.vstack((las.x[is_building], las.y[is_building])).T
-
-        # DBSCAN clustering
         db = DBSCAN(eps=eps, min_samples=min_samples).fit(coords)
         labels = db.labels_
 
         # Count clusters (excluding noise points labeled -1)
         num_buildings = len(set(labels)) - (1 if -1 in labels else 0)
+
+        # QGIS polygon layer
+        crs = None
+        try:
+            crs = las.header.parse_crs().to_epsg()
+        except Exception:
+            crs = 4326  # fallback if CRS not defined
+
+        vl = QgsVectorLayer(f"Polygon?crs=EPSG:{crs}", "Detected_Buildings", "memory")
+        pr = vl.dataProvider()
+        pr.addAttributes([
+            QgsField("cluster_id", QVariant.Int),
+            QgsField("num_points", QVariant.Int),
+            QgsField("area_m2", QVariant.Double)
+        ])
+        vl.updateFields()
+
+        for cluster_id in set(labels):
+            if cluster_id == -1:
+                continue
+
+            cluster_coords = coords[labels == cluster_id]
+
+            if len(cluster_coords) < min_samples:
+                continue
+
+            # Convex hull polygon of the cluster
+            poly = MultiPoint(cluster_coords).convex_hull
+
+            feat = QgsFeature()
+            feat.setGeometry(QgsGeometry.fromWkt(poly.wkt))
+            feat.setAttributes([int(cluster_id), len(cluster_coords), poly.area])
+            pr.addFeature(feat)
+
+            symbol = QgsFillSymbol.createSimple({
+                'color': '0,0,255,50',          # Blue w/ alpha=50 (~20% opacity)
+                'outline_color': '0,0,0,100',
+                'outline_width': '0.4'
+            })
+            vl.renderer().setSymbol(symbol)
+
+        QgsProject.instance().addMapLayer(vl)
 
         QMessageBox.information(
             self.iface.mainWindow(),
