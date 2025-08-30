@@ -41,7 +41,7 @@ def count_buildings(self):
     if not param_dialog.exec_():
         return
 
-    eps, min_samples = param_dialog.get_params()
+    eps, min_samples, use_z = param_dialog.get_params()
 
     loading_dialog = create_loading_dialog(self, message="Counting buildings...")
 
@@ -66,8 +66,12 @@ def count_buildings(self):
             )
             return
 
-        # Extract X and Y for clustering
-        coords = np.vstack((las.x[is_building], las.y[is_building])).T
+        #Extract coordinates for clustering
+        if use_z:
+            coords = np.vstack((las.x[is_building], las.y[is_building], las.z[is_building])).T
+        else:
+            coords = np.vstack((las.x[is_building], las.y[is_building])).T
+
         db = DBSCAN(eps=eps, min_samples=min_samples).fit(coords)
         labels = db.labels_
 
@@ -81,7 +85,8 @@ def count_buildings(self):
         except Exception:
             crs = 4326  # fallback if CRS not defined
 
-        vl = QgsVectorLayer(f"Polygon?crs=EPSG:{crs}", "Detected_Buildings", "memory")
+        layer_name = "Detected_Buildings_(3D_Clustering)" if use_z else "Detected_Buildings_(2D_Clustering)"
+        vl = QgsVectorLayer(f"Polygon?crs=EPSG:{crs}", layer_name, "memory")
         pr = vl.dataProvider()
         pr.addAttributes([
             QgsField("cluster_id", QVariant.Int),

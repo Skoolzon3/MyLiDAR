@@ -16,4 +16,5 @@ class BuildingParamsDialog(QDialog, FORM_CLASS):
     def get_params(self):
         eps = self.epsSpin.value()
         min_samples = self.minSamplesSpin.value()
-        return eps, min_samples
+        use_z = self.useZCheck.isChecked()
+        return eps, min_samples, use_z

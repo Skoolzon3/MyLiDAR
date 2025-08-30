@@ -59,6 +59,16 @@
      </item>
     </layout>
    </item>
+    <item>
+        <widget class="QCheckBox" name="useZCheck">
+            <property name="text">
+                <string>Use Z-axis for clustering (3D)</string>
+            </property>
+            <property name="toolTip">
+                <string>Clustering will consider height (Z) as well as X and Y. This may improve building detection in areas with varying terrain</string>
+            </property>
+        </widget>
+    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
