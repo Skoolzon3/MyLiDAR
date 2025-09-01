@@ -6,7 +6,7 @@ import numpy as np
 
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox, QDialog
-from PyQt5.QtWidgets import QApplication, QMessageBox, QDialog
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtTest import QTest
 from PyQt5.QtCore import Qt
 from qgis.core import QgsProject, QgsRasterLayer, QgsProcessingException
@@ -18,7 +18,7 @@ from scipy.interpolate import griddata
 
 # --- Dialog imports ---
 from .dem_generation_dialog import DemGenerationDialog
-from ...utils import create_loading_dialog
+from ..utils import create_loading_dialog
 
 # ---------------------------------
 # --- Bare Earth DEM Generation ---

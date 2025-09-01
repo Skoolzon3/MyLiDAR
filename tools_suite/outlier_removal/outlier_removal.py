@@ -6,7 +6,7 @@ import numpy as np
 
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox, QDialog
-from PyQt5.QtWidgets import QApplication, QMessageBox, QDialog
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtTest import QTest
 from PyQt5.QtCore import Qt
 from qgis.core import QgsPointCloudLayer, QgsProject
@@ -16,7 +16,7 @@ from scipy.spatial import cKDTree
 
 # --- Dialog imports ---
 from .outlier_removal_dialog import OutlierRemovalDialog
-from ...utils import create_loading_dialog
+from ..utils import create_loading_dialog
 
 # -----------------------
 # --- Outlier Removal ---

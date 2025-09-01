@@ -5,7 +5,6 @@
 import os
 from qgis.PyQt.QtWidgets import QDialogButtonBox, QDialog
 from qgis.PyQt import uic
-from PyQt5.QtWidgets import QDialog
 
 form_class, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "./report_form.ui"))
 

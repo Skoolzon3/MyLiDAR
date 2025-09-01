@@ -6,7 +6,7 @@ import numpy as np
 
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox, QDialog
-from PyQt5.QtWidgets import QApplication, QMessageBox, QDialog
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt
 from qgis.core import QgsPointCloudLayer, QgsProject
 
@@ -14,7 +14,7 @@ from qgis.core import QgsPointCloudLayer, QgsProject
 from scipy.spatial import cKDTree
 
 # --- Dialog imports ---
-from ...utils import create_loading_dialog
+from ..utils import create_loading_dialog
 from .vegetation_classification_dialog import VegetationClassificationDialog
 
 # ---------------------------------

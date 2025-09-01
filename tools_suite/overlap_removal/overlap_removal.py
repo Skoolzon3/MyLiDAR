@@ -6,12 +6,12 @@ import numpy as np
 
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt
 from qgis.core import QgsPointCloudLayer, QgsProject
 
 # --- Dialog imports ---
-from ...utils import create_loading_dialog
+from ..utils import create_loading_dialog
 
 # -----------------------
 # --- Overlap Removal ---

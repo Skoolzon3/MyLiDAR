@@ -6,15 +6,15 @@ import numpy as np
 
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt
 
 # --- Method-specific imports ---
 from .statistics_generation_dock import LidarStatsDock
 
 # --- Dialog imports ---
-from ...utils import create_loading_dialog
-from ...utils import gps_time_to_datetime, format_global_encoding, format_point_format
+from ..utils import create_loading_dialog
+from ..utils import gps_time_to_datetime, format_global_encoding, format_point_format
 
 # -----------------------------
 # --- Statistics Generation ---
