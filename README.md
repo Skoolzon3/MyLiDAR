@@ -21,8 +21,11 @@ These functions are compatible with LiDAR `.las` and `.laz` files, and their exe
 
 ### Installation
 1. Copy the plugin repository into your QGIS plugin directory:
-   - **Linux:** `~/.local/share/QGIS/QGIS3/profiles/default/python/plugins/`
    - **Windows:** `%APPDATA%\QGIS\QGIS3\profiles\default\python\plugins\`
+   - **Linux:** `~/.local/share/QGIS/QGIS3/profiles/default/python/plugins/`
+
+   **Note:** The paths above correspond to the **default** QGIS profile. If you are using a custom profile, replace `default` with your profile name (e.g., `profiles/my_profile/python/plugins/`).
+
 2. Restart QGIS.
 3. Manually activate the plugin from **Plugins > Manage and Install Plugins**.
 
@@ -49,6 +52,10 @@ Note: during the installation of laspy, the numpy dependency used in the project
   Open OSGeo4W Shell and run:
   ```bash
   python -m pip install laspy scipy GDAL OSR matplotlib reportlab
+- **Linux**:
+  Open a terminal and run:
+  ```bash
+  pip install laspy scipy gdal matplotlib reportlab
 
 ### Credits
 Developed by Skoolzon3 in collaboration with the University of Extremadura.
@@ -75,8 +82,11 @@ Estas funciones son compatibles con archivos LiDAR `.las` y `.laz`, y su ejecuci
 
 ### Instalación
 1. Copie la carpeta del complemento en el directorio de complementos de QGIS:
-   - **Linux:** `~/.local/share/QGIS/QGIS3/profiles/default/python/plugins/`
    - **Windows:** `%APPDATA%\QGIS\QGIS3\profiles\default\python\plugins\`
+   - **Linux:** `~/.local/share/QGIS/QGIS3/profiles/default/python/plugins/`
+
+   **Nota:** Las rutas anteriores corresponden al perfil **predeterminado** de QGIS. Si utiliza un perfil personalizado, sustituya «predeterminado» por el nombre de su perfil (por ejemplo, «perfiles/mi_perfil/python/plugins/»).
+
 2. Reinicie QGIS.
 3. Active manualmente el complemento desde **Complementos > Administrar e instalar complementos**.
 
@@ -101,6 +111,10 @@ Nota: durante la instalación de laspy, se integra junto a esta la dependencia d
   Abra el shell de OSGeo4W y ejecute:
   ```bash
   python -m pip install laspy scipy GDAL OSR matplotlib reportlab
+- **Linux**:
+  Abra un terminal y ejecute:
+  ```bash
+  pip install laspy scipy gdal matplotlib reportlab
 
 ### Créditos
 Desarrollado por Skoolzon3 en colaboración con la Universidad de Extremadura.
