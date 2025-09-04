@@ -1,7 +1,7 @@
 [general]
 name=MyLiDAR
-description=QGIS plugin focused on easing LiDAR point analysis and processing
-about=MyLiDAR is an open-sourced plugind aimed at providing its users with a suite of tools to encance LiDAR data processing and analysis
+description=QGIS LiDAR plugin focused on easing LAS/LAZ files' analysis and processing
+about=MyLiDAR is an open-source plugin which provides its users with a suite of tools to enhance LiDAR data processing and analysis
 version=1.0
 qgisMinimumVersion=3.0
 author=Pablo Fernández
