@@ -71,8 +71,8 @@ def generate_return_bar_chart(unique_returns, return_counts):
     labels = [f"Return {r}" for r in unique_returns]
 
     fig, ax = plt.subplots(figsize=(6, 4))
-
     bars = ax.bar(labels, return_counts, color='lightgreen')
+
     for bar in bars:
         height = bar.get_height()
         ax.annotate(

@@ -51,6 +51,8 @@ def classify_vegetation(self):
         high_class = 5
         classifications = las.classification
 
+        # --- Data Preparation ---
+
         # Ground points
         ground_idx = np.where(classifications == ground_class)[0]
         if len(ground_idx) == 0:
@@ -84,6 +86,8 @@ def classify_vegetation(self):
 
         # Vegetation height above ground
         veg_height = veg_z - local_ground_z
+
+        # ---------------------------------
 
         # Ask user for thresholds
         dlg = VegetationClassificationDialog(self.iface.mainWindow())

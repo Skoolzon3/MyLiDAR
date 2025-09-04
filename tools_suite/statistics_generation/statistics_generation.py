@@ -151,12 +151,20 @@ Max: {max_time if max_time else "N/A"}
         # -------------------------
         # --- Return Number Bar ---
         # -------------------------
-        return_numbers = las.return_number
-        unique_returns, return_counts = np.unique(return_numbers, return_counts=True)
+        unique_returns, return_counts = np.unique(las.return_number, return_counts=True)
         return_labels = [f"{r}" for r in unique_returns]
 
         fig2, ax2 = plt.subplots(figsize=(5, 4))
-        ax2.bar(return_labels, return_counts, color='lightgreen')
+        bars = ax2.bar(return_labels, return_counts, color='lightgreen')
+
+        for bar, count in zip(bars, return_counts):
+            ax2.text(
+                bar.get_x() + bar.get_width() / 2,
+                bar.get_height(),
+                f"{count}",
+                ha="center", va="bottom", fontsize=9, fontweight="bold"
+            )
+
         ax2.set_title("Return Number Distribution", fontweight='bold')
         ax2.set_xlabel("Return Number")
         ax2.set_ylabel("Count")

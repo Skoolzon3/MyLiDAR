@@ -27,7 +27,7 @@ def generate_txt_report(self, path, data: ReportData):
         # -- File Metadata --
         if (data.file_source or data.global_encoding or data.system_id or
             data.gen_software or data.version or data.point_format or data.creation_date):
-            f.write("File Metadata:\n")
+            f.write("--- File Metadata ---\n")
             if data.file_source:
                 f.write(f"File Source ID: {data.file_source}\n")
             if data.global_encoding:
@@ -47,7 +47,7 @@ def generate_txt_report(self, path, data: ReportData):
 
         # -- Intensity --
         if (data.min_intensity or data.max_intensity):
-            f.write("Intensity:\n")
+            f.write("--- Intensity ---\n")
             if data.min_intensity:
                 f.write(f"Min Intensity: {data.min_intensity}\n")
             if data.max_intensity:
@@ -57,7 +57,7 @@ def generate_txt_report(self, path, data: ReportData):
         # -- Spatial Measures --
         if (data.num_points or data.area or data.density or
             data.bounds or data.x_axis_bounds or data.y_axis_bounds):
-            f.write("Spatial Measures:\n")
+            f.write("--- Spatial Measures ---\n")
             if data.num_points:
                 f.write(f"Number of Points: {data.num_points}\n")
             if data.area:
@@ -77,7 +77,7 @@ def generate_txt_report(self, path, data: ReportData):
 
         # -- GPS Time --
         if (data.min_time or data.max_time):
-            f.write("GPS Time:\n")
+            f.write("--- GPS Time ---\n")
             if data.min_time:
                 f.write(f"Min GPS Time: {data.min_time}\n")
             if data.max_time:
@@ -86,14 +86,14 @@ def generate_txt_report(self, path, data: ReportData):
 
         # -- Classifications --
         if data.unique_classes is not None and data.class_counts is not None:
-            f.write("\nClassification Counts:\n")
+            f.write("--- Classification Counts ---\n")
             for cls, count in zip(data.unique_classes, data.class_counts):
                 f.write(f" - Class {cls}: {count}\n")
             f.write("\n")
 
         # -- Returns --
         if data.unique_returns is not None and data.return_counts is not None:
-            f.write("\nReturn Number Counts:\n")
+            f.write("--- Return Number Counts ---\n")
             for ret, count in zip(data.unique_returns, data.return_counts):
                 f.write(f" - Return {ret}: {count}\n")
             f.write("\n")
