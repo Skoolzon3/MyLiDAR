@@ -50,12 +50,6 @@ class MyLiDARPlugin:
         else:
             menubar.addMenu(self.menu)
 
-        toolbar_icon_path = os.path.join(self.plugin_dir, 'icons/mylidar.png')
-        self.toolbar_menu = QMenu(self.tr("MyLiDAR Tools"), main_win)
-        self.toolbar_action = QAction(QIcon(toolbar_icon_path), "MyLiDAR", main_win)
-        self.toolbar_action.setMenu(self.toolbar_menu)
-        self.iface.addToolBarIcon(self.toolbar_action)
-
         actions = [
             ("report.png", self.tr("Generate LiDAR File Report"), self.report_generation),
             ("cleanup.png", self.tr("Remove outlier points"), self.outlier_removal),
@@ -72,16 +66,12 @@ class MyLiDARPlugin:
             action = QAction(QIcon(icon_path), self.tr(label), main_win)
             action.triggered.connect(callback)
             self.menu.addAction(action)
-            self.toolbar_menu.addAction(action)
             self.actions.append(action)
 
     def unload(self):
-        self.iface.removeToolBarIcon(self.toolbar_action)
         if self.menu:
             self.iface.mainWindow().menuBar().removeAction(self.menu.menuAction())
         self.menu = None
-        self.toolbar_action = None
-        self.toolbar_menu = None
         self.actions = []
 
     # --- Report Generation ---
