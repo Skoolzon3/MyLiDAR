@@ -156,5 +156,5 @@ def remove_outliers(self):
         "Task Started",
         "Removing outliers in the background.",
         level=Qgis.Info,
-        duration=0
+        duration=-1
     )

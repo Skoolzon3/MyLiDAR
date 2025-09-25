@@ -127,5 +127,5 @@ def remove_overlap(self):
         "Task Started",
         "Removing overlapping points in the background.",
         level=Qgis.Info,
-        duration=0
+        duration=-1
     )

@@ -188,5 +188,5 @@ def generate_report(self):
         "Task Started",
         "Report generation is running in the background.",
         level=Qgis.Info,
-        duration=0
+        duration=-1
     )
