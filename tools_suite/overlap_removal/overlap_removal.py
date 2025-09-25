@@ -8,6 +8,14 @@ import numpy as np
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
 from qgis.core import QgsApplication, QgsPointCloudLayer, QgsProject, QgsTask, Qgis, QgsMessageLog
 
+# -----------------------
+# --- Overlap Removal ---
+# -----------------------
+# Description:
+# This function removes overlap points from a LiDAR file based on classification codes, by
+# filting out points classified as overlap and saving the remaining points to a new point cloud.
+# -----------------------
+
 # -------------------------------------------
 # --- Background Task for Overlap Removal ---
 # -------------------------------------------
@@ -83,16 +91,11 @@ class RemoveOverlapTask(QgsTask):
             if self in self.parent.running_tasks:
                 self.parent.running_tasks.remove(self)
 
-# -----------------------
-# --- Overlap Removal ---
-# -----------------------
-# Description:
-# This function removes overlap points from a LiDAR file based on classification codes, by
-# filting out points classified as overlap and saving the remaining points to a new point cloud.
-# -----------------------
+# -----------------------------------
+# --- Main Overlap Removal Method ---
+# -----------------------------------
 
 def remove_overlap(self):
-
     # Step 1: Get input file from user
     input_filename, _ = QFileDialog.getOpenFileName(
         self.iface.mainWindow(),
@@ -119,3 +122,10 @@ def remove_overlap(self):
     task = RemoveOverlapTask(task_description, input_filename, output_filename, self)
     self.running_tasks.append(task)
     QgsApplication.taskManager().addTask(task)
+
+    self.iface.messageBar().pushMessage(
+        "Task Started",
+        "Removing overlapping points in the background. See status bar for progress.",
+        level=Qgis.Info,
+        duration=0
+    )
