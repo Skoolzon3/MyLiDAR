@@ -108,7 +108,7 @@ def generate_markdown_report(self, path, data: ReportData):
         f.write(f"**Report date**: `{current_time}`\n")
 
         if data.file_name:
-            f.write(f"**File:** `{data.file_name}`\n")
+            f.write(f"\n**File:** `{data.file_name}`\n")
             f.write("\n")
 
         # -- File Metadata --
