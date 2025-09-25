@@ -1,21 +1,19 @@
 # --- General imports ---
+import os
 import laspy
 from laspy import LazBackend
 import numpy as np
 
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtTest import QTest
-from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsField, QgsProject, QgsFillSymbol
-from PyQt5.QtCore import Qt, QVariant
+from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsField, QgsProject, QgsFillSymbol, QgsTask, QgsApplication, Qgis, QgsMessageLog
+from PyQt5.QtCore import QVariant
 
 # --- Method-specific imports ---
 from sklearn.cluster import DBSCAN
 from shapely.geometry import MultiPoint
 
 # --- Dialog imports ---
-from ..utils import create_loading_dialog
 from .building_count_dialog import BuildingParamsDialog
 
 # ----------------------
@@ -27,116 +25,164 @@ from .building_count_dialog import BuildingParamsDialog
 # Users can specify parameters for clustering (eps and min_samples).
 # ----------------------
 
+# ------------------------------------------
+# --- Background Task for Building Count ---
+# ------------------------------------------
+
+class BuildingCountTask(QgsTask):
+    """Background task for counting buildings using DBSCAN on LiDAR data"""
+
+    def __init__(self, description, filename, eps, min_samples, use_z, parent):
+        super().__init__(description, QgsTask.CanCancel)
+        self.filename = filename
+        self.eps = eps
+        self.min_samples = min_samples
+        self.use_z = use_z
+        self.parent = parent
+
+        self.exception = None
+        self.num_buildings = 0
+        self.num_points = 0
+        self.crs = 4326
+        self.clusters = []  # list of (cluster_id, coords, area, wkt)
+
+    def run(self):
+        try:
+            las = laspy.read(self.filename, laz_backend=LazBackend.Lazrs)
+
+            # Filter building-classified points
+            building_class_code = 6
+            classifications = las.classification
+            is_building = classifications == building_class_code
+
+            self.num_points = int(np.sum(is_building))
+            if self.num_points == 0:
+                return True  # handled later in finished()
+
+            # Extract coordinates for clustering
+            if self.use_z:
+                coords = np.vstack((las.x[is_building], las.y[is_building], las.z[is_building])).T
+            else:
+                coords = np.vstack((las.x[is_building], las.y[is_building])).T
+
+            # --- DBSCAN clustering ---
+            db = DBSCAN(eps=self.eps, min_samples=self.min_samples).fit(coords)
+            labels = db.labels_
+            self.num_buildings = len(set(labels)) - (1 if -1 in labels else 0)
+
+            # --- CRS extraction ---
+            try:
+                self.crs = las.header.parse_crs().to_epsg()
+            except Exception:
+                self.crs = 4326
+
+            # --- Convex hulls for clusters ---
+            for cluster_id in set(labels):
+                if cluster_id == -1:
+                    continue
+
+                cluster_coords = coords[labels == cluster_id]
+                if len(cluster_coords) < self.min_samples:
+                    continue
+
+                poly = MultiPoint(cluster_coords).convex_hull
+                self.clusters.append((
+                    int(cluster_id),
+                    len(cluster_coords),
+                    poly.area,
+                    poly.wkt
+                ))
+
+            return True
+        except Exception as e:
+            self.exception = e
+            return False
+
+    def finished(self, result):
+        if result:
+            if self.num_points == 0:
+                QMessageBox.information(
+                    self.parent.iface.mainWindow(),
+                    "No Buildings Found",
+                    "No buildings were found in this file."
+                )
+            else:
+                # --- Build QGIS layer ---
+                layer_name = "Detected_Buildings_(3D_Clustering)" if self.use_z else "Detected_Buildings_(2D_Clustering)"
+                vl = QgsVectorLayer(f"Polygon?crs=EPSG:{self.crs}", layer_name, "memory")
+                pr = vl.dataProvider()
+                pr.addAttributes([
+                    QgsField("cluster_id", QVariant.Int),
+                    QgsField("num_points", QVariant.Int),
+                    QgsField("area_m2", QVariant.Double)
+                ])
+                vl.updateFields()
+
+                for cluster_id, n_points, area, wkt in self.clusters:
+                    feat = QgsFeature()
+                    feat.setGeometry(QgsGeometry.fromWkt(wkt))
+                    feat.setAttributes([cluster_id, n_points, area])
+                    pr.addFeature(feat)
+
+                # Apply symbology
+                symbol = QgsFillSymbol.createSimple({
+                    "color": "0,0,255,50",          # Blue with ~20% opacity
+                    "outline_color": "0,0,0,100",
+                    "outline_width": "0.4"
+                })
+                vl.renderer().setSymbol(symbol)
+
+                # Tooltip expression
+                expr = "concat('ID: ', cluster_id, '\nArea: ', round(area_m2,1), ' m²')"
+                vl.setDisplayExpression(expr)
+
+                QgsProject.instance().addMapLayer(vl)
+
+                QMessageBox.information(
+                    self.parent.iface.mainWindow(),
+                    "Building Detection Complete",
+                    f"Building points detected: {self.num_points:,}\n"
+                    f"Approximate number of buildings detected: {self.num_buildings:,}"
+                )
+        else:
+            msg = f"An error occurred: {self.exception}" if self.exception else "Building detection failed."
+            QgsMessageLog.logMessage(msg, "MyPlugin", Qgis.Critical)
+            QMessageBox.critical(self.parent.iface.mainWindow(), "Error Detecting Buildings", msg)
+
+        if self in self.parent.running_tasks:
+            self.parent.running_tasks.remove(self)
+
+# ----------------------------------
+# --- Main Building Count Method ---
+# ----------------------------------
+
 def count_buildings(self):
+    # Step 1: Select input file path
     filename, _ = QFileDialog.getOpenFileName(
         self.iface.mainWindow(),
-        'Select LiDAR File to Count Buildings',
-        '',
-        'LiDAR Files (*.las *.laz)'
+        "Select LiDAR File to Count Buildings",
+        "",
+        "LiDAR Files (*.las *.laz)"
     )
     if not filename:
         return
 
+    # Step 2: Ask user for clustering parameters
     param_dialog = BuildingParamsDialog(self.iface.mainWindow())
     if not param_dialog.exec_():
         return
-
     eps, min_samples, use_z = param_dialog.get_params()
 
-    loading_dialog = create_loading_dialog(self, message="Counting buildings...")
+    # Step 3: Create and run the background task
+    task_desc = f"Counting buildings in {os.path.basename(filename)}"
+    task = BuildingCountTask(task_desc, filename, eps, min_samples, use_z, self)
 
-    try:
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        loading_dialog.show()
-        QApplication.processEvents()
-        QTest.qWait(100)
+    self.running_tasks.append(task)
+    QgsApplication.taskManager().addTask(task)
 
-        las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
-
-        # Filter building-classified points
-        building_class_code = 6
-        classifications = las.classification
-        is_building = classifications == building_class_code
-
-        if np.sum(is_building) == 0:
-            QMessageBox.information(
-                self.iface.mainWindow(),
-                "No Buildings Found",
-                "No buildings were found in this file."
-            )
-            return
-
-        #Extract coordinates for clustering
-        if use_z:
-            coords = np.vstack((las.x[is_building], las.y[is_building], las.z[is_building])).T
-        else:
-            coords = np.vstack((las.x[is_building], las.y[is_building])).T
-
-        db = DBSCAN(eps=eps, min_samples=min_samples).fit(coords)
-        labels = db.labels_
-
-        # Count clusters (excluding noise points labeled -1)
-        num_buildings = len(set(labels)) - (1 if -1 in labels else 0)
-
-        # --- QGIS polygon layer ---
-        crs = None
-        try:
-            crs = las.header.parse_crs().to_epsg()
-        except Exception:
-            crs = 4326  # fallback if CRS not defined
-
-        layer_name = "Detected_Buildings_(3D_Clustering)" if use_z else "Detected_Buildings_(2D_Clustering)"
-        vl = QgsVectorLayer(f"Polygon?crs=EPSG:{crs}", layer_name, "memory")
-        pr = vl.dataProvider()
-        pr.addAttributes([
-            QgsField("cluster_id", QVariant.Int),
-            QgsField("num_points", QVariant.Int),
-            QgsField("area_m2", QVariant.Double)
-        ])
-        vl.updateFields()
-
-        for cluster_id in set(labels):
-            if cluster_id == -1:
-                continue
-
-            cluster_coords = coords[labels == cluster_id]
-
-            if len(cluster_coords) < min_samples:
-                continue
-
-            # Convex hull polygon of the cluster
-            poly = MultiPoint(cluster_coords).convex_hull
-            feat = QgsFeature()
-            feat.setGeometry(QgsGeometry.fromWkt(poly.wkt))
-            feat.setAttributes([int(cluster_id), len(cluster_coords), poly.area])
-            pr.addFeature(feat)
-            symbol = QgsFillSymbol.createSimple({
-                'color': '0,0,255,50',          # Blue w/ alpha=50 (~20% opacity)
-                'outline_color': '0,0,0,100',
-                'outline_width': '0.4'
-            })
-            vl.renderer().setSymbol(symbol)
-
-            # Expression displayed when hovering over polygons (PD: View → Map Tips must be enabled)
-            expr = "concat('ID: ', cluster_id, '\nArea: ', round(area_m2,1), ' m²')"
-            vl.setDisplayExpression(expr)
-
-        QgsProject.instance().addMapLayer(vl)
-
-        QMessageBox.information(
-            self.iface.mainWindow(),
-            "Building Detection Complete",
-            f"Building points detected: {np.sum(is_building):,}\n"
-            f"Approximate number of building detected: {num_buildings:,}"
-        )
-
-    except Exception as e:
-        QMessageBox.critical(
-            self.iface.mainWindow(),
-            "Error Detecting Buildings",
-            f"An error occurred:\n{e}"
-        )
-
-    finally:
-        loading_dialog.close()
-        QApplication.restoreOverrideCursor()
+    self.iface.messageBar().pushMessage(
+        "Task Started",
+        "Building detection running in the background...",
+        level=Qgis.Info,
+        duration=-1
+    )

@@ -29,7 +29,7 @@ from ..utils import gps_time_to_datetime, format_global_encoding, format_point_f
 # -------------------------------------------------
 
 class StatisticsGenerationTask(QgsTask):
-    """Background task for computing LiDAR statistics and plots."""
+    """Background task for computing LiDAR statistics and plots"""
 
     def __init__(self, description, filename, parent):
         super().__init__(description, QgsTask.CanCancel)

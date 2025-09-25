@@ -27,7 +27,7 @@ from .outlier_removal_dialog import OutlierRemovalDialog
 # -------------------------------------------
 
 class RemoveOutliersTask(QgsTask):
-    """Remove outlier points from a LiDAR file in a background thread."""
+    """Remove outlier points from a LiDAR file in a background thread"""
 
     def __init__(self, description, input_filename, output_filename, radius, min_neighbors, parent):
         super().__init__(description, QgsTask.CanCancel)
@@ -41,7 +41,6 @@ class RemoveOutliersTask(QgsTask):
         self.num_remaining = 0
 
     def run(self):
-        """Performs the long-running task in a background thread"""
         try:
             # Step 1: Read the input file
             las = laspy.read(self.input_filename, laz_backend=LazBackend.Lazrs)
@@ -81,7 +80,6 @@ class RemoveOutliersTask(QgsTask):
             return False  # Failure
 
     def finished(self, result):
-        """Called in the main GUI thread when the task is finished."""
         try:
             if result:
                 # Task completed successfully
