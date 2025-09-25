@@ -9,7 +9,6 @@ from qgis.PyQt.QtWidgets import QAction, QMessageBox, QMenu
 # --- Method-specific imports ---
 from .tools_suite.report_generation.report_generation import generate_report
 from .tools_suite.outlier_removal.outlier_removal import remove_outliers
-#from .tools_suite.overlap_removal.overlap_removal import remove_overlap
 from .tools_suite.overlap_removal.overlap_removal import remove_overlap
 from .tools_suite.building_count.building_count import count_buildings
 from .tools_suite.statistics_generation.statistics_generation import generate_statistics

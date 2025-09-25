@@ -41,7 +41,7 @@ class RemoveOutliersTask(QgsTask):
         self.num_remaining = 0
 
     def run(self):
-        """Performs the long-running task in a background thread."""
+        """Performs the long-running task in a background thread"""
         try:
             # Step 1: Read the input file
             las = laspy.read(self.input_filename, laz_backend=LazBackend.Lazrs)
@@ -118,7 +118,7 @@ class RemoveOutliersTask(QgsTask):
 # -----------------------------------
 
 def remove_outliers(self):
-    # Step 1: Get input file from user
+    # Step 1: Select input file path
     input_filename, _ = QFileDialog.getOpenFileName(
         self.iface.mainWindow(),
         'Select LiDAR File to Clean',
@@ -128,13 +128,13 @@ def remove_outliers(self):
     if not input_filename:
         return
 
-    # Step 2: Get parameters from the user via a custom dialog
+    # Step 2: Get parameters via a custom dialog
     dialog = OutlierRemovalDialog(self.iface.mainWindow())
     if dialog.exec_() != QDialog.Accepted:
         return
     radius, min_neighbors = dialog.get_values()
 
-    # Step 3: Get output file path from user
+    # Step 3: Select output file path
     default_output = os.path.splitext(input_filename)[0] + '_cleaned.laz'
     output_filename, _ = QFileDialog.getSaveFileName(
         self.iface.mainWindow(),
@@ -154,7 +154,7 @@ def remove_outliers(self):
 
     self.iface.messageBar().pushMessage(
         "Task Started",
-        "Removing outliers in the background. See status bar for progress.",
+        "Removing outliers in the background.",
         level=Qgis.Info,
-        duration=5
+        duration=0
     )

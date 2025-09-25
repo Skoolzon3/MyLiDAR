@@ -96,7 +96,7 @@ class RemoveOverlapTask(QgsTask):
 # -----------------------------------
 
 def remove_overlap(self):
-    # Step 1: Get input file from user
+    # Step 1: Select input file path
     input_filename, _ = QFileDialog.getOpenFileName(
         self.iface.mainWindow(),
         'Select LiDAR File to Remove Overlap Points',
@@ -106,7 +106,7 @@ def remove_overlap(self):
     if not input_filename:
         return
 
-    # Step 2: Get output file path from user
+    # Step 2: Select output file path
     default_output = os.path.splitext(input_filename)[0] + '_non_overlap.laz'
     output_filename, _ = QFileDialog.getSaveFileName(
         self.iface.mainWindow(),
@@ -117,7 +117,7 @@ def remove_overlap(self):
     if not output_filename:
         return
 
-    # Step 3: Create the background task
+    # Step 3: Create and run the background task
     task_description = f"Removing overlap from {os.path.basename(input_filename)}"
     task = RemoveOverlapTask(task_description, input_filename, output_filename, self)
     self.running_tasks.append(task)
@@ -125,7 +125,7 @@ def remove_overlap(self):
 
     self.iface.messageBar().pushMessage(
         "Task Started",
-        "Removing overlapping points in the background. See status bar for progress.",
+        "Removing overlapping points in the background.",
         level=Qgis.Info,
         duration=0
     )

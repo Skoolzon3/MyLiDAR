@@ -6,13 +6,11 @@ import numpy as np
 
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox, QDialog
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import Qt
+from qgis.core import QgsApplication, QgsTask, Qgis, QgsMessageLog
 
 # --- Dialogs and Data Classes imports ---
 from .report_data import ReportData
 from .report_dialog import ReportDialog
-from ..utils import create_loading_dialog
 
 # --- Utility & Report Generation Functions ---
 from ..utils import format_global_encoding, format_point_format, gps_time_to_datetime
@@ -26,116 +24,169 @@ from .report_functions import generate_txt_report, generate_markdown_report, gen
 # allowing the user to choose the report format (text, markdown, or PDF) and which metadata to include.
 # -------------------------
 
+# ---------------------------------------------
+# --- Background Task for Report Generation ---
+# ---------------------------------------------
+
+class ReportGenerationTask(QgsTask):
+    """Background task for generating LiDAR information reports"""
+
+    def __init__(self, description, filename, report_path, report_format, selected_fields, parent):
+        super().__init__(description, QgsTask.CanCancel)
+        self.filename = filename
+        self.report_path = report_path
+        self.report_format = report_format  # "txt", "md", or "pdf"
+        self.selected_fields = selected_fields
+        self.parent = parent
+        self.exception = None
+
+    def run(self):
+        try:
+            las = laspy.read(self.filename, laz_backend=LazBackend.Lazrs)
+
+            # Extract stats
+            unique_classes, class_counts = np.unique(las.classification, return_counts=True)
+            unique_returns, ret_counts = np.unique(las.return_number, return_counts=True)
+
+            if hasattr(las, "gps_time"):
+                dt_min = gps_time_to_datetime(las.gps_time.min()).isoformat()
+                dt_max = gps_time_to_datetime(las.gps_time.max()).isoformat()
+            else:
+                dt_min = dt_max = None
+
+            # Build ReportData object from user-selected fields
+            data = ReportData(
+                file_name=os.path.basename(self.filename) if self.selected_fields["file_name"] else None,
+                file_source=las.header.file_source_id if self.selected_fields["file_source"] else None,
+                global_encoding=format_global_encoding(las.header.global_encoding) if self.selected_fields["global_encoding"] else None,
+                system_id=las.header.system_identifier if self.selected_fields["system_id"] else None,
+                gen_software=las.header.generating_software if self.selected_fields["gen_software"] else None,
+                version=las.header.version if self.selected_fields["version"] else None,
+                point_format=format_point_format(las.header.point_format) if self.selected_fields["point_format"] else None,
+                creation_date=str(las.header.creation_date) if self.selected_fields["creation_date"] else None,
+
+                min_intensity=las.intensity.min() if self.selected_fields["min_intensity"] else None,
+                max_intensity=las.intensity.max() if self.selected_fields["max_intensity"] else None,
+
+                num_points=las.header.point_count if self.selected_fields["num_points"] else None,
+                area=(las.header.x_max - las.header.x_min) * (las.header.y_max - las.header.y_min) if self.selected_fields["area"] else None,
+                density=(las.header.point_count / ((las.header.x_max - las.header.x_min) * (las.header.y_max - las.header.y_min)))
+                        if self.selected_fields["density"] else None,
+                bounds=(las.header.mins, las.header.maxs) if self.selected_fields["bounds"] else None,
+                x_axis_bounds=(las.header.x_min, las.header.x_max) if self.selected_fields["x_axis_bounds"] else None,
+                y_axis_bounds=(las.header.y_min, las.header.y_max) if self.selected_fields["y_axis_bounds"] else None,
+                z_axis_bounds=(las.header.z_min, las.header.z_max) if self.selected_fields["z_axis_bounds"] else None,
+
+                min_time=dt_min if self.selected_fields["min_time"] else None,
+                max_time=dt_max if self.selected_fields["max_time"] else None,
+
+                unique_classes=unique_classes if self.selected_fields["class_counts"] else None,
+                class_counts=class_counts if self.selected_fields["class_counts"] else None,
+                unique_returns=unique_returns if self.selected_fields["return_counts"] else None,
+                return_counts=ret_counts if self.selected_fields["return_counts"] else None,
+            )
+
+            # Generate report in chosen format
+            if self.report_format == "pdf":
+                generate_pdf_report(self.parent, self.report_path, data)
+            elif self.report_format == "md":
+                generate_markdown_report(self.parent, self.report_path, data)
+            else:
+                generate_txt_report(self.parent, self.report_path, data)
+
+            return True
+        except Exception as e:
+            self.exception = e
+            return False
+
+    def finished(self, result):
+        if result:
+            QMessageBox.information(
+                self.parent.iface.mainWindow(),
+                "Success",
+                f"Report created at:\n{self.report_path}"
+            )
+        else:
+            msg = f"An error occurred:\n{self.exception}" if self.exception else "Report generation failed."
+            QgsMessageLog.logMessage(msg, "MyPlugin", Qgis.Critical)
+            QMessageBox.critical(self.parent.iface.mainWindow(), "Error", msg)
+
+        if self in self.parent.running_tasks:
+            self.parent.running_tasks.remove(self)
+
+# -------------------------------------
+# --- Main Report Generation Method ---
+# -------------------------------------
+
 def generate_report(self):
+    # Step 1: Select input file path
     filename, _ = QFileDialog.getOpenFileName(
         self.iface.mainWindow(),
-        'Select LiDAR File',
-        '',
-        'LiDAR Files (*.las *.laz)'
+        "Select LiDAR File",
+        "",
+        "LiDAR Files (*.las *.laz)"
     )
     if not filename:
         return
 
-    loading_dialog = create_loading_dialog(self)
+    # Step 2: Ask user what fields to include
+    dialog = ReportDialog(self.iface.mainWindow())
+    if dialog.exec_() != QDialog.Accepted:
+        return
 
-    try:
-        try:
-            QApplication.setOverrideCursor(Qt.WaitCursor)
+    # Step 3: Choose output format
+    if dialog.radioPdf.isChecked():
+        ext, fmt, filter_str = ".pdf", "pdf", "PDF Files (*.pdf)"
+    elif dialog.radioMarkdown.isChecked():
+        ext, fmt, filter_str = ".md", "md", "Markdown Files (*.md)"
+    else:
+        ext, fmt, filter_str = ".txt", "txt", "Text Files (*.txt)"
 
-            loading_dialog.show()
-            QApplication.processEvents()
+    # Step 4: Select output file path
+    report_path, _ = QFileDialog.getSaveFileName(
+        self.iface.mainWindow(),
+        "Save Report",
+        os.path.splitext(filename)[0] + "_report" + ext,
+        filter_str
+    )
+    if not report_path:
+        return
 
-            las = laspy.read(filename, laz_backend=LazBackend.Lazrs)
+    # Collect field selections from dialog
+    selected_fields = {
+        "file_name": dialog.checkFileName.isChecked(),
+        "file_source": dialog.checkFileSource.isChecked(),
+        "global_encoding": dialog.checkGlobalEncoding.isChecked(),
+        "system_id": dialog.checkSystemId.isChecked(),
+        "gen_software": dialog.checkGenSoftware.isChecked(),
+        "version": dialog.checkVersion.isChecked(),
+        "point_format": dialog.checkPointFormat.isChecked(),
+        "creation_date": dialog.checkCreationDate.isChecked(),
+        "min_intensity": dialog.checkMinIntensity.isChecked(),
+        "max_intensity": dialog.checkMaxIntensity.isChecked(),
+        "num_points": dialog.checkNumPoints.isChecked(),
+        "area": dialog.checkArea.isChecked(),
+        "density": dialog.checkDensity.isChecked(),
+        "bounds": dialog.checkBounds.isChecked(),
+        "x_axis_bounds": dialog.checkXAxisBounds.isChecked(),
+        "y_axis_bounds": dialog.checkYAxisBounds.isChecked(),
+        "z_axis_bounds": dialog.checkZAxisBounds.isChecked(),
+        "min_time": dialog.checkMinTime.isChecked(),
+        "max_time": dialog.checkMaxTime.isChecked(),
+        "class_counts": dialog.checkClassCounts.isChecked(),
+        "return_counts": dialog.checkReturnCounts.isChecked(),
+    }
 
-            unique_classes, class_counts = np.unique(las.classification, return_counts=True)  # Classification values and their counts
-            unique_returns, ret_counts = np.unique(las.return_number, return_counts=True)     # Return number values and their counts
+    # Step 5: Create and run the background task
+    task_desc = f"Generating report for {os.path.basename(filename)}"
+    task = ReportGenerationTask(task_desc, filename, report_path, fmt, selected_fields, self)
 
-            if hasattr(las, "gps_time"):    # Check if GPS time is present. This should, in theory, always be true for LAS files.
-                    dt_min = gps_time_to_datetime(las.gps_time.min()).isoformat()
-                    dt_max = gps_time_to_datetime(las.gps_time.max()).isoformat()
-            else:
-                dt_min = dt_max = None
-                QMessageBox.warning(self.iface.mainWindow(), "Warning", "GPS Time not found in the file. This may affect the report.")
+    self.running_tasks.append(task)
+    QgsApplication.taskManager().addTask(task)
 
-        finally:
-            loading_dialog.close()
-            QApplication.restoreOverrideCursor()
-
-        dialog = ReportDialog(self.iface.mainWindow())
-        if dialog.exec_() != QDialog.Accepted:
-            return
-
-        is_md = dialog.radioMarkdown.isChecked()
-        is_pdf = dialog.radioPdf.isChecked()
-
-        if is_pdf:
-            ext = ".pdf"
-            filter_str = "PDF Files (*.pdf)"
-        elif is_md:
-            ext = ".md"
-            filter_str = "Markdown Files (*.md)"
-        else:
-            ext = ".txt"
-            filter_str = "Text Files (*.txt)"
-
-        report_path, _ = QFileDialog.getSaveFileName(
-            self.iface.mainWindow(),
-            'Save Report',
-            os.path.splitext(filename)[0] + '_report' + ext,
-            filter_str
-        )
-        if not report_path:
-            return
-
-        data = ReportData(
-            # -- Metadata --
-            file_name=os.path.basename(filename) if dialog.checkFileName.isChecked() else None,             # File name
-            file_source=las.header.file_source_id if dialog.checkFileSource.isChecked() else None,          # File source
-            global_encoding=format_global_encoding(las.header.global_encoding) if dialog.checkGlobalEncoding.isChecked() else None,     # Global encoding details
-            system_id=las.header.system_identifier if dialog.checkSystemId.isChecked() else None,           # Note: System ID only incluided in generated LAZ files
-            gen_software=las.header.generating_software if dialog.checkGenSoftware.isChecked() else None,   # Generating software (e.g., LAStools, PDAL)
-            version=las.header.version if dialog.checkVersion.isChecked() else None,                        # LAS version (e.g., 1.4)
-            point_format=format_point_format(las.header.point_format) if dialog.checkPointFormat.isChecked() else None,                 # Point format details
-            creation_date=str(las.header.creation_date) if dialog.checkCreationDate.isChecked() else None,  # Creation date of the file
-
-            # -- Intensity --
-            min_intensity=las.intensity.min() if dialog.checkMinIntensity.isChecked() else None,            # Minimum intensity value
-            max_intensity=las.intensity.max() if dialog.checkMaxIntensity.isChecked() else None,            # Maximum intensity value
-
-            # -- Spatial --
-            num_points=las.header.point_count if dialog.checkNumPoints.isChecked() else None,               # Total number of points in the file
-            area=(las.header.x_max - las.header.x_min) * (las.header.y_max - las.header.y_min) if dialog.checkArea.isChecked() else None, # Area covered by the point cloud (width * height)
-            density=las.header.point_count / (
-                (las.header.x_max - las.header.x_min) * (las.header.y_max - las.header.y_min)
-            ) if dialog.checkDensity.isChecked() else None,                                                 # Density of points (points per square unit)
-            bounds=(las.header.mins, las.header.maxs) if dialog.checkBounds.isChecked() else None,                  # Bounds of the point cloud (min, max)
-            x_axis_bounds=(las.header.x_min, las.header.x_max) if dialog.checkXAxisBounds.isChecked() else None,    # Bounds for X-axis
-            y_axis_bounds=(las.header.y_min, las.header.y_max) if dialog.checkYAxisBounds.isChecked() else None,    # Bounds for Y-axis
-            z_axis_bounds=(las.header.z_min, las.header.z_max) if dialog.checkZAxisBounds.isChecked() else None,    # Bounds for Z-axis
-
-            # -- GPS Time --
-            min_time=dt_min if dialog.checkMinTime.isChecked() else None,                                   # Minimum GPS time
-            max_time=dt_max if dialog.checkMaxTime.isChecked() else None,                                   # Maximum GPS time
-
-            # -- Classifications and Returns --
-            unique_classes=unique_classes if dialog.checkClassCounts.isChecked() else None,                 # Unique classification values
-            class_counts=class_counts if dialog.checkClassCounts.isChecked() else None,
-            unique_returns=unique_returns if dialog.checkReturnCounts.isChecked() else None,                # Unique return number values
-            return_counts=ret_counts if dialog.checkReturnCounts.isChecked() else None,
-        )
-
-        if is_pdf:
-            generate_pdf_report(self, report_path, data)
-        elif is_md:
-            generate_markdown_report(self, report_path, data)
-        else:
-            generate_txt_report(self, report_path, data)
-
-        QMessageBox.information(self.iface.mainWindow(), "Success", f"Report created at:\n{report_path}")
-
-    except Exception as e:
-        QMessageBox.critical(self.iface.mainWindow(), "Error", f"Failed to process file:\n{e}")
-
-    finally:
-        loading_dialog.close()
-        QApplication.restoreOverrideCursor()
+    self.iface.messageBar().pushMessage(
+        "Task Started",
+        "Report generation is running in the background.",
+        level=Qgis.Info,
+        duration=0
+    )
