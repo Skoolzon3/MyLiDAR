@@ -48,43 +48,52 @@ class BuildingCountTask(QgsTask):
 
     def run(self):
         try:
+            # Step 1: Read input file
             las = laspy.read(self.filename, laz_backend=LazBackend.Lazrs)
+            self.setProgress(10)
 
-            # Filter building-classified points
+            # Step 2: Filter building-classified points
             building_class_code = 6
             classifications = las.classification
             is_building = classifications == building_class_code
 
             self.num_points = int(np.sum(is_building))
             if self.num_points == 0:
+                self.setProgress(100)
                 return True  # handled later in finished()
+            self.setProgress(20)
 
-            # Extract coordinates for clustering
+            # Step 3: Extract coordinates for clustering
             if self.use_z:
                 coords = np.vstack((las.x[is_building], las.y[is_building], las.z[is_building])).T
             else:
                 coords = np.vstack((las.x[is_building], las.y[is_building])).T
+            self.setProgress(30)
 
-            # --- DBSCAN clustering ---
+            # Step 4: DBSCAN clustering
             db = DBSCAN(eps=self.eps, min_samples=self.min_samples).fit(coords)
             labels = db.labels_
             self.num_buildings = len(set(labels)) - (1 if -1 in labels else 0)
+            self.setProgress(70)
 
-            # --- CRS extraction ---
+            # Step 5: CRS extraction
             try:
                 self.crs = las.header.parse_crs().to_epsg()
             except Exception:
                 self.crs = 4326
+            self.setProgress(80)
 
-            # --- Convex hulls for clusters ---
-            for cluster_id in set(labels):
-                if cluster_id == -1:
-                    continue
+            # Step 6: Convex hulls for clusters
+            unique_clusters = [cid for cid in set(labels) if cid != -1]
+            total_clusters = len(unique_clusters)
+
+            for idx, cluster_id in enumerate(unique_clusters, start=1):
+                if self.isCanceled():
+                    return False
 
                 cluster_coords = coords[labels == cluster_id]
                 if len(cluster_coords) < self.min_samples:
                     continue
-
                 poly = MultiPoint(cluster_coords).convex_hull
                 self.clusters.append((
                     int(cluster_id),
@@ -93,7 +102,12 @@ class BuildingCountTask(QgsTask):
                     poly.wkt
                 ))
 
+                progress = 80 + (20 * idx / total_clusters)
+                self.setProgress(progress)
+
+            self.setProgress(100)
             return True
+
         except Exception as e:
             self.exception = e
             return False

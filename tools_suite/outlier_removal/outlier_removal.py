@@ -42,26 +42,39 @@ class RemoveOutliersTask(QgsTask):
 
     def run(self):
         try:
-            # Step 1: Read the input file
+            # Step 1: Read input file
             las = laspy.read(self.input_filename, laz_backend=LazBackend.Lazrs)
+            self.setProgress(10)
 
-            # Step 2: Build KD-tree and find outliers
+            # Step 2: Build KD-tree
             coords = np.vstack((las.x, las.y, las.z)).T
             tree = cKDTree(coords)
-            neighbor_counts = tree.query_ball_point(coords, r=self.radius, return_length=True)
-            mask = neighbor_counts >= self.min_neighbors
+            self.setProgress(20)
 
+            # Step 3: Find outliers
+            n_points = coords.shape[0]
+            batch_size = max(10000, n_points // 100)  # ~100 updates
+            neighbor_counts = np.empty(n_points, dtype=np.int32)
+
+            for i in range(0, n_points, batch_size):
+                if self.isCanceled():
+                    return False
+
+                j = min(i + batch_size, n_points)
+                neighbor_counts[i:j] = tree.query_ball_point(coords[i:j], r=self.radius, return_length=True)
+
+                progress = 20 + (70 * j / n_points) # Progress updated proportionally (20–90%)
+                self.setProgress(progress)
+
+            # Step 4: Build mask
+            mask = neighbor_counts >= self.min_neighbors
             self.num_removed = np.sum(~mask)
             self.num_remaining = np.sum(mask)
-
-            # Periodically check if the user has canceled the task
-            if self.isCanceled():
-                return False
 
             if self.num_remaining == 0:
                 raise ValueError("All points were classified as outliers. No data would remain.")
 
-            # Step 3: Create a new LasData object with the filtered points
+            # Step 3: Create new LasData object with the filtered points
             new_header = las.header.copy()
             las_filtered = laspy.LasData(new_header)
             las_filtered.points = las.points[mask]
@@ -71,13 +84,14 @@ class RemoveOutliersTask(QgsTask):
             las_filtered.header.min = [np.min(filtered_coords[:, 0]), np.min(filtered_coords[:, 1]), np.min(filtered_coords[:, 2])]
             las_filtered.header.max = [np.max(filtered_coords[:, 0]), np.max(filtered_coords[:, 1]), np.max(filtered_coords[:, 2])]
 
-            # Step 4: Write the new file to the output path
+            # Step 4: Write new file to the output path
             las_filtered.write(self.output_filename)
+            self.setProgress(100)
+            return True
 
-            return True  # Success
         except Exception as e:
             self.exception = e
-            return False  # Failure
+            return False
 
     def finished(self, result):
         try:

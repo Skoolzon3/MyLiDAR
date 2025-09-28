@@ -42,53 +42,66 @@ class VegetationClassificationTask(QgsTask):
 
     def run(self):
         try:
+            # Step 1: Read input file
             las = laspy.read(self.filename, laz_backend=LazBackend.Lazrs)
 
-            # Standard ASPRS classes
+            # Step 2: Data preparation
             ground_class = 2
             low_class = 3
             medium_class = 4
             high_class = 5
             classifications = las.classification
+            self.setProgress(20)
 
-            # --- Data Preparation ---
-
-            # Ground points
+            # Step 3: Filter ground points
             ground_idx = np.where(classifications == ground_class)[0]
             if len(ground_idx) == 0:
                 raise ValueError("No ground points (class 2) found in the file.")
 
             ground_xy = np.vstack((las.x[ground_idx], las.y[ground_idx])).T
             ground_z = las.z[ground_idx]
+            self.setProgress(30)
 
-            # Points originally marked as high vegetation
+            # Step 4: Filter points originally marked as high vegetation
             high_veg_idx = np.where(classifications == high_class)[0]
             if len(high_veg_idx) == 0:
                 raise ValueError("No high vegetation points (class 5) found in the file.")
 
             veg_xy = np.vstack((las.x[high_veg_idx], las.y[high_veg_idx])).T
             veg_z = las.z[high_veg_idx]
+            self.setProgress(40)
 
-            # Interpolate local ground height using nearest neighbor
+            # Step 5: Interpolate local ground height using nearest neighbor
             tree = cKDTree(ground_xy)
-            dist, nearest_ground_idx = tree.query(veg_xy, k=1)
-            local_ground_z = ground_z[nearest_ground_idx]
+            n_points = veg_xy.shape[0]
+            batch_size = max(10000, n_points // 100)  # ~100 progress updates
+            local_ground_z = np.empty(n_points, dtype=np.float32)
 
-            # Vegetation height above ground
+            for i in range(0, n_points, batch_size):
+                if self.isCanceled():
+                    return False
+
+                j = min(i + batch_size, n_points)
+                _, nearest_ground_idx = tree.query(veg_xy[i:j], k=1)
+                local_ground_z[i:j] = ground_z[nearest_ground_idx]
+
+                # Update progress proportionally (40–80%)
+                progress = 40 + (40 * j / n_points)
+                self.setProgress(progress)
+
             veg_height = veg_z - local_ground_z
 
-            # ---------------------------------
-
+            # Step 6: Reclassify vegetation
             low_mask = veg_height < self.low_thresh
             medium_mask = (veg_height >= self.low_thresh) & (veg_height <= self.high_thresh)
             high_mask = veg_height > self.high_thresh
 
-            # Reclassify vegetation
             las.classification[high_veg_idx[low_mask]] = low_class
             las.classification[high_veg_idx[medium_mask]] = medium_class
             las.classification[high_veg_idx[high_mask]] = high_class
+            self.setProgress(90)
 
-            # Save file
+            # Step 7: Save results
             las.write(self.output_path)
 
             self.stats = {
@@ -97,8 +110,9 @@ class VegetationClassificationTask(QgsTask):
                 "num_medium": int(np.sum(medium_mask)),
                 "num_high": int(np.sum(high_mask))
             }
-
+            self.setProgress(100)
             return True
+
         except Exception as e:
             self.exception = e
             return False

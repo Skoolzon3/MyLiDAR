@@ -46,12 +46,14 @@ class DemGenerationTask(QgsTask):
 
     def run(self):
         try:
+            # Step 1: Read input file
             las = laspy.read(self.filename, laz_backend=LazBackend.Lazrs)
+            self.setProgress(10)
 
-            ground_mask = (las.classification == 2)  # Filter ground points
+            # Step 2: Filter ground points
+            ground_mask = (las.classification == 2)
             if not np.any(ground_mask):
                 raise ValueError("No ground points found in the file.")
-
             x = las.x[ground_mask]
             y = las.y[ground_mask]
             z = las.z[ground_mask]
@@ -59,7 +61,9 @@ class DemGenerationTask(QgsTask):
             min_y, max_y = y.min(), y.max()
             cols = int(np.ceil((max_x - min_x) / self.cell_size))
             rows = int(np.ceil((max_y - min_y) / self.cell_size))
+            self.setProgress(20)
 
+            # Step 2.1: CRS extraction
             srs = osr.SpatialReference()
             try:
                 from laspy.vlrs.known import WktCoordinateSystemVlr
@@ -70,20 +74,23 @@ class DemGenerationTask(QgsTask):
                     srs.ImportFromEPSG(4326)
             except Exception:
                 srs.ImportFromEPSG(4326)
+            self.setProgress(30)
 
-            # --- DEM Generation ---
+            # Step 3: DEM Generation
             if self.use_triangulation:
-                # Triangulation-based interpolation (TIN)
+                # Step 3.1: Triangulation-based interpolation (TIN)
                 grid_x, grid_y = np.meshgrid(
                     np.linspace(min_x, max_x, cols),
                     np.linspace(max_y, min_y, rows)
                 )
+                self.setProgress(40)
 
                 dem = griddata(
                     (x, y), z,
                     (grid_x, grid_y),
                     method='linear'
                 )
+                self.setProgress(60)
 
                 # Fill gaps with nearest-neighbor
                 dem = np.where(
@@ -91,20 +98,30 @@ class DemGenerationTask(QgsTask):
                     griddata((x, y), z, (grid_x, grid_y), method='nearest'),
                     dem
                 )
+                self.setProgress(80)
 
             else:
-                # Cell-based minimum Z value (bare earth assumption)
+                # Step 3.2: Cell-based minimum Z value (bare earth assumption)
+
                 dem = np.full((rows, cols), np.nan, dtype=np.float32)
 
                 col_idx = ((x - min_x) / self.cell_size).astype(int)
                 row_idx = ((max_y - y) / self.cell_size).astype(int)
 
-                for r, c, z_val in zip(row_idx, col_idx, z):
+                total_points = len(z)
+                for i, (r, c, z_val) in enumerate(zip(row_idx, col_idx, z), start=1):
+                    if self.isCanceled():
+                        return False
+
                     if 0 <= r < rows and 0 <= c < cols:
                         if np.isnan(dem[r, c]) or z_val < dem[r, c]:
                             dem[r, c] = z_val
 
-            # Replace NaNs with -9999 (to mark nodata for GDAL)
+                    if i % 10000 == 0 or i == total_points:
+                        progress = 30 + (50 * i / total_points)
+                        self.setProgress(progress)
+
+            # Step 4: Replace NaNs with -9999 (to mark nodata for GDAL)
             dem = np.where(np.isnan(dem), -9999, dem)
 
             driver = gdal.GetDriverByName('GTiff')
@@ -116,6 +133,7 @@ class DemGenerationTask(QgsTask):
             out_band.WriteArray(dem)
             out_band.SetNoDataValue(-9999)
             out_band.FlushCache()
+            self.setProgress(90)
 
             # Hybrid step: Fill Nodata gaps with GDAL's FillNodata
             gdal.FillNodata(targetBand=out_band, maskBand=None,
@@ -126,7 +144,7 @@ class DemGenerationTask(QgsTask):
             out_band.SetStatistics(dem_min, dem_max, 0, 0)
             out_raster = None
 
-            # Optionally generate hillshade
+            # Step 5: Generate hillshade (optional)
             if self.hillshade_requested:
                 suffix = "_hillshade_TIN" if self.use_triangulation else "_hillshade"
                 self.hillshade_path = os.path.splitext(self.output_path)[0] + suffix + '.tif'
@@ -141,8 +159,9 @@ class DemGenerationTask(QgsTask):
                     processing.run("native:hillshade", processing_params)
                 except QgsProcessingException:
                     self.hillshade_path = None
-
+            self.setProgress(100)
             return True
+
         except Exception as e:
             self.exception = e
             return False

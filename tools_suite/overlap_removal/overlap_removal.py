@@ -34,26 +34,35 @@ class RemoveOverlapTask(QgsTask):
 
     def run(self):
         try:
+            # Stage 1: Read input
             las = laspy.read(self.input_filename, laz_backend=LazBackend.Lazrs)
             self.original_points_count = len(las.points)
+            self.setProgress(25)
+
+            # Stage 2: Filter
             overlap_classes = {12, 17}
             is_non_overlap = ~np.isin(las.classification, list(overlap_classes))
             non_overlap_indices = np.where(is_non_overlap)[0]
             self.remaining_points_count = len(non_overlap_indices)
+            self.setProgress(50)
 
             if self.isCanceled():
                 return False
 
+            # Stage 3: Create new LAS
             new_header = las.header.copy()
             las_filtered = laspy.LasData(new_header)
             las_filtered.points = las.points[non_overlap_indices]
+            self.setProgress(75)
 
+            # Stage 4: Update header & write
             x, y, z = las_filtered.x, las_filtered.y, las_filtered.z
             las_filtered.header.min = [np.min(x), np.min(y), np.min(z)]
             las_filtered.header.max = [np.max(x), np.max(y), np.max(z)]
             las_filtered.write(self.output_filename)
-
+            self.setProgress(100)
             return True
+
         except Exception as e:
             self.exception = e
             return False

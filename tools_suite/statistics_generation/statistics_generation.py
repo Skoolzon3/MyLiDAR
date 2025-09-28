@@ -43,8 +43,11 @@ class StatisticsGenerationTask(QgsTask):
 
     def run(self):
         try:
+            # Step 1: Read input file
             las = laspy.read(self.filename, laz_backend=LazBackend.Lazrs)
+            self.setProgress(20)
 
+            # Step 2: Extract stats
             # --- Metadata ---
             header = las.header
             file_source_id = header.file_source_id
@@ -109,7 +112,9 @@ Bounds: {bounds}
 Min: {min_time if min_time else "N/A"}
 Max: {max_time if max_time else "N/A"}
 """
+            self.setProgress(40)
 
+            # Step 3: Generate graphs
             # --- Classification Pie ---
             classifications = las.classification
             unique_classes, class_counts = np.unique(classifications, return_counts=True)
@@ -134,6 +139,7 @@ Max: {max_time if max_time else "N/A"}
             ax1.pie(class_counts, labels=labels, colors=colors, autopct='%1.1f%%', startangle=140)
             ax1.set_title("Classification Distribution", fontweight="bold")
             self.figures.append((fig1, "Classification Distribution"))
+            self.setProgress(60)
 
             # --- Return Number Histogram ---
             unique_returns, return_counts = np.unique(las.return_number, return_counts=True)
@@ -148,6 +154,7 @@ Max: {max_time if max_time else "N/A"}
             ax2.set_xlabel("Return Number")
             ax2.set_ylabel("Count")
             self.figures.append((fig2, "Return Number Distribution"))
+            self.setProgress(80)
 
             # --- Density Heatmap ---
             x, y = las.x, las.y
@@ -158,8 +165,9 @@ Max: {max_time if max_time else "N/A"}
             ax3.set_xlabel("X")
             ax3.set_ylabel("Y")
             self.figures.append((fig3, "Point Density Distribution"))
-
+            self.setProgress(100)
             return True
+
         except Exception as e:
             self.exception = e
             return False

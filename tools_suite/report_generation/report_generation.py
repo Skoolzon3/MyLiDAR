@@ -42,9 +42,11 @@ class ReportGenerationTask(QgsTask):
 
     def run(self):
         try:
+            # Step 1: Read input file
             las = laspy.read(self.filename, laz_backend=LazBackend.Lazrs)
+            self.setProgress(25)
 
-            # Extract stats
+            # Step 2: Extract stats
             unique_classes, class_counts = np.unique(las.classification, return_counts=True)
             unique_returns, ret_counts = np.unique(las.return_number, return_counts=True)
 
@@ -54,7 +56,9 @@ class ReportGenerationTask(QgsTask):
             else:
                 dt_min = dt_max = None
 
-            # Build ReportData object from user-selected fields
+            self.setProgress(50)
+
+            # Step 3: Build ReportData object from user-selected fields
             data = ReportData(
                 file_name=os.path.basename(self.filename) if self.selected_fields["file_name"] else None,
                 file_source=las.header.file_source_id if self.selected_fields["file_source"] else None,
@@ -85,16 +89,18 @@ class ReportGenerationTask(QgsTask):
                 unique_returns=unique_returns if self.selected_fields["return_counts"] else None,
                 return_counts=ret_counts if self.selected_fields["return_counts"] else None,
             )
+            self.setProgress(75)
 
-            # Generate report in chosen format
+            # Step 4: Generate report in chosen format
             if self.report_format == "pdf":
                 generate_pdf_report(self.parent, self.report_path, data)
             elif self.report_format == "md":
                 generate_markdown_report(self.parent, self.report_path, data)
             else:
                 generate_txt_report(self.parent, self.report_path, data)
-
+            self.setProgress(100)
             return True
+
         except Exception as e:
             self.exception = e
             return False
