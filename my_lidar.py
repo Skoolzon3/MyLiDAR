@@ -1,8 +1,9 @@
 # --- General imports ---
 import os
+import json
 
 # --- QGIS and PyQt imports ---
-from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtCore import QCoreApplication, QLocale
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction, QMessageBox, QMenu
 
@@ -24,6 +25,12 @@ class MyLiDARPlugin:
         self.plugin_dir = os.path.dirname(__file__)
         self.running_tasks = []
 
+        self.translations = {}
+        system_lang = QLocale.system().name()[:2] # Detect system language ("en", "es", "fr"...)
+        self.current_lang = system_lang if system_lang else "en"
+
+        self.load_language(self.current_lang)
+
         self.report_action = None
         self.outliers_action = None
         self.overlap_action = None
@@ -32,8 +39,16 @@ class MyLiDARPlugin:
         self.dem_action = None
         self.statistics_action = None
 
+    def load_language(self, lang_code: str):
+        lang_file = os.path.join(self.plugin_dir, "translations", f"{lang_code}.json")
+        if os.path.exists(lang_file):
+            with open(lang_file, "r", encoding="utf-8") as f:
+                self.translations = json.load(f)
+        else:
+            self.translations = {}
+
     def tr(self, message: str) -> str:
-        return QCoreApplication.translate('MyLiDAR', message)
+        return self.translations.get(message, QCoreApplication.translate('MyLiDAR', message))
 
     def initGui(self):
         main_win = self.iface.mainWindow()
@@ -54,7 +69,7 @@ class MyLiDARPlugin:
         actions = [
             ("report.png", self.tr("Generate LiDAR File Report"), self.report_generation),
             ("cleanup.png", self.tr("Remove outlier points"), self.outlier_removal),
-            ("overlap.png", self.tr("Remove overlapping"), self.overlap_removal),
+            ("overlap.png", self.tr("Remove overlapping points"), self.overlap_removal),
             ("vegetation.png", self.tr("Classify vegetation"), self.vegetation_classification),
             ("building.png", self.tr("Count buildings"), self.building_count),
             ("dem.png", self.tr("Generate Bare Earth DEM"), self.bare_earth_dem_generation),

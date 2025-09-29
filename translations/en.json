@@ -1,0 +1,50 @@
+{
+  "Generate LiDAR File Report": "Generate LiDAR File Report",
+  "Remove outlier points": "Remove outlier points",
+  "Remove overlapping points": "Remove overlapping points",
+  "Classify vegetation": "Classify vegetation",
+  "Count buildings": "Count buildings",
+  "Generate Bare Earth DEM": "Generate Bare Earth DEM",
+  "View file statistics": "View file statistics",
+
+
+
+  "Overlap Removal Complete": "Overlap Removal Complete",
+  "Overlap points removed": "Overlap points removed",
+  "Filtered file saved to": "Filtered file saved to",
+  "Select LiDAR File to Remove Overlap Points": "Select LiDAR File to Remove Overlap Points",
+  "Save Non-Overlap LiDAR File": "Save Non-Overlap LiDAR File",
+  "Removing overlap from": "Removing overlap from",
+  "Removing overlapping points in the background": "Removing overlapping points in the background",
+
+
+
+  "All points were classified as outliers. No data would remain": "All points were classified as outliers. No data would remain",
+  "Outlier Removal Complete": "Outlier Removal Complete",
+  "Removed outlier points": "Removed outlier points",
+  "Error Removing Outliers": "Error Removing Outliers",
+  "An error occurred during outlier removal": "An error occurred during outlier removal",
+  "Outlier removal was canceled by the user": "Outlier removal was canceled by the user",
+  "Select LiDAR File to Clean": "Select LiDAR File to Clean",
+  "Save Cleaned LiDAR File": "Save Cleaned LiDAR File",
+  "Removing outliers from": "Removing outliers from",
+  "Removing outliers in the background": "Removing outliers in the background",
+
+  "Outlier Removal Settings": "Outlier Removal Settings",
+  "Search Radius (units):": "Search Radius (units):",
+  "Neighborhood search radius. Points with too few neighbors within this radius are considered outliers": "Neighborhood search radius. Points with too few neighbors within this radius are considered outliers",
+  "Minimum Neighbors:": "Minimum Neighbors:",
+  "Minimum number of neighbors required within the radius to retain a point. Points with fewer are removed as outliers": "Minimum number of neighbors required within the radius to retain a point. Points with fewer are tagged as outliers",
+
+
+
+  "LiDAR Files (*.las *.laz)": "LiDAR Files (*.las *.laz)",
+  "Layer Load Warning": "Layer Load Warning",
+  "The LiDAR file was saved but could not be loaded into QGIS": "The LiDAR file was saved but could not be loaded into QGIS",
+  "An error occurred": "An error occurred",
+  "Error": "Error",
+  "Original points": "Original points",
+  "Remaining points": "Remaining points",
+  "Task Started": "Task Started",
+  "Task was canceled": "Task was canceled"
+}

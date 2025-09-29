@@ -29,7 +29,7 @@ from .outlier_removal_dialog import OutlierRemovalDialog
 class RemoveOutliersTask(QgsTask):
     """Remove outlier points from a LiDAR file in a background thread"""
 
-    def __init__(self, description, input_filename, output_filename, radius, min_neighbors, parent):
+    def __init__(self, description, input_filename, output_filename, radius, min_neighbors, parent, translator):
         super().__init__(description, QgsTask.CanCancel)
         self.input_filename = input_filename
         self.output_filename = output_filename
@@ -37,6 +37,7 @@ class RemoveOutliersTask(QgsTask):
         self.min_neighbors = min_neighbors
         self.parent = parent
         self.exception = None
+        self.tr = translator
         self.num_removed = 0
         self.num_remaining = 0
 
@@ -72,7 +73,7 @@ class RemoveOutliersTask(QgsTask):
             self.num_remaining = np.sum(mask)
 
             if self.num_remaining == 0:
-                raise ValueError("All points were classified as outliers. No data would remain.")
+                raise ValueError(self.tr("All points were classified as outliers. No data would remain"))
 
             # Step 3: Create new LasData object with the filtered points
             new_header = las.header.copy()
@@ -99,10 +100,10 @@ class RemoveOutliersTask(QgsTask):
                 # Task completed successfully
                 QMessageBox.information(
                     self.parent.iface.mainWindow(),
-                    "Outlier Removal Complete",
-                    f"Removed {self.num_removed:,} outlier points.\n"
-                    f"Remaining: {self.num_remaining:,} points\n\n"
-                    f"Filtered file saved to:\n{self.output_filename}"
+                    self.tr("Outlier Removal Complete"),
+                    f"{self.tr('Removed outlier points')}: {self.num_removed:,}\n"
+                    f"{self.tr('Remaining points')}: {self.num_remaining:,}\n\n"
+                    f"{self.tr('Filtered file saved to')}:\n{self.output_filename}"
                 )
                 layer_name = os.path.splitext(os.path.basename(self.output_filename))[0]
                 pc_layer = QgsPointCloudLayer(self.output_filename, layer_name, "pdal")
@@ -111,16 +112,16 @@ class RemoveOutliersTask(QgsTask):
                 else:
                     QMessageBox.warning(
                         self.parent.iface.mainWindow(),
-                        "Layer Load Warning",
-                        "The LiDAR file was saved but could not be loaded into QGIS."
+                        self.tr("Layer Load Warning"),
+                        self.tr("The LiDAR file was saved but could not be loaded into QGIS")
                     )
             else:
                 # Task failed / canceled
                 if self.exception:
-                    QgsMessageLog.logMessage(f"An error occurred during outlier removal: {self.exception}", 'MyPlugin', Qgis.Critical)
-                    QMessageBox.critical(self.parent.iface.mainWindow(), "Error Removing Outliers", f"An error occurred:\n{self.exception}")
+                    QgsMessageLog.logMessage(f"{self.tr('An error occurred during outlier removal')}: {self.exception}", 'MyLiDAR', Qgis.Critical)
+                    QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error Removing Outliers"), f"{self.tr('An error occurred')}:\n{self.exception}")
                 else:
-                    QgsMessageLog.logMessage('Outlier removal was canceled by the user.', 'MyPlugin', Qgis.Info)
+                    QgsMessageLog.logMessage(self.tr('Outlier removal was canceled by the user'), 'MyLiDAR', Qgis.Info)
         finally:
             if self in self.parent.running_tasks:
                 self.parent.running_tasks.remove(self)
@@ -133,15 +134,15 @@ def remove_outliers(self):
     # Step 1: Select input file path
     input_filename, _ = QFileDialog.getOpenFileName(
         self.iface.mainWindow(),
-        'Select LiDAR File to Clean',
+        self.tr('Select LiDAR File to Clean'),
         '',
-        'LiDAR Files (*.las *.laz)'
+        self.tr('LiDAR Files (*.las *.laz)')
     )
     if not input_filename:
         return
 
     # Step 2: Get parameters via a custom dialog
-    dialog = OutlierRemovalDialog(self.iface.mainWindow())
+    dialog = OutlierRemovalDialog(self.iface.mainWindow(), translator=self.tr)
     if dialog.exec_() != QDialog.Accepted:
         return
     radius, min_neighbors = dialog.get_values()
@@ -150,23 +151,23 @@ def remove_outliers(self):
     default_output = os.path.splitext(input_filename)[0] + '_cleaned.laz'
     output_filename, _ = QFileDialog.getSaveFileName(
         self.iface.mainWindow(),
-        'Save Cleaned LiDAR File',
+        self.tr('Save Cleaned LiDAR File'),
         default_output,
-        'LiDAR Files (*.las *.laz)'
+        self.tr('LiDAR Files (*.las *.laz)')
     )
     if not output_filename:
         return
 
     # Step 4: Create and run the background task
-    task_description = f"Removing outliers from {os.path.basename(input_filename)}"
-    task = RemoveOutliersTask(task_description, input_filename, output_filename, radius, min_neighbors,self)
+    task_description = f"{self.tr('Removing outliers from')} {os.path.basename(input_filename)}"
+    task = RemoveOutliersTask(task_description, input_filename, output_filename, radius, min_neighbors,self, self.tr)
 
     self.running_tasks.append(task)
     QgsApplication.taskManager().addTask(task)
 
     self.iface.messageBar().pushMessage(
-        "Task Started",
-        "Removing outliers in the background.",
+        self.tr("Task Started"),
+        self.tr("Removing outliers in the background"),
         level=Qgis.Info,
         duration=-1
     )

@@ -23,12 +23,13 @@ from qgis.core import QgsApplication, QgsPointCloudLayer, QgsProject, QgsTask, Q
 class RemoveOverlapTask(QgsTask):
     """Remove overlap points from a LiDAR file in a background thread"""
 
-    def __init__(self, description, input_filename, output_filename, parent):
+    def __init__(self, description, input_filename, output_filename, parent, translator):
         super().__init__(description, QgsTask.CanCancel)
         self.input_filename = input_filename
         self.output_filename = output_filename
         self.parent = parent
         self.exception = None
+        self.tr = translator
         self.original_points_count = 0
         self.remaining_points_count = 0
 
@@ -73,11 +74,11 @@ class RemoveOverlapTask(QgsTask):
                 # Task completed successfully
                 QMessageBox.information(
                     self.parent.iface.mainWindow(),
-                    "Overlap Removal Complete",
-                    f"Original points: {self.original_points_count:,}\n"
-                    f"Overlap points removed: {self.original_points_count - self.remaining_points_count:,}\n"
-                    f"Remaining points: {self.remaining_points_count:,}\n\n"
-                    f"Filtered file saved to:\n{self.output_filename}"
+                    self.tr("Overlap Removal Complete"),
+                    f"{self.tr('Original points')}: {self.original_points_count:,}\n"
+                    f"{self.tr('Overlap points removed')}: {self.original_points_count - self.remaining_points_count:,}\n"
+                    f"{self.tr('Remaining points')}: {self.remaining_points_count:,}\n\n"
+                    f"{self.tr('Filtered file saved to')}: \n{self.output_filename}"
                 )
                 layer_name = os.path.splitext(os.path.basename(self.output_filename))[0]
                 pc_layer = QgsPointCloudLayer(self.output_filename, layer_name, "pdal")
@@ -86,16 +87,17 @@ class RemoveOverlapTask(QgsTask):
                 else:
                     QMessageBox.warning(
                         self.parent.iface.mainWindow(),
-                        "Layer Load Warning",
-                        "The LiDAR file was saved but could not be loaded into QGIS."
+                        self.tr("Layer Load Warning"),
+                        self.tr("The LiDAR file was saved but could not be loaded into QGIS")
                     )
             else:
                 # Task failed / canceled
                 if self.exception:
-                    QgsMessageLog.logMessage(f"An error occurred: {self.exception}", 'MyPlugin', Qgis.Critical)
-                    QMessageBox.critical(self.parent.iface.mainWindow(), "Error", f"An error occurred:\n{self.exception}")
+                    QgsMessageLog.logMessage(f"{self.tr('An error occurred')}: {self.exception}", 'MyLiDAR', Qgis.Critical)
+
+                    QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error"), f"{self.tr('An error occurred')}: \n{self.exception}")
                 else:
-                    QgsMessageLog.logMessage('Task was canceled.', 'MyPlugin', Qgis.Info)
+                    QgsMessageLog.logMessage(self.tr('Task was canceled'), 'MyLiDAR', Qgis.Info)
         finally:
             if self in self.parent.running_tasks:
                 self.parent.running_tasks.remove(self)
@@ -108,9 +110,9 @@ def remove_overlap(self):
     # Step 1: Select input file path
     input_filename, _ = QFileDialog.getOpenFileName(
         self.iface.mainWindow(),
-        'Select LiDAR File to Remove Overlap Points',
+        self.tr("Select LiDAR File to Remove Overlap Points"),
         '',
-        'LiDAR Files (*.las *.laz)'
+        self.tr("LiDAR Files (*.las *.laz)")
     )
     if not input_filename:
         return
@@ -119,22 +121,22 @@ def remove_overlap(self):
     default_output = os.path.splitext(input_filename)[0] + '_non_overlap.laz'
     output_filename, _ = QFileDialog.getSaveFileName(
         self.iface.mainWindow(),
-        'Save Non-Overlap LiDAR File',
+        self.tr("Save Non-Overlap LiDAR File"),
         default_output,
-        'LiDAR Files (*.las *.laz)'
+        self.tr("LiDAR Files (*.las *.laz)")
     )
     if not output_filename:
         return
 
     # Step 3: Create and run the background task
-    task_description = f"Removing overlap from {os.path.basename(input_filename)}"
-    task = RemoveOverlapTask(task_description, input_filename, output_filename, self)
+    task_description = f"{self.tr('Removing overlap from')} {os.path.basename(input_filename)}"
+    task = RemoveOverlapTask(task_description, input_filename, output_filename, self, self.tr)
     self.running_tasks.append(task)
     QgsApplication.taskManager().addTask(task)
 
     self.iface.messageBar().pushMessage(
-        "Task Started",
-        "Removing overlapping points in the background.",
+        self.tr("Task Started"),
+        self.tr("Removing overlapping points in the background"),
         level=Qgis.Info,
         duration=-1
     )

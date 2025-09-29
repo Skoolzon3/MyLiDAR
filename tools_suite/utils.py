@@ -1,8 +1,4 @@
 from datetime import datetime, timedelta, timezone
-from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout, QProgressBar
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
-
 from io import BytesIO
 from matplotlib import pyplot as plt
 
@@ -88,7 +84,7 @@ def generate_return_bar_chart(unique_returns, return_counts):
 
     # Increase y-axis limit to add vertical space above tallest bar
     max_height = max(return_counts)
-    ax.set_ylim(0, max_height * 1.10)  # Add 15% headroom
+    ax.set_ylim(0, max_height * 1.10) # Add 15% headroom
 
     ax.set_xlabel("Return Number", fontname='Arial')
     ax.set_ylabel("Count", fontname='Arial')

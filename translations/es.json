@@ -1,0 +1,50 @@
+{
+  "Generate LiDAR File Report": "Generar informe de archivo LiDAR",
+  "Remove outlier points": "Eliminar puntos atípicos",
+  "Remove overlapping points": "Eliminar solapamiento",
+  "Classify vegetation": "Clasificar vegetación",
+  "Count buildings": "Contar edificios",
+  "Generate Bare Earth DEM": "Generar MDE de terreno desnudo",
+  "View file statistics": "Ver estadísticas del archivo",
+
+
+
+  "Overlap Removal Complete": "Borrado de solapamiento completado",
+  "Overlap points removed": "Puntos solapados eliminados",
+  "Filtered file saved to": "Archivo filtrado guardado en",
+  "Select LiDAR File to Remove Overlap Points": "Seleccione un archivo LiDAR para eliminar solapamiento",
+  "Save Non-Overlap LiDAR File": "Guardar archivo LiDAR sin solapamiento",
+  "Removing overlap from": "Eliminando solapamiento de",
+  "Removing overlapping points in the background": "Eliminando puntos solapados en segundo plano",
+
+
+
+  "All points were classified as outliers. No data would remain": "Todos los puntos fueron clasificados como atípicos. No quedarán datos",
+  "Outlier Removal Complete": "Eliminación de puntos atípicos completada",
+  "Removed outlier points": "Puntos atípicos eliminados",
+  "Error Removing Outliers": "Error al eliminar puntos atípicos",
+  "An error occurred during outlier removal": "Se produjo un error durante la eliminación de puntos atípicos",
+  "Outlier removal was canceled by the user": "La eliminación de puntos atípicos fue cancelada por el usuario",
+  "Select LiDAR File to Clean": "Seleccione un archivo LiDAR para limpiar",
+  "Save Cleaned LiDAR File": "Guardar archivo LiDAR limpio",
+  "Removing outliers from": "Eliminando puntos atípicos de",
+  "Removing outliers in the background": "Eliminando puntos atípicos en segundo plano",
+
+  "Outlier Removal Settings": "Configuración de eliminación de puntos atípicos",
+  "Search Radius (units):": "Radio de búsqueda (unidades):",
+  "Neighborhood search radius. Points with too few neighbors within this radius are considered outliers": "Radio de búsqueda de vecinos. Los puntos con pocos vecinos dentro de este radio se consideran atípicos",
+  "Minimum Neighbors:": "Vecinos mínimos:",
+  "Minimum number of neighbors required within the radius to retain a point. Points with fewer are removed as outliers": "Número mínimo de vecinos requeridos dentro del radio para conservar un punto. Los puntos con menos se marcan como atípicos",
+
+
+
+  "LiDAR Files (*.las *.laz)": "Archivos LiDAR (*.las *.laz)",
+  "Layer Load Warning": "Advertencia al cargar la capa",
+  "The LiDAR file was saved but could not be loaded into QGIS": "El archivo LiDAR se guardó pero no pudo cargarse en QGIS",
+  "An error occurred": "Se produjo un error",
+  "Error": "Error",
+  "Original points": "Puntos originales",
+  "Remaining points": "Puntos restantes",
+  "Task Started": "Tarea iniciada",
+  "Task was canceled": "La tarea fue cancelada"
+}
