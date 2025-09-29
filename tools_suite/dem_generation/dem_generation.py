@@ -32,7 +32,7 @@ from .dem_generation_dialog import DemGenerationDialog
 class DemGenerationTask(QgsTask):
     """Generate DEM from a LiDAR file in a background thread"""
 
-    def __init__(self, description, filename, output_path, cell_size, use_triangulation, parent, hillshade_requested):
+    def __init__(self, description, filename, output_path, cell_size, use_triangulation, parent, hillshade_requested, translator):
         super().__init__(description, QgsTask.CanCancel)
         self.filename = filename
         self.output_path = output_path
@@ -42,6 +42,7 @@ class DemGenerationTask(QgsTask):
         self.hillshade_requested = hillshade_requested
 
         self.exception = None
+        self.tr = translator
         self.hillshade_path = None
 
     def run(self):
@@ -53,7 +54,7 @@ class DemGenerationTask(QgsTask):
             # Step 2: Filter ground points
             ground_mask = (las.classification == 2)
             if not np.any(ground_mask):
-                raise ValueError("No ground points found in the file.")
+                raise ValueError(self.tr("No ground points found in the file"))
             x = las.x[ground_mask]
             y = las.y[ground_mask]
             z = las.z[ground_mask]
@@ -180,19 +181,19 @@ class DemGenerationTask(QgsTask):
                     if hillshade_layer.isValid():
                         QgsProject.instance().addMapLayer(hillshade_layer)
 
-                msg = f"DEM successfully generated from ground points.\nOutput saved at:\n{self.output_path}"
+                msg = f"{self.tr('DEM successfully generated from ground points.\nOutput saved at')}:\n{self.output_path}"
                 if self.hillshade_path:
-                    msg += f"\n\nHillshade saved at:\n{self.hillshade_path}"
+                    msg += f"\n\n{self.tr('Hillshade saved at')}:\n{self.hillshade_path}"
 
                 QMessageBox.information(
                     self.parent.iface.mainWindow(),
-                    "Bare Earth DEM Generated",
+                    self.tr("Bare Earth DEM Generated"),
                     msg
                 )
             else:
-                msg = f"An error occurred: {self.exception}" if self.exception else "DEM generation failed."
-                QgsMessageLog.logMessage(msg, "MyPlugin", Qgis.Critical)
-                QMessageBox.critical(self.parent.iface.mainWindow(), "Error whilst generating Bare Earth DEM", msg)
+                msg = f"{self.tr('An error occurred')}: {self.exception}" if self.exception else self.tr("DEM generation failed")
+                QgsMessageLog.logMessage(msg, "MyLiDAR", Qgis.Critical)
+                QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error whilst generating Bare Earth DEM"), msg)
         finally:
             if self in self.parent.running_tasks:
                 self.parent.running_tasks.remove(self)
@@ -205,15 +206,15 @@ def generate_bare_earth_dem(self):
     # Step 1: Select input file path
     filename, _ = QFileDialog.getOpenFileName(
         self.iface.mainWindow(),
-        'Select LiDAR File for Bare Earth DEM',
+        self.tr('Select LiDAR File for Bare Earth DEM'),
         '',
-        'LiDAR Files (*.las *.laz)'
+        self.tr('LiDAR Files (*.las *.laz)')
     )
     if not filename:
         return
 
     # Step 2: Get parameters via a custom dialog
-    dlg = DemGenerationDialog(self.iface.mainWindow())
+    dlg = DemGenerationDialog(self.iface.mainWindow(), translator=self.tr)
     if dlg.exec_() != QDialog.Accepted:
         return
     cell_size, use_triangulation = dlg.get_values()
@@ -223,9 +224,9 @@ def generate_bare_earth_dem(self):
     default_name = os.path.splitext(filename)[0] + suffix + ".tif"
     output_path, _ = QFileDialog.getSaveFileName(
         self.iface.mainWindow(),
-        'Save Bare Earth DEM',
+        self.tr('Save Bare Earth DEM'),
         default_name,
-        'GeoTIFF (*.tif)'
+        self.tr('GeoTIFF (*.tif)')
     )
     if not output_path:
         return
@@ -233,23 +234,23 @@ def generate_bare_earth_dem(self):
     # Stesp 4: Select hillshade generation
     reply = QMessageBox.question(
         self.iface.mainWindow(),
-        "Generate Hillshade?",
-        "Do you also want to create a hillshade raster from the DEM?",
+        self.tr("Generate Hillshade?"),
+        self.tr("Do you also want to create a hillshade raster from the DEM?"),
         QMessageBox.Yes | QMessageBox.No,
         QMessageBox.No
     )
     hillshade_requested = (reply == QMessageBox.Yes)
 
     # Step 5: Create and run the background task
-    task_desc = f"Generating DEM from {os.path.basename(filename)}"
-    task = DemGenerationTask(task_desc, filename, output_path, cell_size, use_triangulation, self, hillshade_requested)
+    task_desc = f"{self.tr('Generating DEM from')} {os.path.basename(filename)}"
+    task = DemGenerationTask(task_desc, filename, output_path, cell_size, use_triangulation, self, hillshade_requested, self.tr)
 
     self.running_tasks.append(task)
     QgsApplication.taskManager().addTask(task)
 
     self.iface.messageBar().pushMessage(
-        "Task Started",
-        "DEM generation running in the background...",
+        self.tr("Task Started"),
+        self.tr("DEM generation running in the background"),
         level=Qgis.Info,
         duration=-1
     )

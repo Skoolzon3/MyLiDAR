@@ -38,6 +38,48 @@
 
 
 
+  "No Buildings Found": "No Buildings Found",
+  "No buildings were found in this file": "No buildings were found in this file",
+  "Building Detection Complete": "Building Detection Complete",
+  "Building points detected": "Building points detected",
+  "Approximate number of buildings detected": "Approximate number of buildings detected",
+  "Building detection failed": "Building detection failed",
+  "Error Detecting Buildings": "Error Detecting Buildings",
+  "Select LiDAR File to Count Buildings": "Select LiDAR File to Count Buildings",
+  "Counting buildings in": "Counting buildings in",
+  "Building detection running in the background": "Building detection running in the background",
+
+  "Building Detection Parameters": "Building Detection Parameters",
+  "DBSCAN Epsilon:": "DBSCAN Epsilon:",
+  "Maximum distance between points to be considered neighbors": "Maximum distance between points to be considered neighbors",
+  "Min Samples:": "Min Samples:",
+  "Minimum number of points required to form a cluster": "Minimum number of points required to form a cluster",
+  "Use Z-axis for clustering (3D)": "Use Z-axis for clustering (3D)",
+  "Clustering will consider height (Z) as well as X and Y. This may improve building detection in areas with varying terrain": "Clustering will consider height (Z) as well as X and Y. This may improve building detection in areas with varying terrain",
+
+
+
+  "No ground points found in the file": "No ground points found in the file",
+  "DEM successfully generated from ground points.\nOutput saved at": "DEM successfully generated from ground points.\nOutput saved at",
+  "Hillshade saved at": "Hillshade saved at",
+  "Bare Earth DEM Generated": "Bare Earth DEM Generated",
+  "DEM generation failed": "DEM generation failed",
+  "Error whilst generating Bare Earth DEM": "Error whilst generating Bare Earth DEM",
+  "Select LiDAR File for Bare Earth DEM": "Select LiDAR File for Bare Earth DEM",
+  "Save Bare Earth DEM": "Save Bare Earth DEM",
+  "Generate Hillshade?": "Generate Hillshade?",
+  "Do you also want to create a hillshade raster from the DEM?": "Do you also want to create a hillshade raster from the DEM?",
+  "Generating DEM from": "Generating DEM from",
+  "DEM generation running in the background": "DEM generation running in the background",
+
+  "Bare Earth DEM Settings": "Bare Earth DEM Settings",
+  "Enter DEM cell size (meters):": "Enter DEM cell size (meters):",
+  "Specify the cell size for the generated DEM in meters. The smaller the cell size, the higher its resolution and detail, but it may also increase processing time and file size": "Specify the cell size for the generated DEM in meters. The smaller the cell size, the higher its resolution and detail, but it may also increase processing time and file size",
+  "Use triangulation (TIN) interpolation": "Use triangulation (TIN) interpolation",
+  "Warning: This method takes significantly longer to process. For large areas, consider using the default griddata interpolation method for faster results": "Warning: This method takes significantly longer to process. For large areas, consider using the default griddata interpolation method for faster results",
+
+
+
   "LiDAR Files (*.las *.laz)": "LiDAR Files (*.las *.laz)",
   "Layer Load Warning": "Layer Load Warning",
   "The LiDAR file was saved but could not be loaded into QGIS": "The LiDAR file was saved but could not be loaded into QGIS",

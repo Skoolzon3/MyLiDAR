@@ -29,7 +29,7 @@ from .vegetation_classification_dialog import VegetationClassificationDialog
 class VegetationClassificationTask(QgsTask):
     """Background task for classifying LiDAR vegetation points"""
 
-    def __init__(self, description, filename, output_path, low_thresh, high_thresh, parent):
+    def __init__(self, description, filename, output_path, low_thresh, high_thresh, parent, translator):
         super().__init__(description, QgsTask.CanCancel)
         self.filename = filename
         self.output_path = output_path
@@ -38,6 +38,7 @@ class VegetationClassificationTask(QgsTask):
         self.parent = parent
 
         self.exception = None
+        self.tr = translator
         self.stats = None
 
     def run(self):
@@ -56,7 +57,7 @@ class VegetationClassificationTask(QgsTask):
             # Step 3: Filter ground points
             ground_idx = np.where(classifications == ground_class)[0]
             if len(ground_idx) == 0:
-                raise ValueError("No ground points (class 2) found in the file.")
+                raise ValueError(self.tr("No ground points (class 2) found in the file"))
 
             ground_xy = np.vstack((las.x[ground_idx], las.y[ground_idx])).T
             ground_z = las.z[ground_idx]
@@ -65,7 +66,7 @@ class VegetationClassificationTask(QgsTask):
             # Step 4: Filter points originally marked as high vegetation
             high_veg_idx = np.where(classifications == high_class)[0]
             if len(high_veg_idx) == 0:
-                raise ValueError("No high vegetation points (class 5) found in the file.")
+                raise ValueError(self.tr("No high vegetation points (class 5) found in the file"))
 
             veg_xy = np.vstack((las.x[high_veg_idx], las.y[high_veg_idx])).T
             veg_z = las.z[high_veg_idx]
@@ -127,24 +128,24 @@ class VegetationClassificationTask(QgsTask):
                 else:
                     QMessageBox.warning(
                         self.parent.iface.mainWindow(),
-                        "Layer Load Warning",
-                        "The LiDAR file was saved but could not be loaded into QGIS."
+                        self.tr("Layer Load Warning"),
+                        self.tr("The LiDAR file was saved but could not be loaded into QGIS")
                     )
 
                 s = self.stats
                 QMessageBox.information(
                     self.parent.iface.mainWindow(),
-                    "Vegetation Reclassification Complete",
-                    f"Original high veg points: {s['num_high_orig']:,}\n"
-                    f"Low vegetation (<{self.low_thresh} m): {s['num_low']:,}\n"
-                    f"Medium vegetation ({self.low_thresh}-{self.high_thresh} m): {s['num_medium']:,}\n"
-                    f"High vegetation (>{self.high_thresh} m): {s['num_high']:,}\n\n"
-                    f"Updated file saved to:\n{self.output_path}"
+                    self.tr("Vegetation Reclassification Complete"),
+                    f"{self.tr('Original high veg points')}: {s['num_high_orig']:,}\n"
+                    f"{self.tr('Low vegetation')} (<{self.low_thresh} m): {s['num_low']:,}\n"
+                    f"{self.tr('Medium vegetation')} ({self.low_thresh}-{self.high_thresh} m): {s['num_medium']:,}\n"
+                    f"{self.tr('High vegetation')} (>{self.high_thresh} m): {s['num_high']:,}\n\n"
+                    f"{self.tr('Updated file saved to')}:\n{self.output_path}"
                 )
             else:
-                msg = f"An error occurred: {self.exception}" if self.exception else "Vegetation classification failed."
-                QgsMessageLog.logMessage(msg, "MyPlugin", Qgis.Critical)
-                QMessageBox.critical(self.parent.iface.mainWindow(), "Error During Classification", msg)
+                msg = f"{self.tr('An error occurred')}: {self.exception}" if self.exception else "Vegetation classification failed"
+                QgsMessageLog.logMessage(msg, "MyLiDAR", Qgis.Critical)
+                QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error During Classification"), msg)
         finally:
             if self in self.parent.running_tasks:
                 self.parent.running_tasks.remove(self)
@@ -157,15 +158,15 @@ def classify_vegetation(self):
     # Step 1: Select input file path
     filename, _ = QFileDialog.getOpenFileName(
         self.iface.mainWindow(),
-        'Select LiDAR File to Classify Vegetation',
+        self.tr('Select LiDAR File to Classify Vegetation'),
         '',
-        'LiDAR Files (*.las *.laz)'
+        self.tr('LiDAR Files (*.las *.laz)')
     )
     if not filename:
         return
 
     # Step 2: Get thresholds
-    dlg = VegetationClassificationDialog(self.iface.mainWindow())
+    dlg = VegetationClassificationDialog(self.iface.mainWindow(), translator=self.tr)
     if dlg.exec_() != QDialog.Accepted:
         return
     low_thresh, high_thresh = dlg.get_values()
@@ -173,23 +174,23 @@ def classify_vegetation(self):
     # Step 3: Select output file path
     output_path, _ = QFileDialog.getSaveFileName(
         self.iface.mainWindow(),
-        'Save Reclassified Vegetation File',
+        self.tr('Save Reclassified Vegetation File'),
         os.path.splitext(filename)[0] + '_classified_vegetation.laz',
-        'LiDAR Files (*.las *.laz)'
+        self.tr('LiDAR Files (*.las *.laz)')
     )
     if not output_path:
         return
 
     # Step 4: Create and run the background task
-    task_desc = f"Classifying vegetation in {os.path.basename(filename)}"
-    task = VegetationClassificationTask(task_desc, filename, output_path, low_thresh, high_thresh, self)
+    task_desc = f"{self.tr('Classifying vegetation in')} {os.path.basename(filename)}"
+    task = VegetationClassificationTask(task_desc, filename, output_path, low_thresh, high_thresh, self, self.tr)
 
     self.running_tasks.append(task)
     QgsApplication.taskManager().addTask(task)
 
     self.iface.messageBar().pushMessage(
-        "Task Started",
-        "Vegetation classification running in the background...",
+        self.tr("Task Started"),
+        self.tr("Vegetation classification running in the background"),
         level=Qgis.Info,
         duration=-1
     )

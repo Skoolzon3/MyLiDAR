@@ -32,7 +32,7 @@ from .building_count_dialog import BuildingParamsDialog
 class BuildingCountTask(QgsTask):
     """Background task for counting buildings using DBSCAN on LiDAR data"""
 
-    def __init__(self, description, filename, eps, min_samples, use_z, parent):
+    def __init__(self, description, filename, eps, min_samples, use_z, parent, translator):
         super().__init__(description, QgsTask.CanCancel)
         self.filename = filename
         self.eps = eps
@@ -41,6 +41,7 @@ class BuildingCountTask(QgsTask):
         self.parent = parent
 
         self.exception = None
+        self.tr = translator
         self.num_buildings = 0
         self.num_points = 0
         self.crs = 4326
@@ -117,8 +118,8 @@ class BuildingCountTask(QgsTask):
             if self.num_points == 0:
                 QMessageBox.information(
                     self.parent.iface.mainWindow(),
-                    "No Buildings Found",
-                    "No buildings were found in this file."
+                    self.tr("No Buildings Found"),
+                    self.tr("No buildings were found in this file")
                 )
             else:
                 # --- Build QGIS layer ---
@@ -154,14 +155,14 @@ class BuildingCountTask(QgsTask):
 
                 QMessageBox.information(
                     self.parent.iface.mainWindow(),
-                    "Building Detection Complete",
-                    f"Building points detected: {self.num_points:,}\n"
-                    f"Approximate number of buildings detected: {self.num_buildings:,}"
+                    self.tr("Building Detection Complete"),
+                    f"{self.tr('Building points detected')}: {self.num_points:,}\n"
+                    f"{self.tr('Approximate number of buildings detected')}: {self.num_buildings:,}"
                 )
         else:
-            msg = f"An error occurred: {self.exception}" if self.exception else "Building detection failed."
-            QgsMessageLog.logMessage(msg, "MyPlugin", Qgis.Critical)
-            QMessageBox.critical(self.parent.iface.mainWindow(), "Error Detecting Buildings", msg)
+            msg = f"{self.tr('An error occurred')}: {self.exception}" if self.exception else self.tr("Building detection failed")
+            QgsMessageLog.logMessage(msg, "MyLiDAR", Qgis.Critical)
+            QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error Detecting Buildings"), msg)
 
         if self in self.parent.running_tasks:
             self.parent.running_tasks.remove(self)
@@ -174,29 +175,29 @@ def count_buildings(self):
     # Step 1: Select input file path
     filename, _ = QFileDialog.getOpenFileName(
         self.iface.mainWindow(),
-        "Select LiDAR File to Count Buildings",
+        self.tr("Select LiDAR File to Count Buildings"),
         "",
-        "LiDAR Files (*.las *.laz)"
+        self.tr("LiDAR Files (*.las *.laz)")
     )
     if not filename:
         return
 
     # Step 2: Ask user for clustering parameters
-    param_dialog = BuildingParamsDialog(self.iface.mainWindow())
+    param_dialog = BuildingParamsDialog(self.iface.mainWindow(), translator=self.tr)
     if not param_dialog.exec_():
         return
     eps, min_samples, use_z = param_dialog.get_params()
 
     # Step 3: Create and run the background task
-    task_desc = f"Counting buildings in {os.path.basename(filename)}"
-    task = BuildingCountTask(task_desc, filename, eps, min_samples, use_z, self)
+    task_desc = f"{self.tr('Counting buildings in')} {os.path.basename(filename)}"
+    task = BuildingCountTask(task_desc, filename, eps, min_samples, use_z, self, self.tr)
 
     self.running_tasks.append(task)
     QgsApplication.taskManager().addTask(task)
 
     self.iface.messageBar().pushMessage(
-        "Task Started",
-        "Building detection running in the background...",
+        self.tr("Task Started"),
+        self.tr("Building detection running in the background"),
         level=Qgis.Info,
         duration=-1
     )

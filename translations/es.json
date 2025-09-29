@@ -4,7 +4,7 @@
   "Remove overlapping points": "Eliminar solapamiento",
   "Classify vegetation": "Clasificar vegetación",
   "Count buildings": "Contar edificios",
-  "Generate Bare Earth DEM": "Generar MDE de terreno desnudo",
+  "Generate Bare Earth DEM": "Generar MDE de terreno base",
   "View file statistics": "Ver estadísticas del archivo",
 
 
@@ -38,6 +38,69 @@
 
 
 
+  "No Buildings Found": "No se encontraron edificios",
+  "No buildings were found in this file": "No se encontraron edificios en este archivo",
+  "Building Detection Complete": "Detección de edificios completada",
+  "Building points detected": "Puntos de edificios detectados",
+  "Approximate number of buildings detected": "Número aproximado de edificios detectados",
+  "Building detection failed": "La detección de edificios falló",
+  "Error Detecting Buildings": "Error en la detección de edificios",
+  "Select LiDAR File to Count Buildings": "Seleccione un archivo LiDAR para contar edificios",
+  "Counting buildings in": "Contando edificios en",
+  "Building detection running in the background": "La detección de edificios se está ejecutando en segundo plano",
+
+  "Building Detection Parameters": "Parámetros de detección de edificios",
+  "DBSCAN Epsilon:": "Épsilon de DBSCAN:",
+  "Maximum distance between points to be considered neighbors": "Distancia máxima entre puntos para ser considerados vecinos",
+  "Min Samples:": "Número mínimo de muestras:",
+  "Minimum number of points required to form a cluster": "Número mínimo de puntos necesarios para formar un clúster",
+  "Use Z-axis for clustering (3D)": "Usar eje Z para el agrupamiento (3D)",
+  "Clustering will consider height (Z) as well as X and Y. This may improve building detection in areas with varying terrain": "El agrupamiento considerará la altura (Z) además de X e Y. Esto puede mejorar la detección de edificios en áreas con relieve variable",
+
+
+  "No ground points found in the file": "No se han encontrado puntos de suelo en el archivo",
+  "DEM successfully generated from ground points.\nOutput saved at": "MDE generado correctamente a partir de puntos de suelo.\nSalida guardada en",
+  "Hillshade saved at": "Sombreado guardado en",
+  "Bare Earth DEM Generated": "MDE del Terreno Base Generado",
+  "DEM generation failed": "La generación del MDE falló",
+  "Error whilst generating Bare Earth DEM": "Error al generar el MDE del terreno base",
+  "Select LiDAR File for Bare Earth DEM": "Seleccione el archivo LiDAR para el MDE del terreno base",
+  "Save Bare Earth DEM": "Guardar MDE del terreno base",
+  "Generate Hillshade?": "¿Generar sombreado?",
+  "Do you also want to create a hillshade raster from the DEM?": "¿Desea también crear un ráster de sombreado a partir del MDE?",
+  "Generating DEM from": "Generando MDE desde",
+  "DEM generation running in the background": "La generación del MDE se está ejecutando en segundo plano",
+
+  "Bare Earth DEM Settings": "Configuración del MDE del Terreno Base",
+  "Enter DEM cell size (meters):": "Introduzca el tamaño de celda del MDE (metros):",
+  "Specify the cell size for the generated DEM in meters. The smaller the cell size, the higher its resolution and detail, but it may also increase processing time and file size": "Especifique el tamaño de celda para el MDE generado en metros. Cuanto menor sea el tamaño de celda, mayor será su resolución y detalle, pero también puede aumentar el tiempo de procesamiento y el tamaño del archivo",
+  "Use triangulation (TIN) interpolation": "Usar interpolación por triangulación (TIN)",
+  "Warning: This method takes significantly longer to process. For large areas, consider using the default griddata interpolation method for faster results": "Advertencia: Este método tarda significativamente más en procesarse. Para áreas grandes, considere usar el método de interpolación griddata predeterminado para obtener resultados más rápidos",
+
+
+
+  "No ground points (class 2) found in the file": "No se encontraron puntos de suelo (clase 2) en el archivo",
+  "No high vegetation points (class 5) found in the file": "No se encontraron puntos de vegetación alta (clase 5) en el archivo",
+  "Vegetation Reclassification Complete": "Reclasificación de vegetación completada",
+  "Original high veg points": "Puntos de vegetación alta originales",
+  "Low vegetation": "Vegetación baja",
+  "Medium vegetation": "Vegetación media",
+  "High vegetation": "Vegetación alta",
+  "Updated file saved to": "Archivo actualizado guardado en",
+  "Vegetation classification failed": "La clasificación de vegetación falló",
+  "Error During Classification": "Error durante la clasificación",
+  "Select LiDAR File to Classify Vegetation": "Seleccione un archivo LiDAR para clasificar la vegetación",
+  "Save Reclassified Vegetation File": "Guardar archivo de vegetación reclasificada",
+  "Classifying vegetation in": "Clasificando vegetación en",
+  "Vegetation classification running in the background": "Clasificación de vegetación ejecutándose en segundo plano",
+
+  "Vegetation Thresholds": "Umbrales de vegetación",
+  "Low Vegetation Threshold (m):": "Umbral de vegetación baja (m):",
+  "High Vegetation Threshold (m):": "Umbral de vegetación alta (m):",
+
+
+
+  "GeoTIFF (*.tif)": "GeoTIFF (*.tif)",
   "LiDAR Files (*.las *.laz)": "Archivos LiDAR (*.las *.laz)",
   "Layer Load Warning": "Advertencia al cargar la capa",
   "The LiDAR file was saved but could not be loaded into QGIS": "El archivo LiDAR se guardó pero no pudo cargarse en QGIS",
