@@ -1,12 +1,19 @@
+# --- General imports ---
+import io
+
+# --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QDockWidget, QWidget, QVBoxLayout, QLabel, QScrollArea, QTextEdit, QPushButton, QDialog, QVBoxLayout as QVLayout
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QPixmap
-import io
+
+# --- Method-specific imports ---
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 class LidarStatsDock(QDockWidget):
-    def __init__(self, parent=None):
-        super().__init__("LiDAR Statistics", parent)
+    def __init__(self, parent=None, translator=None):
+        self.tr = translator if translator else (lambda s: s)
+        super().__init__(self.tr("LiDAR Statistics"), parent)
+
         self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
 
         self.container = QWidget()
@@ -43,7 +50,7 @@ class LidarStatsDock(QDockWidget):
         self.layout.addWidget(text_widget)
 
     def add_button_for_figure(self, fig, title=""):
-        btn = QPushButton(f"View {title}")
+        btn = QPushButton(f"{self.tr('View')} {title}")
         btn.clicked.connect(lambda _, f=fig, t=title: self.show_popup(f, t))
         self.layout.addWidget(btn)
 

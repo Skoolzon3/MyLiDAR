@@ -31,11 +31,12 @@ from ..utils import gps_time_to_datetime, format_global_encoding, format_point_f
 class StatisticsGenerationTask(QgsTask):
     """Background task for computing LiDAR statistics and plots"""
 
-    def __init__(self, description, filename, parent):
+    def __init__(self, description, filename, parent, translator):
         super().__init__(description, QgsTask.CanCancel)
         self.filename = filename
         self.parent = parent
         self.exception = None
+        self.tr = translator
 
         # Results for GUI thread
         self.stats_text = None
@@ -81,36 +82,36 @@ class StatisticsGenerationTask(QgsTask):
                 min_time, max_time = None, None
 
             # --- Stats text ---
-            self.stats_text = f"""=============================
---- LiDAR File Statistics ---
-=============================
+            self.stats_text = f"""{self.tr("=============================")}
+{self.tr("--- LiDAR File Statistics ---")}
+{self.tr("=============================")}
 
---- Metadata ---
-File name: {self.filename}
-File source ID: {file_source_id}
-Global encoding: \n{format_global_encoding(global_encoding)}
-System ID: {system_id}
-Generating software: {generating_software}
-LAS version: {version}
-Point format: \n{format_point_format(point_format)}
-Creation date: {creation_date if creation_date else "N/A"}
+{self.tr("--- Metadata ---")}
+{self.tr("File name")}: {self.filename}
+{self.tr("File source ID")}: {file_source_id}
+{self.tr("Global encoding")}: \n{format_global_encoding(global_encoding)}
+{self.tr("System ID")}: {system_id}
+{self.tr("Generating software")}: {generating_software}
+{self.tr("LAS version")}: {version}
+{self.tr("Point format")}: \n{format_point_format(point_format)}
+{self.tr("Creation date")}: {creation_date if creation_date else self.tr("N/A")}
 
---- Intensity ---
-Min: {min_intensity}
-Max: {max_intensity}
+{self.tr("--- Intensity ---")}
+{self.tr("Min")}: {min_intensity}
+{self.tr("Max")}: {max_intensity}
 
---- Spatial Measures ---
-Num Points: {num_points:,}
-Area: {area:,.2f} m²
-Density: {density:.4f} pts/m²
-Bounds: {bounds}
-  - X-axis: {x_axis_bounds}
-  - Y-axis: {y_axis_bounds}
-  - Z-axis: {z_axis_bounds}
+{self.tr("--- Spatial Measures ---")}
+{self.tr("Num Points")}: {num_points:,}
+{self.tr("Area")}: {area:,.2f} m²
+{self.tr("Density")}: {density:.4f} pts/m²
+{self.tr("Bounds")}: {bounds}
+  - {self.tr("X-axis")}: {x_axis_bounds}
+  - {self.tr("Y-axis")}: {y_axis_bounds}
+  - {self.tr("Z-axis")}: {z_axis_bounds}
 
---- GPS Time ---
-Min: {min_time if min_time else "N/A"}
-Max: {max_time if max_time else "N/A"}
+{self.tr("--- GPS Time ---")}
+{self.tr("Min")}: {min_time if min_time else self.tr("N/A")}
+{self.tr("Max")}: {max_time if max_time else self.tr("N/A")}
 """
             self.setProgress(40)
 
@@ -120,25 +121,25 @@ Max: {max_time if max_time else "N/A"}
             unique_classes, class_counts = np.unique(classifications, return_counts=True)
 
             classification_info = {
-                0: ("Created, Never Classified", "#A0A0A0"), 1: ("Unclassified", "#B0B0B0"),
-                2: ("Ground", "#8B4513"), 3: ("Low Vegetation", "#ADFF2F"),
-                4: ("Medium Vegetation", "#32CD32"), 5: ("High Vegetation", "#006400"),
-                6: ("Building", "#FF4500"), 7: ("Low Point (Noise)", "#D3D3D3"),
-                8: ("Model Key-point", "#FFD700"), 9: ("Water", "#1E90FF"),
-                10: ("Rail", "#8B0000"), 11: ("Road Surface", "#A0522D"),
-                12: ("Overlap", "#C0C0C0"), 13: ("Wire Guard", "#00CED1"),
-                14: ("Wire Conductor", "#20B2AA"), 15: ("Transmission Tower", "#000080"),
-                16: ("Wire-structure Connector", "#708090"), 17: ("Bridge Deck", "#A9A9A9"),
-                18: ("High Noise", "#800080")
+                0: (self.tr("Created, Never Classified"), "#A0A0A0"), 1: (self.tr("Unclassified"), "#B0B0B0"),
+                2: (self.tr("Ground"), "#8B4513"), 3: (self.tr("Low Vegetation"), "#ADFF2F"),
+                4: (self.tr("Medium Vegetation"), "#32CD32"), 5: (self.tr("High Vegetation"), "#006400"),
+                6: (self.tr("Building"), "#FF4500"), 7: (self.tr("Low Point (Noise)"), "#D3D3D3"),
+                8: (self.tr("Model Key-point"), "#FFD700"), 9: (self.tr("Water"), "#1E90FF"),
+                10: (self.tr("Rail"), "#8B0000"), 11: (self.tr("Road Surface"), "#A0522D"),
+                12: (self.tr("Overlap"), "#C0C0C0"), 13: (self.tr("Wire Guard"), "#00CED1"),
+                14: (self.tr("Wire Conductor"), "#20B2AA"), 15: (self.tr("Transmission Tower"), "#000080"),
+                16: (self.tr("Wire-structure Connector"), "#708090"), 17: (self.tr("Bridge Deck"), "#A9A9A9"),
+                18: (self.tr("High Noise"), "#800080"),
             }
 
-            labels = [classification_info.get(c, (f"Class {c}", "#CCCCCC"))[0] for c in unique_classes]
+            labels = [classification_info.get(c, (f"{self.tr('Class')} {c}", "#CCCCCC"))[0] for c in unique_classes]
             colors = [classification_info.get(c, ("Unknown", "#CCCCCC"))[1] for c in unique_classes]
 
             fig1, ax1 = plt.subplots(figsize=(8, 6))
             ax1.pie(class_counts, labels=labels, colors=colors, autopct='%1.1f%%', startangle=140)
-            ax1.set_title("Classification Distribution", fontweight="bold")
-            self.figures.append((fig1, "Classification Distribution"))
+            ax1.set_title(self.tr("Classification Distribution"), fontweight="bold")
+            self.figures.append((fig1, self.tr("Classification Distribution")))
             self.setProgress(60)
 
             # --- Return Number Histogram ---
@@ -150,10 +151,10 @@ Max: {max_time if max_time else "N/A"}
             for bar, count in zip(bars, return_counts):
                 ax2.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
                          f"{count}", ha="center", va="bottom", fontsize=9, fontweight="bold")
-            ax2.set_title("Return Number Distribution", fontweight="bold")
-            ax2.set_xlabel("Return Number")
-            ax2.set_ylabel("Count")
-            self.figures.append((fig2, "Return Number Distribution"))
+            ax2.set_title(self.tr("Return Number Distribution"), fontweight="bold")
+            ax2.set_xlabel(self.tr("Return Number"))
+            ax2.set_ylabel(self.tr("Count"))
+            self.figures.append((fig2, self.tr("Return Number Distribution")))
             self.setProgress(80)
 
             # --- Density Heatmap ---
@@ -161,10 +162,10 @@ Max: {max_time if max_time else "N/A"}
             fig3, ax3 = plt.subplots(figsize=(7, 5))
             h = ax3.hist2d(x, y, bins=500, cmap="viridis")
             fig3.colorbar(h[3], ax=ax3, label="Point Count")
-            ax3.set_title("Point Density Heatmap", fontweight="bold")
+            ax3.set_title(self.tr("Point Density Heatmap"), fontweight="bold")
             ax3.set_xlabel("X")
             ax3.set_ylabel("Y")
-            self.figures.append((fig3, "Point Density Distribution"))
+            self.figures.append((fig3, self.tr("Point Density Distribution")))
             self.setProgress(100)
             return True
 
@@ -175,7 +176,7 @@ Max: {max_time if max_time else "N/A"}
     def finished(self, result):
         if result:
             if not hasattr(self.parent, "lidar_stats_dock") or self.parent.lidar_stats_dock is None or not self.parent.lidar_stats_dock.isVisible():
-                self.parent.lidar_stats_dock = LidarStatsDock(self.parent.iface.mainWindow())
+                self.parent.lidar_stats_dock = LidarStatsDock(self.parent.iface.mainWindow(), translator=self.tr)
                 self.parent.iface.addDockWidget(Qt.RightDockWidgetArea, self.parent.lidar_stats_dock)
 
             self.parent.lidar_stats_dock.clear()
@@ -186,13 +187,13 @@ Max: {max_time if max_time else "N/A"}
 
             QMessageBox.information(
                 self.parent.iface.mainWindow(),
-                "Success",
-                f"Statistics generated"
+                self.tr("Success"),
+                self.tr("Statistics generated")
             )
         else:
-            msg = f"An error occurred: {self.exception}" if self.exception else "Statistics generation failed."
-            QgsMessageLog.logMessage(msg, "MyPlugin", Qgis.Critical)
-            QMessageBox.critical(self.parent.iface.mainWindow(), "Error Generating Statistics", msg)
+            msg = f"{self.tr('An error occurred')}: {self.exception}" if self.exception else self.tr("Statistics generation failed")
+            QgsMessageLog.logMessage(msg, "MyLiDAR", Qgis.Critical)
+            QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error Generating Statistics"), msg)
 
         if self in self.parent.running_tasks:
             self.parent.running_tasks.remove(self)
@@ -205,23 +206,23 @@ def generate_statistics(self):
     # Step 1: Select input file path
     filename, _ = QFileDialog.getOpenFileName(
         self.iface.mainWindow(),
-        "Select LiDAR File to Analyze",
+        self.tr("Select LiDAR File to Analyze"),
         "",
-        "LiDAR Files (*.las *.laz)"
+        self.tr("LiDAR Files (*.las *.laz)")
     )
     if not filename:
         return
 
     # Step 2: Create and run the background task
-    task_desc = f"Generating statistics for {os.path.basename(filename)}"
-    task = StatisticsGenerationTask(task_desc, filename, self)
+    task_desc = f"{self.tr('Generating statistics for')} {os.path.basename(filename)}"
+    task = StatisticsGenerationTask(task_desc, filename, self, self.tr)
 
     self.running_tasks.append(task)
     QgsApplication.taskManager().addTask(task)
 
     self.iface.messageBar().pushMessage(
-        "Task Started",
-        "Generating statistics in the background.",
+        self.tr("Task Started"),
+        self.tr("Generating statistics in the background"),
         level=Qgis.Info,
         duration=-1
     )
