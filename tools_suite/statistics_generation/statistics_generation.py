@@ -83,24 +83,24 @@ class StatisticsGenerationTask(QgsTask):
 
             # --- Stats text ---
             self.stats_text = f"""{self.tr("=============================")}
-{self.tr("--- LiDAR File Statistics ---")}
+--- {self.tr("LiDAR File Statistics")} ---
 {self.tr("=============================")}
 
-{self.tr("--- Metadata ---")}
+--- {self.tr("Metadata")} ---
 {self.tr("File name")}: {self.filename}
 {self.tr("File source ID")}: {file_source_id}
-{self.tr("Global encoding")}: \n{format_global_encoding(global_encoding)}
+{self.tr("Global encoding")}: \n{format_global_encoding(global_encoding, self.tr)}
 {self.tr("System ID")}: {system_id}
 {self.tr("Generating software")}: {generating_software}
 {self.tr("LAS version")}: {version}
-{self.tr("Point format")}: \n{format_point_format(point_format)}
+{self.tr("Point format")}: \n{format_point_format(point_format, self.tr)}
 {self.tr("Creation date")}: {creation_date if creation_date else self.tr("N/A")}
 
-{self.tr("--- Intensity ---")}
+--- {self.tr("Intensity")} ---
 {self.tr("Min")}: {min_intensity}
 {self.tr("Max")}: {max_intensity}
 
-{self.tr("--- Spatial Measures ---")}
+--- {self.tr("Spatial Measures")} ---
 {self.tr("Num Points")}: {num_points:,}
 {self.tr("Area")}: {area:,.2f} m²
 {self.tr("Density")}: {density:.4f} pts/m²
@@ -109,7 +109,7 @@ class StatisticsGenerationTask(QgsTask):
   - {self.tr("Y-axis")}: {y_axis_bounds}
   - {self.tr("Z-axis")}: {z_axis_bounds}
 
-{self.tr("--- GPS Time ---")}
+--- {self.tr("GPS Time")} ---
 {self.tr("Min")}: {min_time if min_time else self.tr("N/A")}
 {self.tr("Max")}: {max_time if max_time else self.tr("N/A")}
 """

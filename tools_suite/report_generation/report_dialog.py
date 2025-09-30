@@ -9,9 +9,98 @@ from qgis.PyQt import uic
 form_class, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "./report_form.ui"))
 
 class ReportDialog(QDialog, form_class):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, translator=None):
         super().__init__(parent)
         self.setupUi(self)
+        self.tr = translator if translator else (lambda s: s)
+
+        # === Window and main labels ===
+        self.setWindowTitle(self.tr("Select Report Contents"))
+        self.label.setText(self.tr("Select the information to include in the report:"))
+        self.labelWarning.setText(self.tr("No information selected"))
+
+        # === Groups ===
+        self.groupFileMetadata.setTitle(self.tr("File Metadata"))
+        self.groupSpatial.setTitle(self.tr("Spatial"))
+        self.groupIntensity.setTitle(self.tr("Intensity"))
+        self.groupTime.setTitle(self.tr("Time"))
+        self.groupClassification.setTitle(self.tr("Classification"))
+        self.groupOutputFormat.setTitle(self.tr("Output Format"))
+
+        # === Metadata checkboxes ===
+        self.checkFileName.setText(self.tr("File Name"))
+        self.checkFileName.setToolTip(self.tr("File name of the LiDAR dataset"))
+
+        self.checkFileSource.setText(self.tr("File Source"))
+        self.checkFileSource.setToolTip(self.tr("Source ID specified in the LAS file header, identifying the generating system"))
+
+        self.checkGlobalEncoding.setText(self.tr("Global Encoding"))
+        self.checkGlobalEncoding.setToolTip(self.tr("Flags describing GPS time type, waveform data and other global settings"))
+
+        self.checkSystemId.setText(self.tr("System ID"))
+        self.checkSystemId.setToolTip(self.tr("Identifier of the system that created the file"))
+
+        self.checkGenSoftware.setText(self.tr("Generating Software"))
+        self.checkGenSoftware.setToolTip(self.tr("Name of the software that generated the LAS file"))
+
+        self.checkVersion.setText(self.tr("LAS Version"))
+        self.checkVersion.setToolTip(self.tr("LAS file format version (e.g., 1.2, 1.4)"))
+
+        self.checkPointFormat.setText(self.tr("Point Format"))
+        self.checkPointFormat.setToolTip(self.tr("Point data record format used in the LAS file (e.g., Format 0, 1, 6) and its corresponding byte size"))
+
+        self.checkCreationDate.setText(self.tr("Creation Date"))
+        self.checkCreationDate.setToolTip(self.tr("Date the LAS file was created, extracted from the file's header"))
+
+        # === Intensity checkboxes ===
+        self.checkMinIntensity.setText(self.tr("Min Intensity"))
+        self.checkMinIntensity.setToolTip(self.tr("Lowest recorded intensity value in the dataset"))
+
+        self.checkMaxIntensity.setText(self.tr("Max Intensity"))
+        self.checkMaxIntensity.setToolTip(self.tr("Highest recorded intensity value in the dataset"))
+
+        # === Spatial checkboxes ===
+        self.checkNumPoints.setText(self.tr("Number of Points"))
+        self.checkNumPoints.setToolTip(self.tr("Total number of points in the dataset"))
+
+        self.checkArea.setText(self.tr("Area"))
+        self.checkArea.setToolTip(self.tr("Area covered by the point cloud, based on spatial extent"))
+
+        self.checkDensity.setText(self.tr("Density"))
+        self.checkDensity.setToolTip(self.tr("Average number of points per unit area (e.g., points per square meter)"))
+
+        self.checkBounds.setText(self.tr("Bounds (Min/Max)"))
+        self.checkBounds.setToolTip(self.tr("Minimum and maximum coordinates (X, Y, Z) bounding the dataset"))
+
+        self.checkXAxisBounds.setText(self.tr("X-Axis Bounds"))
+        self.checkXAxisBounds.setToolTip(self.tr("Minimum and maximum X-axis values in the dataset"))
+
+        self.checkYAxisBounds.setText(self.tr("Y-Axis Bounds"))
+        self.checkYAxisBounds.setToolTip(self.tr("Minimum and maximum Y-axis values in the dataset"))
+
+        self.checkZAxisBounds.setText(self.tr("Z-Axis Bounds"))
+        self.checkZAxisBounds.setToolTip(self.tr("Minimum and maximum Z-axis values in the dataset"))
+
+        # === Time checkboxes ===
+        self.checkMinTime.setText(self.tr("Min Time"))
+        self.checkMinTime.setToolTip(self.tr("Earliest timestamp recorded in the dataset"))
+
+        self.checkMaxTime.setText(self.tr("Max Time"))
+        self.checkMaxTime.setToolTip(self.tr("Latest timestamp recorded in the dataset"))
+
+        # === Classification checkboxes ===
+        self.checkClassCounts.setText(self.tr("Class Counts"))
+        self.checkClassCounts.setToolTip(self.tr("Counts of points by classification codes (e.g., ground, vegetation, building...)"))
+
+        self.checkReturnCounts.setText(self.tr("Return Counts"))
+        self.checkReturnCounts.setToolTip(self.tr("Counts of points by return number (first, last...)"))
+
+        # === Buttons ===
+        self.btnSelectAll.setText(self.tr("Select All"))
+
+        self.radioTxt.setText(self.tr("Plain Text (.txt)"))
+        self.radioMarkdown.setText(self.tr("Markdown (.md)"))
+        self.radioPdf.setText(self.tr("PDF (.pdf)"))
 
         self.groupTime.toggled.connect(self.on_group_time_toggled)
         self.groupIntensity.toggled.connect(self.on_group_intensity_toggled)
@@ -66,7 +155,7 @@ class ReportDialog(QDialog, form_class):
     def update_ok_button(self):
         any_checked = any(cb.isChecked() for cb in self.checkboxes)
         self.ok_button.setEnabled(any_checked)
-        self.labelWarning.setText("" if any_checked else "No information selected.")
+        self.labelWarning.setText("" if any_checked else self.tr("No information selected"))
 
     def on_group_time_toggled(self, checked):
         self.checkMinTime.setEnabled(checked)

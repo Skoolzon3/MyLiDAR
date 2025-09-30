@@ -31,7 +31,7 @@ from .report_functions import generate_txt_report, generate_markdown_report, gen
 class ReportGenerationTask(QgsTask):
     """Background task for generating LiDAR information reports"""
 
-    def __init__(self, description, filename, report_path, report_format, selected_fields, parent):
+    def __init__(self, description, filename, report_path, report_format, selected_fields, parent, translator):
         super().__init__(description, QgsTask.CanCancel)
         self.filename = filename
         self.report_path = report_path
@@ -39,6 +39,7 @@ class ReportGenerationTask(QgsTask):
         self.selected_fields = selected_fields
         self.parent = parent
         self.exception = None
+        self.tr = translator
 
     def run(self):
         try:
@@ -62,11 +63,11 @@ class ReportGenerationTask(QgsTask):
             data = ReportData(
                 file_name=os.path.basename(self.filename) if self.selected_fields["file_name"] else None,
                 file_source=las.header.file_source_id if self.selected_fields["file_source"] else None,
-                global_encoding=format_global_encoding(las.header.global_encoding) if self.selected_fields["global_encoding"] else None,
+                global_encoding=format_global_encoding(las.header.global_encoding, self.tr) if self.selected_fields["global_encoding"] else None,
                 system_id=las.header.system_identifier if self.selected_fields["system_id"] else None,
                 gen_software=las.header.generating_software if self.selected_fields["gen_software"] else None,
                 version=las.header.version if self.selected_fields["version"] else None,
-                point_format=format_point_format(las.header.point_format) if self.selected_fields["point_format"] else None,
+                point_format=format_point_format(las.header.point_format, self.tr) if self.selected_fields["point_format"] else None,
                 creation_date=str(las.header.creation_date) if self.selected_fields["creation_date"] else None,
 
                 min_intensity=las.intensity.min() if self.selected_fields["min_intensity"] else None,
@@ -93,11 +94,11 @@ class ReportGenerationTask(QgsTask):
 
             # Step 4: Generate report in chosen format
             if self.report_format == "pdf":
-                generate_pdf_report(self.parent, self.report_path, data)
+                generate_pdf_report(self.parent, self.report_path, data, self.tr)
             elif self.report_format == "md":
-                generate_markdown_report(self.parent, self.report_path, data)
+                generate_markdown_report(self.parent, self.report_path, data, self.tr)
             else:
-                generate_txt_report(self.parent, self.report_path, data)
+                generate_txt_report(self.parent, self.report_path, data, self.tr)
             self.setProgress(100)
             return True
 
@@ -109,13 +110,13 @@ class ReportGenerationTask(QgsTask):
         if result:
             QMessageBox.information(
                 self.parent.iface.mainWindow(),
-                "Success",
-                f"Report created at:\n{self.report_path}"
+                self.tr("Success"),
+                f"{self.tr('Report created at')}:\n{self.report_path}"
             )
         else:
-            msg = f"An error occurred:\n{self.exception}" if self.exception else "Report generation failed."
-            QgsMessageLog.logMessage(msg, "MyPlugin", Qgis.Critical)
-            QMessageBox.critical(self.parent.iface.mainWindow(), "Error", msg)
+            msg = f"{self.tr('An error occurred')}:\n{self.exception}" if self.exception else self.tr("Report generation failed")
+            QgsMessageLog.logMessage(msg, "MyLiDAR", Qgis.Critical)
+            QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error"), msg)
 
         if self in self.parent.running_tasks:
             self.parent.running_tasks.remove(self)
@@ -128,30 +129,30 @@ def generate_report(self):
     # Step 1: Select input file path
     filename, _ = QFileDialog.getOpenFileName(
         self.iface.mainWindow(),
-        "Select LiDAR File",
+        self.tr("Select LiDAR File"),
         "",
-        "LiDAR Files (*.las *.laz)"
+        self.tr("LiDAR Files (*.las *.laz)")
     )
     if not filename:
         return
 
     # Step 2: Ask user what fields to include
-    dialog = ReportDialog(self.iface.mainWindow())
+    dialog = ReportDialog(self.iface.mainWindow(), translator=self.tr)
     if dialog.exec_() != QDialog.Accepted:
         return
 
     # Step 3: Choose output format
     if dialog.radioPdf.isChecked():
-        ext, fmt, filter_str = ".pdf", "pdf", "PDF Files (*.pdf)"
+        ext, fmt, filter_str = ".pdf", "pdf", self.tr("PDF Files (*.pdf)")
     elif dialog.radioMarkdown.isChecked():
-        ext, fmt, filter_str = ".md", "md", "Markdown Files (*.md)"
+        ext, fmt, filter_str = ".md", "md", self.tr("Markdown Files (*.md)")
     else:
-        ext, fmt, filter_str = ".txt", "txt", "Text Files (*.txt)"
+        ext, fmt, filter_str = ".txt", "txt", self.tr("Text Files (*.txt)")
 
     # Step 4: Select output file path
     report_path, _ = QFileDialog.getSaveFileName(
         self.iface.mainWindow(),
-        "Save Report",
+        self.tr("Save Report"),
         os.path.splitext(filename)[0] + "_report" + ext,
         filter_str
     )
@@ -184,15 +185,15 @@ def generate_report(self):
     }
 
     # Step 5: Create and run the background task
-    task_desc = f"Generating report for {os.path.basename(filename)}"
-    task = ReportGenerationTask(task_desc, filename, report_path, fmt, selected_fields, self)
+    task_desc = f"{self.tr('Generating report for')} {os.path.basename(filename)}"
+    task = ReportGenerationTask(task_desc, filename, report_path, fmt, selected_fields, self, self.tr)
 
     self.running_tasks.append(task)
     QgsApplication.taskManager().addTask(task)
 
     self.iface.messageBar().pushMessage(
-        "Task Started",
-        "Report generation is running in the background.",
+        self.tr("Task Started"),
+        self.tr("Report generation is running in the background"),
         level=Qgis.Info,
         duration=-1
     )
