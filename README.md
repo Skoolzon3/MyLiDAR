@@ -20,7 +20,7 @@ In addition to generating detailed reports from LAS/LAZ files, the plugin offers
 These functions are compatible with LiDAR `.las` and `.laz` files, and their execution is aided by an intuitive user interface, integrated directly into the QGIS menu.
 
 ### Installation
-1. Copy the plugin repository into your own QGIS plugin directory:
+1. Copy the plugin repository into your own QGIS plugin directory (in this example, the `plugins` folder):
    - **Windows:** `%APPDATA%\QGIS\QGIS3\profiles\default\python\plugins\`
    - **Linux:** `~/.local/share/QGIS/QGIS3/profiles/default/python/plugins/`
 
@@ -52,14 +52,14 @@ Note: during the installation of laspy, the numpy dependency used in the project
 - **Windows (QGIS installed via OSGeo4W)**:
   Open OSGeo4W Shell and run:
   ```bash
-  python -m pip install laspy scipy GDAL OSR matplotlib reportlab scikit-learn
+  python -m pip install laspy[lazrs,laszip] scipy GDAL OSR matplotlib reportlab scikit-learn
 - **Linux**:
   Open a terminal and run:
   ```bash
   pip install laspy scipy gdal matplotlib reportlab scikit-learn
 
 ### Credits
-Developed by Skoolzon3 in collaboration with the University of Extremadura.
+Plugin developed in collaboration with the Media Engineering Group (GIM) of the Polytechnic School of Cáceres.
 
 ---
 
@@ -82,7 +82,7 @@ Además de generar informes detallados a partir de archivos LAS/LAZ, el compleme
 Estas funciones son compatibles con archivos LiDAR `.las` y `.laz`, y su ejecución se ayuda de una interfaz de usuario intuitiva, integrada directamente dentro del menú de QGIS.
 
 ### Instalación
-1. Copie la carpeta del complemento en su directorio de complementos QGIS propio:
+1. Copie la carpeta del complemento en su directorio de complementos QGIS propio (en este ejemplo, la carpeta `plugins`):
    - **Windows:** `%APPDATA%\QGIS\QGIS3\profiles\default\python\plugins\`
    - **Linux:** `~/.local/share/QGIS/QGIS3/profiles/default/python/plugins/`
 
@@ -112,11 +112,11 @@ Nota: durante la instalación de laspy, se integra junto a esta la dependencia d
 - **Windows (QGIS instalado a través de OSGeo4W)**:
   Abra el shell de OSGeo4W y ejecute:
   ```bash
-  python -m pip install laspy scipy GDAL OSR matplotlib reportlab scikit-learn
+  python -m pip install laspy[lazrs,laszip] scipy GDAL OSR matplotlib reportlab scikit-learn
 - **Linux**:
   Abra un terminal y ejecute:
   ```bash
   pip install laspy scipy gdal matplotlib reportlab scikit-learn
 
 ### Créditos
-Desarrollado por Skoolzon3 en colaboración con la Universidad de Extremadura.
+Complemento desarrollado en colaboración con el Grupo de Ingeniería de Medios (GIM) de la Escuela Politécnica de Cáceres.
