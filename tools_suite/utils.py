@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
 from matplotlib import pyplot as plt
+import numpy as np
 
 # --- Formatting functions for LiDAR data processing ---
 
@@ -92,6 +93,19 @@ def generate_return_bar_chart(unique_returns, return_counts, tr):
 
     buf = BytesIO()
     fig.savefig(buf, format='png', dpi=150, bbox_inches='tight')
+    plt.close(fig)
+    buf.seek(0)
+    return buf
+
+def generate_density_heatmap(x, y, tr, bins=500):
+    buf = BytesIO()
+    fig, ax = plt.subplots(figsize=(7, 5))
+    bins = min(bins, max(50, int(np.sqrt(len(x))))) if len(x) > 0 else 50
+    h = ax.hist2d(x, y, bins=bins)
+    cbar = fig.colorbar(h[3], ax=ax, label=tr("Point Count"))
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
     plt.close(fig)
     buf.seek(0)
     return buf

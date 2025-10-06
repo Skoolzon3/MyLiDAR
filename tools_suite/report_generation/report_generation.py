@@ -3,18 +3,21 @@ import os
 import laspy
 from laspy import LazBackend
 import numpy as np
+import matplotlib.pyplot as plt
 
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox, QDialog
 from qgis.core import QgsApplication, QgsTask, Qgis, QgsMessageLog
+from qgis.PyQt.QtCore import Qt
 
 # --- Dialogs and Data Classes imports ---
 from .report_data import ReportData
 from .report_dialog import ReportDialog
+from .report_generation_dock import ReportDock
 
 # --- Utility & Report Generation Functions ---
 from ..utils import format_global_encoding, format_point_format, gps_time_to_datetime
-from .report_functions import generate_txt_report, generate_markdown_report, generate_pdf_report
+from .report_functions import generate_txt_report, generate_markdown_report, generate_pdf_report, generate_dock_content
 
 # -------------------------
 # --- Report Generation ---
@@ -29,17 +32,20 @@ from .report_functions import generate_txt_report, generate_markdown_report, gen
 # ---------------------------------------------
 
 class ReportGenerationTask(QgsTask):
-    """Background task for generating LiDAR information reports"""
+    """Background task for generating LiDAR information reports + dock"""
 
-    def __init__(self, description, filename, report_path, report_format, selected_fields, parent, translator):
+    def __init__(self, description, filename, report_path, report_format, selected_fields, parent, translator, show_dock=False):
         super().__init__(description, QgsTask.CanCancel)
         self.filename = filename
         self.report_path = report_path
-        self.report_format = report_format  # "txt", "md", or "pdf"
+        self.report_format = report_format
         self.selected_fields = selected_fields
         self.parent = parent
         self.exception = None
         self.tr = translator
+        self.show_dock = show_dock
+        self.report_text = None
+        self.figures = []  # list of (figure, title)
 
     def run(self):
         try:
@@ -47,7 +53,7 @@ class ReportGenerationTask(QgsTask):
             las = laspy.read(self.filename, laz_backend=LazBackend.Lazrs)
             self.setProgress(25)
 
-            # Step 2: Extract stats
+            # Step 2: Extract statistics
             unique_classes, class_counts = np.unique(las.classification, return_counts=True)
             unique_returns, ret_counts = np.unique(las.return_number, return_counts=True)
 
@@ -59,7 +65,7 @@ class ReportGenerationTask(QgsTask):
 
             self.setProgress(50)
 
-            # Step 3: Build ReportData object from user-selected fields
+            # Step 3: Build ReportData
             data = ReportData(
                 file_name=os.path.basename(self.filename) if self.selected_fields["file_name"] else None,
                 file_source=las.header.file_source_id if self.selected_fields["file_source"] else None,
@@ -89,16 +95,74 @@ class ReportGenerationTask(QgsTask):
                 class_counts=class_counts if self.selected_fields["class_counts"] else None,
                 unique_returns=unique_returns if self.selected_fields["return_counts"] else None,
                 return_counts=ret_counts if self.selected_fields["return_counts"] else None,
+                x=las.x, y=las.y
             )
             self.setProgress(75)
 
-            # Step 4: Generate report in chosen format
+            if self.show_dock:
+                self.setProgress(60)
+                self.report_text = generate_dock_content(self, data, self.tr)
+
+                # Step 4: Generate Graphs
+                # --- Classification Pie ---
+                classifications = las.classification
+                unique_classes, class_counts = np.unique(classifications, return_counts=True)
+
+                classification_info = {
+                    0: (self.tr("Created, Never Classified"), "#A0A0A0"), 1: (self.tr("Unclassified"), "#B0B0B0"),
+                    2: (self.tr("Ground"), "#8B4513"), 3: (self.tr("Low Vegetation"), "#ADFF2F"),
+                    4: (self.tr("Medium Vegetation"), "#32CD32"), 5: (self.tr("High Vegetation"), "#006400"),
+                    6: (self.tr("Building"), "#FF4500"), 7: (self.tr("Low Point (Noise)"), "#D3D3D3"),
+                    8: (self.tr("Model Key-point"), "#FFD700"), 9: (self.tr("Water"), "#1E90FF"),
+                    10: (self.tr("Rail"), "#8B0000"), 11: (self.tr("Road Surface"), "#A0522D"),
+                    12: (self.tr("Overlap"), "#C0C0C0"), 13: (self.tr("Wire Guard"), "#00CED1"),
+                    14: (self.tr("Wire Conductor"), "#20B2AA"), 15: (self.tr("Transmission Tower"), "#000080"),
+                    16: (self.tr("Wire-structure Connector"), "#708090"), 17: (self.tr("Bridge Deck"), "#A9A9A9"),
+                    18: (self.tr("High Noise"), "#800080"),
+                }
+
+                labels = [classification_info.get(c, (f"{self.tr('Class')} {c}", "#CCCCCC"))[0] for c in unique_classes]
+                colors = [classification_info.get(c, ("Unknown", "#CCCCCC"))[1] for c in unique_classes]
+
+                fig1, ax1 = plt.subplots(figsize=(8, 6))
+                ax1.pie(class_counts, labels=labels, colors=colors, autopct='%1.1f%%', startangle=140)
+                ax1.set_title(self.tr("Classification Distribution"), fontweight="bold")
+                self.figures.append((fig1, self.tr("Classification Distribution")))
+                self.setProgress(70)
+
+                # --- Return Number Histogram ---
+                unique_returns, return_counts = np.unique(las.return_number, return_counts=True)
+                return_labels = [str(r) for r in unique_returns]
+
+                fig2, ax2 = plt.subplots(figsize=(5, 4))
+                bars = ax2.bar(return_labels, return_counts, color="lightgreen")
+                for bar, count in zip(bars, return_counts):
+                    ax2.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
+                            f"{count}", ha="center", va="bottom", fontsize=9, fontweight="bold")
+                ax2.set_title(self.tr("Return Number Distribution"), fontweight="bold")
+                ax2.set_xlabel(self.tr("Return Number"))
+                ax2.set_ylabel(self.tr("Count"))
+                self.figures.append((fig2, self.tr("Return Number Distribution")))
+                self.setProgress(85)
+
+                # --- Density Heatmap ---
+                x, y = las.x, las.y
+                fig3, ax3 = plt.subplots(figsize=(7, 5))
+                h = ax3.hist2d(x, y, bins=500, cmap="viridis")
+                fig3.colorbar(h[3], ax=ax3, label="Point Count")
+                ax3.set_title(self.tr("Point Density Heatmap"), fontweight="bold")
+                ax3.set_xlabel("X")
+                ax3.set_ylabel("Y")
+                self.figures.append((fig3, self.tr("Point Density Distribution")))
+
+            # Step 5: Save Report
             if self.report_format == "pdf":
                 generate_pdf_report(self.parent, self.report_path, data, self.tr)
             elif self.report_format == "md":
                 generate_markdown_report(self.parent, self.report_path, data, self.tr)
             else:
                 generate_txt_report(self.parent, self.report_path, data, self.tr)
+
             self.setProgress(100)
             return True
 
@@ -108,13 +172,24 @@ class ReportGenerationTask(QgsTask):
 
     def finished(self, result):
         if result:
+            if self.show_dock:
+                if not hasattr(self.parent, "lidar_report_dock") or self.parent.lidar_report_dock is None or not self.parent.lidar_report_dock.isVisible():
+                    self.parent.lidar_report_dock = ReportDock(self.parent.iface.mainWindow(), translator=self.tr)
+                    self.parent.iface.addDockWidget(Qt.RightDockWidgetArea, self.parent.lidar_report_dock)
+
+                self.parent.lidar_report_dock.clear()
+                self.parent.lidar_report_dock.add_text(self.report_text)
+
+                for fig, title in self.figures:
+                    self.parent.lidar_report_dock.add_button_for_figure(fig, title=title)
+
             QMessageBox.information(
                 self.parent.iface.mainWindow(),
                 self.tr("Success"),
                 f"{self.tr('Report created at')}:\n{self.report_path}"
             )
         else:
-            msg = f"{self.tr('An error occurred')}:\n{self.exception}" if self.exception else self.tr("Report generation failed")
+            msg = f"{self.tr('An error occurred')}: {self.exception}" if self.exception else self.tr("Report generation failed")
             QgsMessageLog.logMessage(msg, "MyLiDAR", Qgis.Critical)
             QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error"), msg)
 
@@ -149,7 +224,12 @@ def generate_report(self):
     else:
         ext, fmt, filter_str = ".txt", "txt", self.tr("Text Files (*.txt)")
 
-    # Step 4: Select output file path
+    # Step 4 (optional): Generate QGIS dock
+    generate_dock = False
+    if dialog.checkGenerateDock.isChecked():
+        generate_dock = dialog.generate_dock()
+
+    # Step 5: Select output file path
     report_path, _ = QFileDialog.getSaveFileName(
         self.iface.mainWindow(),
         self.tr("Save Report"),
@@ -184,9 +264,9 @@ def generate_report(self):
         "return_counts": dialog.checkReturnCounts.isChecked(),
     }
 
-    # Step 5: Create and run the background task
+    # Step 6: Create and run the background task
     task_desc = f"{self.tr('Generating report for')} {os.path.basename(filename)}"
-    task = ReportGenerationTask(task_desc, filename, report_path, fmt, selected_fields, self, self.tr)
+    task = ReportGenerationTask(task_desc, filename, report_path, fmt, selected_fields, self, self.tr, show_dock=generate_dock)
 
     self.running_tasks.append(task)
     QgsApplication.taskManager().addTask(task)

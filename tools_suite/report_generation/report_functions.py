@@ -7,7 +7,7 @@ from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 
-from ..utils import generate_pie_chart_from_counts, generate_return_bar_chart
+from ..utils import generate_pie_chart_from_counts, generate_return_bar_chart, generate_density_heatmap
 
 # --- Text Report Generation ---
 
@@ -98,6 +98,99 @@ def generate_txt_report(self, path, data: ReportData, tr):
                 f.write(f" - {tr('Return')} {ret}: {count}\n")
             f.write("\n")
 
+
+
+# --- Dock Report Content Generation ---
+
+def generate_dock_content(self, data: ReportData, tr) -> str:
+    lines = []
+    lines.append("==================")
+    lines.append(tr("LiDAR File Report"))
+    lines.append("==================\n")
+
+    current_time = datetime.now()
+    lines.append(f"{tr('Report date')}: {current_time}\n")
+
+    if data.file_name:
+        lines.append(f"{tr('Name')}: {data.file_name}\n")
+
+    # -- File Metadata --
+    if (data.file_source or data.global_encoding or data.system_id or
+        data.gen_software or data.version or data.point_format or data.creation_date):
+        lines.append(f"--- {tr('File Metadata')} ---")
+        if data.file_source:
+            lines.append(f"{tr('File Source ID')}: {data.file_source}")
+        if data.global_encoding:
+            lines.append(f"{tr('Global Encoding')}:\n{data.global_encoding.strip()}")
+        if data.system_id:
+            lines.append(f"{tr('System ID')}: {data.system_id}")
+        if data.gen_software:
+            lines.append(f"{tr('Generating Software')}: {data.gen_software}")
+        if data.version:
+            lines.append(f"{tr('Version')}: {data.version}")
+        if data.point_format:
+            lines.append(f"{tr('Point Format')}:\n{data.point_format.strip()}")
+        if data.creation_date:
+            lines.append(f"{tr('Creation Date')}: {data.creation_date}")
+        lines.append("")
+
+    # -- Intensity --
+    if (data.min_intensity or data.max_intensity):
+        lines.append(f"--- {tr('Intensity')} ---")
+        if data.min_intensity:
+            lines.append(f"{tr('Min Intensity')}: {data.min_intensity}")
+        if data.max_intensity:
+            lines.append(f"{tr('Max Intensity')}: {data.max_intensity}")
+        lines.append("")
+
+    # -- Spatial Measures --
+    if (data.num_points or data.area or data.density or
+        data.bounds or data.x_axis_bounds or data.y_axis_bounds):
+        lines.append(f"--- {tr('Spatial Measures')} ---")
+        if data.num_points:
+            lines.append(f"{tr('Number of Points')}: {data.num_points}")
+        if data.area:
+            lines.append(f"{tr('Area')}: {data.area}")
+        if data.density:
+            lines.append(f"{tr('Density')}: {data.density}")
+        if data.bounds:
+            lines.append(f"{tr('Bounds Min')}: {data.bounds[0]}")
+            lines.append(f"{tr('Bounds Max')}: {data.bounds[1]}")
+        if data.x_axis_bounds:
+            lines.append(f"{tr('X-Axis Bounds')}: {data.x_axis_bounds}")
+        if data.y_axis_bounds:
+            lines.append(f"{tr('Y-Axis Bounds')}: {data.y_axis_bounds}")
+        if data.z_axis_bounds:
+            lines.append(f"{tr('Z-Axis Bounds')}: {data.z_axis_bounds}")
+        lines.append("")
+
+    # -- GPS Time --
+    if (data.min_time or data.max_time):
+        lines.append(f"--- {tr('GPS Time')} ---")
+        if data.min_time:
+            lines.append(f"{tr('Min GPS Time')}: {data.min_time}")
+        if data.max_time:
+            lines.append(f"{tr('Max GPS Time')}: {data.max_time}")
+        lines.append("")
+
+    # -- Classifications --
+    if data.unique_classes is not None and data.class_counts is not None:
+        lines.append(f"--- {tr('Classification Counts')} ---")
+        for cls, count in zip(data.unique_classes, data.class_counts):
+            lines.append(f" - {tr('Class')} {cls}: {count}")
+        lines.append("")
+
+    # -- Returns --
+    if data.unique_returns is not None and data.return_counts is not None:
+        lines.append(f"--- {tr('Return Number Counts')} ---")
+        for ret, count in zip(data.unique_returns, data.return_counts):
+            lines.append(f" - {tr('Return')} {ret}: {count}")
+        lines.append("")
+
+    return "\n".join(lines)
+
+
+
 # --- Markdown Report Generation ---
 
 def generate_markdown_report(self, path, data: ReportData, tr):
@@ -182,6 +275,8 @@ def generate_markdown_report(self, path, data: ReportData, tr):
             for ret, count in zip(data.unique_returns, data.return_counts):
                 f.write(f" - **{tr('Return')} {ret}**: {count}\n")
             f.write("\n")
+
+
 
 # --- PDF Report Generation ---
 
@@ -319,7 +414,7 @@ def generate_pdf_report(self, path, data: ReportData, tr):
         # -- Classification distribution pie chart --
         chart_buf = generate_pie_chart_from_counts(data.unique_classes, data.class_counts, self.tr)
         chart_img = ImageReader(chart_buf)
-        chart_width, chart_height = 12 * cm, 10 * cm
+        chart_width, chart_height = 14 * cm, 12 * cm
         center_x = (width - chart_width) / 2
         if y - chart_height < 2 * cm:
             canvas.showPage()
@@ -342,7 +437,7 @@ def generate_pdf_report(self, path, data: ReportData, tr):
         # -- Return number bar chart --
         return_chart_buf = generate_return_bar_chart(data.unique_returns, data.return_counts, self.tr)
         return_chart_img = ImageReader(return_chart_buf)
-        chart_width, chart_height = 12 * cm, 10 * cm
+        chart_width, chart_height = 14 * cm, 12 * cm
         center_x = (width - chart_width) / 2
         if y - chart_height < 2 * cm:
             canvas.showPage()
@@ -352,6 +447,27 @@ def generate_pdf_report(self, path, data: ReportData, tr):
 
         for ret, count in zip(data.unique_returns, data.return_counts):
             write_item(f"{tr('Return')} {ret}", count)
+
+    draw_page_number()
+    canvas.showPage()
+    canvas.setFont("Helvetica", 12)
+    y = height - 2 * cm
+
+    # -- Point density heatmap --
+    if hasattr(data, "x") and hasattr(data, "y") and data.x is not None and data.y is not None:
+        write_heading(tr("Point Density Heatmap"), level=2)
+
+        heatmap_buf = generate_density_heatmap(data.x, data.y, tr)
+        heatmap_img = ImageReader(heatmap_buf)
+        chart_width, chart_height = 18 * cm, 14 * cm
+        center_x = (width - chart_width) / 2
+        if y - chart_height < 2 * cm:
+            canvas.showPage()
+            y = height - 2 * cm
+        canvas.drawImage(heatmap_img, center_x, y - chart_height, width=chart_width, height=chart_height)
+        y -= chart_height + 0.5 * cm
+
+    # -----------------------
 
     draw_page_number()
     canvas.save()

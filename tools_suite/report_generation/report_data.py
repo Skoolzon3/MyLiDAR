@@ -7,7 +7,7 @@ class ReportData:
         file_source=None, global_encoding=None, system_id=None, gen_software=None,
         creation_date=None, unique_classes=None, class_counts=None, unique_returns=None,
         return_counts=None, min_intensity=None, max_intensity=None, min_time=None,
-        max_time=None, area=None, density=None
+        max_time=None, area=None, density=None, x=None, y=None
     ):
         # -- Metadata --
         self.file_name = file_name
@@ -42,3 +42,7 @@ class ReportData:
 
         self.unique_returns = unique_returns
         self.return_counts = return_counts
+
+        # -- Density heatmap --
+        self.x = x
+        self.y = y

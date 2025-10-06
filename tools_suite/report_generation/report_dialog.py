@@ -92,8 +92,13 @@ class ReportDialog(QDialog, form_class):
         self.checkClassCounts.setText(self.tr("Class Counts"))
         self.checkClassCounts.setToolTip(self.tr("Counts of points by classification codes (e.g., ground, vegetation, building...)"))
 
+        # === Return counts checkbox ===
         self.checkReturnCounts.setText(self.tr("Return Counts"))
         self.checkReturnCounts.setToolTip(self.tr("Counts of points by return number (first, last...)"))
+
+        # === Dock option ===
+        self.checkGenerateDock.setText(self.tr("Generate Dock Panel in QGIS"))
+        self.checkGenerateDock.setToolTip(self.tr("If checked, a dockable report panel will be created alongside the generated report in QGIS"))
 
         # === Buttons ===
         self.btnSelectAll.setText(self.tr("Select All"))
@@ -267,3 +272,6 @@ class ReportDialog(QDialog, form_class):
         self.groupClassification.setChecked(True)
 
         self.update_ok_button()
+
+    def generate_dock(self):
+        return self.checkGenerateDock.isChecked()

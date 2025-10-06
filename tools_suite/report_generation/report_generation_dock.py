@@ -9,7 +9,7 @@ from qgis.PyQt.QtGui import QPixmap
 # --- Method-specific imports ---
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
-class LidarStatsDock(QDockWidget):
+class ReportDock(QDockWidget):
     def __init__(self, parent=None, translator=None):
         self.tr = translator if translator else (lambda s: s)
         super().__init__(self.tr("LiDAR Statistics"), parent)

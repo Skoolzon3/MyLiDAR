@@ -12,7 +12,6 @@ from .tools_suite.report_generation.report_generation import generate_report
 from .tools_suite.outlier_removal.outlier_removal import remove_outliers
 from .tools_suite.overlap_removal.overlap_removal import remove_overlap
 from .tools_suite.building_count.building_count import count_buildings
-from .tools_suite.statistics_generation.statistics_generation import generate_statistics
 from .tools_suite.vegetation_classification.vegetation_classification import classify_vegetation
 from .tools_suite.dem_generation.dem_generation import generate_bare_earth_dem
 
@@ -73,7 +72,6 @@ class MyLiDARPlugin:
             ("vegetation.png", self.tr("Classify vegetation"), self.vegetation_classification),
             ("building.png", self.tr("Count buildings"), self.building_count),
             ("dem.png", self.tr("Generate Bare Earth DEM"), self.bare_earth_dem_generation),
-            ("statistics.png", self.tr("View file statistics"), self.statistics_generation),
         ]
 
         self.actions = []
@@ -113,10 +111,6 @@ class MyLiDARPlugin:
     # --- Bare Earth DEM Generation ---
     def bare_earth_dem_generation(self):
         generate_bare_earth_dem(self)
-
-    # --- Statistics Generation ---
-    def statistics_generation(self):
-        generate_statistics(self)
 
     # --- Placeholder method ---
     def placeholder(self):
