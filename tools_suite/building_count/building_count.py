@@ -7,7 +7,7 @@ import numpy as np
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
 from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsField, QgsProject, QgsFillSymbol, QgsTask, QgsApplication, Qgis, QgsMessageLog
-from PyQt5.QtCore import QVariant
+from qgis.PyQt.QtCore import QVariant
 
 # --- Method-specific imports ---
 from sklearn.cluster import DBSCAN
@@ -156,11 +156,11 @@ class BuildingCountTask(QgsTask):
                 QMessageBox.information(
                     self.parent.iface.mainWindow(),
                     self.tr("Building Detection Complete"),
-                    f"{self.tr('Building points detected')}: {self.num_points:,}\n"
-                    f"{self.tr('Approximate number of buildings detected')}: {self.num_buildings:,}"
+                    f"{self.tr("Building points detected")}: {self.num_points:,}\n"
+                    f"{self.tr("Approximate number of buildings detected")}: {self.num_buildings:,}"
                 )
         else:
-            msg = f"{self.tr('An error occurred')}: {self.exception}" if self.exception else self.tr("Building detection failed")
+            msg = f"{self.tr("An error occurred")}: {self.exception}" if self.exception else self.tr("Building detection failed")
             QgsMessageLog.logMessage(msg, "MyLiDAR", Qgis.Critical)
             QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error Detecting Buildings"), msg)
 
@@ -189,7 +189,7 @@ def count_buildings(self):
     eps, min_samples, use_z = param_dialog.get_params()
 
     # Step 3: Create and run the background task
-    task_desc = f"{self.tr('Counting buildings in')} {os.path.basename(filename)}"
+    task_desc = f"{self.tr("Counting buildings in")} {os.path.basename(filename)}"
     task = BuildingCountTask(task_desc, filename, eps, min_samples, use_z, self, self.tr)
 
     self.running_tasks.append(task)

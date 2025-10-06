@@ -5,7 +5,6 @@
   "Classify vegetation": "Clasificar vegetación",
   "Count buildings": "Contar edificios",
   "Generate Bare Earth DEM": "Generar MDE de terreno base",
-  "View file statistics": "Ver estadísticas del archivo",
 
 
 
@@ -65,6 +64,8 @@
   "Plain Text (.txt)": "Texto plano (.txt)",
   "Markdown (.md)": "Markdown (.md)",
   "PDF (.pdf)": "PDF (.pdf)",
+  "Generate Dock Panel in QGIS": "Generar panel acoplable en QGIS",
+  "If checked, a dockable report panel will be created alongside the generated report in QGIS": "Si se marca, se creará un panel de informe acoplable en QGIS, junto al informe generado",
 
   "LiDAR File Report": "Informe de archivo LiDAR",
   "Report date": "Fecha del informe",
@@ -158,6 +159,7 @@
   "Do you also want to create a hillshade raster from the DEM?": "¿Desea también crear un ráster de sombreado a partir del MDE?",
   "Generating DEM from": "Generando MDE desde",
   "DEM generation running in the background": "La generación del MDE se está ejecutando en segundo plano",
+  "Save Hillshade Raster": "Guardar mapa de sombras del terreno",
 
   "Bare Earth DEM Settings": "Configuración del MDE del Terreno Base",
   "Enter DEM cell size (meters):": "Introduzca el tamaño de celda del MDE (metros):",

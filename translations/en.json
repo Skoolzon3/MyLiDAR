@@ -5,7 +5,6 @@
   "Classify vegetation": "Classify vegetation",
   "Count buildings": "Count buildings",
   "Generate Bare Earth DEM": "Generate Bare Earth DEM",
-  "View file statistics": "View file statistics",
 
 
 
@@ -77,6 +76,8 @@
   "Plain Text (.txt)": "Plain Text (.txt)",
   "Markdown (.md)": "Markdown (.md)",
   "PDF (.pdf)": "PDF (.pdf)",
+  "Generate Dock Panel in QGIS": "Generate Dock Panel in QGIS",
+  "If checked, a dockable report panel will be created alongside the generated report in QGIS": "If checked, a dockable report panel will be created in QGIS, alongside the generated report",
 
   "LiDAR File Report": "LiDAR File Report",
   "Report date": "Report date",
@@ -158,6 +159,7 @@
   "Do you also want to create a hillshade raster from the DEM?": "Do you also want to create a hillshade raster from the DEM?",
   "Generating DEM from": "Generating DEM from",
   "DEM generation running in the background": "DEM generation running in the background",
+  "Save Hillshade Raster": "Save Hillshade Raster",
 
   "Bare Earth DEM Settings": "Bare Earth DEM Settings",
   "Enter DEM cell size (meters):": "Enter DEM cell size (meters):",

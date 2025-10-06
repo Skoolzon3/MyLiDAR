@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QDialog
-from PyQt5 import uic
+from qgis.PyQt.QtWidgets import QDialog
+from qgis.PyQt import uic
 import os
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(

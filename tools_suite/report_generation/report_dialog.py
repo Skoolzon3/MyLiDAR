@@ -102,10 +102,11 @@ class ReportDialog(QDialog, form_class):
 
         # === Buttons ===
         self.btnSelectAll.setText(self.tr("Select All"))
-
         self.radioTxt.setText(self.tr("Plain Text (.txt)"))
         self.radioMarkdown.setText(self.tr("Markdown (.md)"))
         self.radioPdf.setText(self.tr("PDF (.pdf)"))
+        self.checkGenerateDock.setText(self.tr("Generate Dock Panel in QGIS"))
+        self.checkGenerateDock.setToolTip(self.tr("If checked, a dockable report panel will be created alongside the generated report in QGIS"))
 
         self.groupTime.toggled.connect(self.on_group_time_toggled)
         self.groupIntensity.toggled.connect(self.on_group_intensity_toggled)
