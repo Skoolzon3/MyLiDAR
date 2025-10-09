@@ -216,27 +216,30 @@ def generate_report(self):
     if dialog.exec_() != QDialog.Accepted:
         return
 
-    # Step 3: Choose output format
-    if dialog.radioPdf.isChecked():
-        ext, fmt, filter_str = ".pdf", "pdf", self.tr("PDF Files (*.pdf)")
-    elif dialog.radioMarkdown.isChecked():
-        ext, fmt, filter_str = ".md", "md", self.tr("Markdown Files (*.md)")
-    else:
-        ext, fmt, filter_str = ".txt", "txt", self.tr("Text Files (*.txt)")
+    # Step 3: Retrieve all selected formats (list like ['txt', 'md', 'pdf'])
+    selected_formats = dialog.selected_formats()
+    if not selected_formats:
+        QMessageBox.warning(
+            self.iface.mainWindow(),
+            self.tr("No Format Selected"),
+            self.tr("Please select at least one report format (TXT, Markdown, or PDF).")
+        )
+        return
 
     # Step 4 (optional): Generate QGIS dock
     generate_dock = False
     if dialog.checkGenerateDock.isChecked():
         generate_dock = dialog.generate_dock()
 
-    # Step 5: Select output file path
-    report_path, _ = QFileDialog.getSaveFileName(
+    # Step 5: Select output base path (without extension)
+    default_name = os.path.splitext(filename)[0] + "_report"
+    report_base, _ = QFileDialog.getSaveFileName(
         self.iface.mainWindow(),
-        self.tr("Save Report"),
-        os.path.splitext(filename)[0] + "_report" + ext,
-        filter_str
+        self.tr("Save Report As"),
+        default_name,
+        self.tr("All Files (*)")
     )
-    if not report_path:
+    if not report_base:
         return
 
     # Collect field selections from dialog
@@ -264,12 +267,22 @@ def generate_report(self):
         "return_counts": dialog.checkReturnCounts.isChecked(),
     }
 
-    # Step 6: Create and run the background task
-    task_desc = f"{self.tr('Generating report for')} {os.path.basename(filename)}"
-    task = ReportGenerationTask(task_desc, filename, report_path, fmt, selected_fields, self, self.tr, show_dock=generate_dock)
+    # Step 6: Create and run one task per selected format
+    format_extensions = {
+        "txt": ".txt",
+        "md": ".md",
+        "pdf": ".pdf",
+    }
 
-    self.running_tasks.append(task)
-    QgsApplication.taskManager().addTask(task)
+    for fmt in selected_formats:
+        ext = format_extensions.get(fmt, ".txt")
+        report_path = f"{os.path.splitext(report_base)[0]}_{fmt}{ext}"
+
+        task_desc = f"{self.tr('Generating')} {fmt.upper()} {self.tr('report for')} {os.path.basename(filename)}"
+        task = ReportGenerationTask(task_desc, filename, report_path, fmt, selected_fields, self, self.tr, show_dock=generate_dock)
+
+        self.running_tasks.append(task)
+        QgsApplication.taskManager().addTask(task)
 
     self.iface.messageBar().pushMessage(
         self.tr("Task Started"),

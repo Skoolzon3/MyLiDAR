@@ -102,12 +102,15 @@ class ReportDialog(QDialog, form_class):
 
         # === Buttons ===
         self.btnSelectAll.setText(self.tr("Select All"))
-        self.radioTxt.setText(self.tr("Plain Text (.txt)"))
-        self.radioMarkdown.setText(self.tr("Markdown (.md)"))
-        self.radioPdf.setText(self.tr("PDF (.pdf)"))
+
+        # === Output Format checkboxes (formerly radio buttons) ===
+        self.checkTxt.setText(self.tr("Plain Text (.txt)"))
+        self.checkMarkdown.setText(self.tr("Markdown (.md)"))
+        self.checkPdf.setText(self.tr("PDF (.pdf)"))
         self.checkGenerateDock.setText(self.tr("Generate Dock Panel in QGIS"))
         self.checkGenerateDock.setToolTip(self.tr("If checked, a dockable report panel will be created alongside the generated report in QGIS"))
 
+        # === Toggle groups and connect signals ===
         self.groupTime.toggled.connect(self.on_group_time_toggled)
         self.groupIntensity.toggled.connect(self.on_group_intensity_toggled)
         self.groupSpatial.toggled.connect(self.on_group_spatial_toggled)
@@ -149,7 +152,6 @@ class ReportDialog(QDialog, form_class):
         ]
 
         self.ok_button = self.buttonBox.button(QDialogButtonBox.Ok)
-
         for checkbox in self.checkboxes:
             checkbox.stateChanged.connect(self.update_ok_button)
 
@@ -273,6 +275,16 @@ class ReportDialog(QDialog, form_class):
         self.groupClassification.setChecked(True)
 
         self.update_ok_button()
+
+    def selected_formats(self):
+        formats = []
+        if self.checkTxt.isChecked():
+            formats.append("txt")
+        if self.checkMarkdown.isChecked():
+            formats.append("md")
+        if self.checkPdf.isChecked():
+            formats.append("pdf")
+        return formats
 
     def generate_dock(self):
         return self.checkGenerateDock.isChecked()

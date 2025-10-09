@@ -348,44 +348,52 @@
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayoutOutputFormat">
                         <item>
-                            <widget class="QRadioButton" name="radioTxt">
+                            <widget class="QCheckBox" name="checkTxt">
                                 <property name="text">
                                     <string>Plain Text (.txt)</string>
                                 </property>
                                 <property name="checked">
                                     <bool>true</bool>
                                 </property>
-                            </widget>
-                        </item>
-                        <item>
-                            <widget class="QRadioButton" name="radioMarkdown">
-                                <property name="text">
-                                    <string>Markdown (.md)</string>
+                                <property name="toolTip">
+                                    <string>Generate a plain text report</string>
                                 </property>
                             </widget>
                         </item>
                         <item>
-                            <widget class="QRadioButton" name="radioPdf">
+                            <widget class="QCheckBox" name="checkMarkdown">
+                                <property name="text">
+                                    <string>Markdown (.md)</string>
+                                </property>
+                                <property name="toolTip">
+                                    <string>Generate a Markdown-formatted report</string>
+                                </property>
+                            </widget>
+                        </item>
+                        <item>
+                            <widget class="QCheckBox" name="checkPdf">
                                 <property name="text">
                                     <string>PDF (.pdf)</string>
+                                </property>
+                                <property name="toolTip">
+                                    <string>Generate a PDF report</string>
+                                </property>
+                            </widget>
+                        </item>
+                        <item>
+                            <widget class="QCheckBox" name="checkGenerateDock">
+                                <property name="text">
+                                    <string>Generate Dock Panel in QGIS</string>
+                                </property>
+                                <property name="toolTip">
+                                    <string>If checked, a dockable report panel will be created alongside the generated report in QGIS</string>
+                                </property>
+                                <property name="checked">
+                                    <bool>false</bool>
                                 </property>
                             </widget>
                         </item>
                     </layout>
-                </widget>
-            </item>
-
-            <item>
-                <widget class="QCheckBox" name="checkGenerateDock">
-                    <property name="text">
-                        <string>Generate Dock Panel in QGIS</string>
-                    </property>
-                    <property name="toolTip">
-                        <string>If checked, a dockable report panel will be created alongside the generated report in QGIS</string>
-                    </property>
-                    <property name="checked">
-                        <bool>false</bool>
-                    </property>
                 </widget>
             </item>
 
