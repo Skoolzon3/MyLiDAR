@@ -6,7 +6,7 @@ import numpy as np
 
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
-from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsField, QgsProject, QgsFillSymbol, QgsTask, QgsApplication, Qgis, QgsMessageLog
+from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsField, QgsProject, QgsFillSymbol, QgsTask, QgsApplication, Qgis, QgsMessageLog, QgsVectorFileWriter, QgsCoordinateTransformContext
 from qgis.PyQt.QtCore import QVariant
 
 # --- Method-specific imports ---
@@ -32,13 +32,14 @@ from .building_count_dialog import BuildingParamsDialog
 class BuildingCountTask(QgsTask):
     """Background task for counting buildings using DBSCAN on LiDAR data"""
 
-    def __init__(self, description, filename, eps, min_samples, use_z, parent, translator):
+    def __init__(self, description, filename, eps, min_samples, use_z, parent, translator, output_path=None):
         super().__init__(description, QgsTask.CanCancel)
         self.filename = filename
         self.eps = eps
         self.min_samples = min_samples
         self.use_z = use_z
         self.parent = parent
+        self.output_path = output_path
 
         self.exception = None
         self.tr = translator
@@ -151,6 +152,39 @@ class BuildingCountTask(QgsTask):
                 expr = "concat('ID: ', cluster_id, '\nArea: ', round(area_m2,1), ' m²')"
                 vl.setDisplayExpression(expr)
 
+                if self.output_path:
+                    options = QgsVectorFileWriter.SaveVectorOptions()
+                    options.driverName = QgsVectorFileWriter.driverForExtension(
+                        os.path.splitext(self.output_path)[1].lstrip(".")
+                    )
+
+                    error = QgsVectorFileWriter.writeAsVectorFormatV3(
+                        vl,
+                        self.output_path,
+                        QgsCoordinateTransformContext(),
+                        options
+                    )
+
+                    if error == QgsVectorFileWriter.NoError:
+                        vl = QgsVectorLayer(self.output_path, layer_name, "ogr")
+
+                        if self.output_path.lower().endswith(".gpkg"):
+                            vl.saveStyleToDatabase("default", "Detected building style", True, "")
+
+                        else:
+                            QgsMessageLog.logMessage(
+                                self.tr("Output saved, but style not saved (only GeoPackage supports style storage)"),
+                                "MyLiDAR",
+                                Qgis.Warning
+                            )
+
+                    else:
+                        QgsMessageLog.logMessage(
+                            f"Error saving output file (code: {error})",
+                            "MyLiDAR",
+                            Qgis.Critical
+                        )
+
                 QgsProject.instance().addMapLayer(vl)
 
                 QMessageBox.information(
@@ -188,9 +222,28 @@ def count_buildings(self):
         return
     eps, min_samples, use_z = param_dialog.get_params()
 
-    # Step 3: Create and run the background task
+    # Step 3: Ask user if they want to save output
+    reply = QMessageBox.question(
+        self.iface.mainWindow(),
+        self.tr("Save Detected Buildings"),
+        self.tr("Would you like to save the detected building layer to a file?"),
+        QMessageBox.Yes | QMessageBox.No
+    )
+
+    output_path = None
+    if reply == QMessageBox.Yes:
+        output_path, _ = QFileDialog.getSaveFileName(
+            self.iface.mainWindow(),
+            self.tr("Select Output File"),
+            os.path.splitext(filename)[0] + "_detected_buildings" + ".gpkg",
+            self.tr("GeoPackage (*.gpkg)")
+        )
+        if not output_path:
+            output_path = None
+
+    # Step 4: Create and run the background task
     task_desc = f"{self.tr("Counting buildings in")} {os.path.basename(filename)}"
-    task = BuildingCountTask(task_desc, filename, eps, min_samples, use_z, self, self.tr)
+    task = BuildingCountTask(task_desc, filename, eps, min_samples, use_z, self, self.tr, output_path)
 
     self.running_tasks.append(task)
     QgsApplication.taskManager().addTask(task)
