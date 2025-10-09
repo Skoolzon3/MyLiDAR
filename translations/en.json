@@ -11,9 +11,6 @@
   "Report created at": "Report created at",
   "Report generation failed": "Report generation failed",
   "Select LiDAR File": "Select LiDAR File",
-  "PDF Files (*.pdf)": "PDF Files (*.pdf)",
-  "Markdown Files (*.md)": "Markdown Files (*.md)",
-  "Text Files (*.txt)": "Text Files (*.txt)",
   "Save Report": "Save Report",
   "Generating report for": "Generating report for",
   "Report generation is running in the background": "Report generation is running in the background",
@@ -71,11 +68,9 @@
   "Return Counts": "Return Counts",
   "Counts of points by return number (first, last...)": "Counts of points by return number (first, last...)",
 
-  "Select All": "Select All",
+  "Select All Attributes": "Select All Attributes",
   "Output Format": "Output Format",
   "Plain Text (.txt)": "Plain Text (.txt)",
-  "Markdown (.md)": "Markdown (.md)",
-  "PDF (.pdf)": "PDF (.pdf)",
   "Generate Dock Panel in QGIS": "Generate Dock Panel in QGIS",
   "If checked, a dockable report panel will be created alongside the generated report in QGIS": "If checked, a dockable report panel will be created in QGIS, alongside the generated report",
 
@@ -133,6 +128,8 @@
   "Approximate number of buildings detected": "Approximate number of buildings detected",
   "Building detection failed": "Building detection failed",
   "Error Detecting Buildings": "Error Detecting Buildings",
+  "Output saved, but style not saved": "Output saved, but style not saved",
+  "Error saving output file": "Error saving output file",
   "Select LiDAR File to Count Buildings": "Select LiDAR File to Count Buildings",
   "Counting buildings in": "Counting buildings in",
   "Building detection running in the background": "Building detection running in the background",
@@ -144,6 +141,9 @@
   "Minimum number of points required to form a cluster": "Minimum number of points required to form a cluster",
   "Use Z-axis for clustering (3D)": "Use Z-axis for clustering (3D)",
   "Clustering will consider height (Z) as well as X and Y. This may improve building detection in areas with varying terrain": "Clustering will consider height (Z) as well as X and Y. This may improve building detection in areas with varying terrain",
+  "Save Detected Buildings": "Save Detected Buildings",
+  "Would you like to save the detected building layer to a file?": "Would you like to save the detected building layer to a file?",
+  "Select Output File": "Select Output File",
 
 
 
@@ -258,7 +258,6 @@
 
 
 
-  "GeoTIFF (*.tif)": "GeoTIFF (*.tif)",
   "LiDAR Files (*.las *.laz)": "LiDAR Files (*.las *.laz)",
   "Layer Load Warning": "Layer Load Warning",
   "The LiDAR file was saved but could not be loaded into QGIS": "The LiDAR file was saved but could not be loaded into QGIS",

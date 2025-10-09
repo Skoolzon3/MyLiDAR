@@ -173,14 +173,14 @@ class BuildingCountTask(QgsTask):
 
                         else:
                             QgsMessageLog.logMessage(
-                                self.tr("Output saved, but style not saved (only GeoPackage supports style storage)"),
+                                self.tr("Output saved, but style not saved"),
                                 "MyLiDAR",
                                 Qgis.Warning
                             )
 
                     else:
                         QgsMessageLog.logMessage(
-                            f"Error saving output file (code: {error})",
+                            f"{self.tr("Error saving output file")}: ({error})",
                             "MyLiDAR",
                             Qgis.Critical
                         )
@@ -236,7 +236,7 @@ def count_buildings(self):
             self.iface.mainWindow(),
             self.tr("Select Output File"),
             os.path.splitext(filename)[0] + "_detected_buildings" + ".gpkg",
-            self.tr("GeoPackage (*.gpkg)")
+            "GeoPackage (*.gpkg)"
         )
         if not output_path:
             output_path = None

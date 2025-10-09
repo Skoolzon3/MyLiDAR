@@ -11,9 +11,6 @@
   "Report created at": "Informe creado en",
   "Report generation failed": "La generación del informe falló",
   "Select LiDAR File": "Seleccione archivo LiDAR",
-  "PDF Files (*.pdf)": "Archivos PDF (*.pdf)",
-  "Markdown Files (*.md)": "Archivos Markdown (*.md)",
-  "Text Files (*.txt)": "Archivos de texto (*.txt)",
   "Save Report": "Guardar informe",
   "Generating report for": "Generando informe de",
   "Report generation is running in the background": "La generación del informe se está ejecutando en segundo plano",
@@ -59,11 +56,9 @@
   "Return Counts": "Conteo por retornos",
   "Counts of points by return number (first, last...)": "Conteo de puntos por número de retorno (primero, último...)",
 
-  "Select All": "Seleccionar todo",
+  "Select All Attributes": "Seleccionar todos los atributos",
   "Output Format": "Formato de salida",
   "Plain Text (.txt)": "Texto plano (.txt)",
-  "Markdown (.md)": "Markdown (.md)",
-  "PDF (.pdf)": "PDF (.pdf)",
   "Generate Dock Panel in QGIS": "Generar panel acoplable en QGIS",
   "If checked, a dockable report panel will be created alongside the generated report in QGIS": "Si se marca, se creará un panel de informe acoplable en QGIS, junto al informe generado",
 
@@ -133,6 +128,8 @@
   "Approximate number of buildings detected": "Número aproximado de edificios detectados",
   "Building detection failed": "La detección de edificios falló",
   "Error Detecting Buildings": "Error en la detección de edificios",
+  "Output saved, but style not saved": "Salida guardada, pero estilo no guardado",
+  "Error saving output file": "Error al guardar el archivo de salida",
   "Select LiDAR File to Count Buildings": "Seleccione un archivo LiDAR para contar edificios",
   "Counting buildings in": "Contando edificios en",
   "Building detection running in the background": "La detección de edificios se está ejecutando en segundo plano",
@@ -144,6 +141,9 @@
   "Minimum number of points required to form a cluster": "Número mínimo de puntos necesarios para formar un clúster",
   "Use Z-axis for clustering (3D)": "Usar eje Z para el agrupamiento (3D)",
   "Clustering will consider height (Z) as well as X and Y. This may improve building detection in areas with varying terrain": "El agrupamiento considerará la altura (Z) además de X e Y. Esto puede mejorar la detección de edificios en áreas con relieve variable",
+  "Save Detected Buildings": "Guardar edificios detectados",
+  "Would you like to save the detected building layer to a file?": "¿Desea guardar la capa de edificios detectados en un archivo?",
+  "Select Output File": "Seleccionar archivo de salida",
 
 
 
@@ -258,7 +258,6 @@
 
 
 
-  "GeoTIFF (*.tif)": "GeoTIFF (*.tif)",
   "LiDAR Files (*.las *.laz)": "Archivos LiDAR (*.las *.laz)",
   "Layer Load Warning": "Advertencia al cargar la capa",
   "The LiDAR file was saved but could not be loaded into QGIS": "El archivo LiDAR se guardó pero no pudo cargarse en QGIS",

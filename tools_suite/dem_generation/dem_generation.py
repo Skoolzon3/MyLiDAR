@@ -233,7 +233,7 @@ def generate_bare_earth_dem(self):
         self.iface.mainWindow(),
         self.tr("Save Bare Earth DEM"),
         default_name,
-        self.tr("GeoTIFF (*.tif)")
+        "GeoTIFF (*.tif)"
     )
     if not output_path:
         return
@@ -256,7 +256,7 @@ def generate_bare_earth_dem(self):
             self.iface.mainWindow(),
             self.tr("Save Hillshade Raster"),
             default_hillshade,
-            self.tr("GeoTIFF (*.tif)")
+            "GeoTIFF (*.tif)"
         )
         if not hillshade_output_path:
             hillshade_requested = False

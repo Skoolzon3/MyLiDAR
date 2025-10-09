@@ -101,12 +101,12 @@ class ReportDialog(QDialog, form_class):
         self.checkGenerateDock.setToolTip(self.tr("If checked, a dockable report panel will be created alongside the generated report in QGIS"))
 
         # === Buttons ===
-        self.btnSelectAll.setText(self.tr("Select All"))
+        self.btnSelectAll.setText(self.tr("Select All Attributes"))
 
         # === Output Format checkboxes (formerly radio buttons) ===
         self.checkTxt.setText(self.tr("Plain Text (.txt)"))
-        self.checkMarkdown.setText(self.tr("Markdown (.md)"))
-        self.checkPdf.setText(self.tr("PDF (.pdf)"))
+        self.checkMarkdown.setText("Markdown (.md)")
+        self.checkPdf.setText("PDF (.pdf)")
         self.checkGenerateDock.setText(self.tr("Generate Dock Panel in QGIS"))
         self.checkGenerateDock.setToolTip(self.tr("If checked, a dockable report panel will be created alongside the generated report in QGIS"))
 
