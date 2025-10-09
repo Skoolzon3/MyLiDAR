@@ -79,8 +79,7 @@ def generate_return_bar_chart(unique_returns, return_counts, tr):
             textcoords="offset points",
             ha='center',
             va='bottom',
-            fontsize=10,
-            fontweight='bold'
+            fontsize=10
         )
 
     # Increase y-axis limit to add vertical space above tallest bar

@@ -116,7 +116,12 @@ class ReportDialog(QDialog, form_class):
         self.groupSpatial.toggled.connect(self.on_group_spatial_toggled)
         self.groupFileMetadata.toggled.connect(self.on_group_file_metadata_toggled)
         self.groupClassification.toggled.connect(self.on_group_classification_toggled)
+
         self.btnSelectAll.clicked.connect(self.on_select_all_clicked)
+
+        self.checkTxt.stateChanged.connect(self.validate_state)
+        self.checkMarkdown.stateChanged.connect(self.validate_state)
+        self.checkPdf.stateChanged.connect(self.validate_state)
 
         self.checkboxes = [
             # Metadata checkboxes
@@ -153,17 +158,12 @@ class ReportDialog(QDialog, form_class):
 
         self.ok_button = self.buttonBox.button(QDialogButtonBox.Ok)
         for checkbox in self.checkboxes:
-            checkbox.stateChanged.connect(self.update_ok_button)
+            checkbox.stateChanged.connect(self.validate_state)
 
-        self.update_ok_button()
+        self.validate_state()
 
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
-
-    def update_ok_button(self):
-        any_checked = any(cb.isChecked() for cb in self.checkboxes)
-        self.ok_button.setEnabled(any_checked)
-        self.labelWarning.setText("" if any_checked else self.tr("No information selected"))
 
     def on_group_time_toggled(self, checked):
         self.checkMinTime.setEnabled(checked)
@@ -176,7 +176,7 @@ class ReportDialog(QDialog, form_class):
             self.checkMinTime.setChecked(False)
             self.checkMaxTime.setChecked(False)
 
-        self.update_ok_button()
+        self.validate_state()
 
     def on_group_intensity_toggled(self, checked):
         self.checkMinIntensity.setEnabled(checked)
@@ -189,7 +189,7 @@ class ReportDialog(QDialog, form_class):
             self.checkMinIntensity.setChecked(False)
             self.checkMaxIntensity.setChecked(False)
 
-        self.update_ok_button()
+        self.validate_state()
 
     def on_group_spatial_toggled(self, checked):
         self.checkNumPoints.setEnabled(checked)
@@ -217,7 +217,7 @@ class ReportDialog(QDialog, form_class):
             self.checkYAxisBounds.setChecked(False)
             self.checkZAxisBounds.setChecked(False)
 
-        self.update_ok_button()
+        self.validate_state()
 
     def on_group_file_metadata_toggled(self, checked):
         self.checkFileName.setEnabled(checked)
@@ -248,7 +248,7 @@ class ReportDialog(QDialog, form_class):
             self.checkPointFormat.setChecked(False)
             self.checkCreationDate.setChecked(False)
 
-        self.update_ok_button()
+        self.validate_state()
 
     def on_group_classification_toggled(self, checked):
         self.checkClassCounts.setEnabled(checked)
@@ -261,7 +261,7 @@ class ReportDialog(QDialog, form_class):
             self.checkClassCounts.setChecked(False)
             self.checkReturnCounts.setChecked(False)
 
-        self.update_ok_button()
+        self.validate_state()
 
     def on_select_all_clicked(self):
         for cb in self.checkboxes:
@@ -274,7 +274,7 @@ class ReportDialog(QDialog, form_class):
         self.groupTime.setChecked(True)
         self.groupClassification.setChecked(True)
 
-        self.update_ok_button()
+        self.validate_state()
 
     def selected_formats(self):
         formats = []
@@ -288,3 +288,19 @@ class ReportDialog(QDialog, form_class):
 
     def generate_dock(self):
         return self.checkGenerateDock.isChecked()
+
+    def validate_state(self):
+        any_info_checked = any(cb.isChecked() for cb in self.checkboxes)
+        any_format_checked = (
+            self.checkTxt.isChecked() or
+            self.checkMarkdown.isChecked() or
+            self.checkPdf.isChecked()
+        )
+
+        self.labelWarning.setVisible(not any_info_checked)
+        self.labelWarning.setText("" if any_info_checked else self.tr("No information selected"))
+
+        self.labelWarningOutputFormat.setVisible(not any_format_checked)
+        self.labelWarningOutputFormat.setText("" if any_format_checked else self.tr("No output format selected"))
+
+        self.ok_button.setEnabled(any_info_checked and any_format_checked)

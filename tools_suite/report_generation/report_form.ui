@@ -398,6 +398,23 @@
             </item>
 
             <item>
+                <widget class="QLabel" name="labelWarningOutputFormat">
+                    <property name="text">
+                        <string>No output format selected</string>
+                    </property>
+                    <property name="styleSheet">
+                        <string>color: red;</string>
+                    </property>
+                    <property name="minimumHeight">
+                        <number>15</number>
+                    </property>
+                    <property name="visible">
+                        <bool>false</bool>
+                    </property>
+                </widget>
+            </item>
+
+            <item>
                 <widget class="QLabel" name="labelWarning">
                     <property name="text">
                         <string>No information selected</string>

@@ -99,11 +99,11 @@ class ReportGenerationTask(QgsTask):
             )
             self.setProgress(75)
 
+            # Step 4: Generate dock if requested
             if self.show_dock:
                 self.setProgress(60)
                 self.report_text = generate_dock_content(self, data, self.tr)
 
-                # Step 4: Generate Graphs
                 # --- Classification Pie ---
                 classifications = las.classification
                 unique_classes, class_counts = np.unique(classifications, return_counts=True)
@@ -138,7 +138,7 @@ class ReportGenerationTask(QgsTask):
                 bars = ax2.bar(return_labels, return_counts, color="lightgreen")
                 for bar, count in zip(bars, return_counts):
                     ax2.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
-                            f"{count}", ha="center", va="bottom", fontsize=9, fontweight="bold")
+                            f"{count}", ha="center", va="bottom", fontsize=10)
                 ax2.set_title(self.tr("Return Number Distribution"), fontweight="bold")
                 ax2.set_xlabel(self.tr("Return Number"))
                 ax2.set_ylabel(self.tr("Count"))
@@ -155,13 +155,14 @@ class ReportGenerationTask(QgsTask):
                 ax3.set_ylabel("Y")
                 self.figures.append((fig3, self.tr("Point Density Distribution")))
 
-            # Step 5: Save Report
-            if self.report_format == "pdf":
-                generate_pdf_report(self.parent, self.report_path, data, self.tr)
-            elif self.report_format == "md":
-                generate_markdown_report(self.parent, self.report_path, data, self.tr)
-            else:
-                generate_txt_report(self.parent, self.report_path, data, self.tr)
+            # Step 5: Save report (only if format & path provided)
+            if self.report_format and self.report_path:
+                if self.report_format == "pdf":
+                    generate_pdf_report(self.parent, self.report_path, data, self.tr)
+                elif self.report_format == "md":
+                    generate_markdown_report(self.parent, self.report_path, data, self.tr)
+                elif self.report_format == "txt":
+                    generate_txt_report(self.parent, self.report_path, data, self.tr)
 
             self.setProgress(100)
             return True
@@ -173,21 +174,30 @@ class ReportGenerationTask(QgsTask):
     def finished(self, result):
         if result:
             if self.show_dock:
+                # Create dock if not visible
                 if not hasattr(self.parent, "lidar_report_dock") or self.parent.lidar_report_dock is None or not self.parent.lidar_report_dock.isVisible():
                     self.parent.lidar_report_dock = ReportDock(self.parent.iface.mainWindow(), translator=self.tr)
                     self.parent.iface.addDockWidget(Qt.RightDockWidgetArea, self.parent.lidar_report_dock)
 
                 self.parent.lidar_report_dock.clear()
                 self.parent.lidar_report_dock.add_text(self.report_text)
-
                 for fig, title in self.figures:
                     self.parent.lidar_report_dock.add_button_for_figure(fig, title=title)
 
-            QMessageBox.information(
-                self.parent.iface.mainWindow(),
-                self.tr("Success"),
-                f"{self.tr('Report created at')}:\n{self.report_path}"
-            )
+            # Show appropriate success message
+            if self.report_path and self.report_format:
+                QMessageBox.information(
+                    self.parent.iface.mainWindow(),
+                    self.tr("Success"),
+                    f"{self.tr('Report created at')}:\n{self.report_path}"
+                )
+            elif self.show_dock:
+                QMessageBox.information(
+                    self.parent.iface.mainWindow(),
+                    self.tr("Success"),
+                    self.tr("Dock successfully generated in QGIS.")
+                )
+
         else:
             msg = f"{self.tr('An error occurred')}: {self.exception}" if self.exception else self.tr("Report generation failed")
             QgsMessageLog.logMessage(msg, "MyLiDAR", Qgis.Critical)
@@ -218,28 +228,13 @@ def generate_report(self):
 
     # Step 3: Retrieve all selected formats (list like ['txt', 'md', 'pdf'])
     selected_formats = dialog.selected_formats()
-    if not selected_formats:
+    generate_dock = dialog.generate_dock()
+    if not selected_formats and not generate_dock:
         QMessageBox.warning(
             self.iface.mainWindow(),
-            self.tr("No Format Selected"),
-            self.tr("Please select at least one report format (TXT, Markdown, or PDF).")
+            self.tr("No Output Selected"),
+            self.tr("Please select at least one output format or enable dock generation.")
         )
-        return
-
-    # Step 4 (optional): Generate QGIS dock
-    generate_dock = False
-    if dialog.checkGenerateDock.isChecked():
-        generate_dock = dialog.generate_dock()
-
-    # Step 5: Select output base path (without extension)
-    default_name = os.path.splitext(filename)[0] + "_report"
-    report_base, _ = QFileDialog.getSaveFileName(
-        self.iface.mainWindow(),
-        self.tr("Save Report As"),
-        default_name,
-        self.tr("All Files (*)")
-    )
-    if not report_base:
         return
 
     # Collect field selections from dialog
@@ -267,26 +262,66 @@ def generate_report(self):
         "return_counts": dialog.checkReturnCounts.isChecked(),
     }
 
-    # Step 6: Create and run one task per selected format
-    format_extensions = {
-        "txt": ".txt",
-        "md": ".md",
-        "pdf": ".pdf",
-    }
+    # Step 4: Handle dock-only mode
+    if generate_dock and not selected_formats:
+        task_desc = f"{self.tr('Generating QGIS Dock for')} {os.path.basename(filename)}"
+        task = ReportGenerationTask(
+            task_desc,
+            filename,
+            report_path=None,
+            report_format=None,
+            selected_fields=selected_fields,
+            parent=self,
+            translator=self.tr,
+            show_dock=True
+        )
+
+        self.running_tasks.append(task)
+        QgsApplication.taskManager().addTask(task)
+
+        self.iface.messageBar().pushMessage(
+            self.tr("Task Started"),
+            self.tr("Generating QGIS Dock in the background"),
+            level=Qgis.Info,
+            duration=-1
+        )
+        return
+
+    # Step 5: For file reports (TXT/MD/PDF)
+    default_name = os.path.splitext(filename)[0] + "_report"
+    report_base, _ = QFileDialog.getSaveFileName(
+        self.iface.mainWindow(),
+        self.tr("Save Report As"),
+        default_name,
+        self.tr("All Files (*)")
+    )
+    if not report_base:
+        return
+
+    format_extensions = {"txt": ".txt", "md": ".md", "pdf": ".pdf"}
 
     for fmt in selected_formats:
         ext = format_extensions.get(fmt, ".txt")
         report_path = f"{os.path.splitext(report_base)[0]}_{fmt}{ext}"
 
-        task_desc = f"{self.tr('Generating')} {fmt.upper()} {self.tr('report for')} {os.path.basename(filename)}"
-        task = ReportGenerationTask(task_desc, filename, report_path, fmt, selected_fields, self, self.tr, show_dock=generate_dock)
+        task_desc = f"{self.tr("Generating report for")} {os.path.basename(filename)} ({fmt.upper()})"
+        task = ReportGenerationTask(
+            task_desc,
+            filename,
+            report_path,
+            fmt,
+            selected_fields,
+            self,
+            self.tr,
+            show_dock=generate_dock
+        )
 
         self.running_tasks.append(task)
         QgsApplication.taskManager().addTask(task)
 
     self.iface.messageBar().pushMessage(
         self.tr("Task Started"),
-        self.tr("Report generation is running in the background"),
+        self.tr(f"Report generation is running in the background"),
         level=Qgis.Info,
         duration=-1
     )
