@@ -355,9 +355,6 @@
                                 <property name="checked">
                                     <bool>true</bool>
                                 </property>
-                                <property name="toolTip">
-                                    <string>Generate a plain text report</string>
-                                </property>
                             </widget>
                         </item>
                         <item>
@@ -365,18 +362,12 @@
                                 <property name="text">
                                     <string>Markdown (.md)</string>
                                 </property>
-                                <property name="toolTip">
-                                    <string>Generate a Markdown-formatted report</string>
-                                </property>
                             </widget>
                         </item>
                         <item>
                             <widget class="QCheckBox" name="checkPdf">
                                 <property name="text">
                                     <string>PDF (.pdf)</string>
-                                </property>
-                                <property name="toolTip">
-                                    <string>Generate a PDF report</string>
                                 </property>
                             </widget>
                         </item>

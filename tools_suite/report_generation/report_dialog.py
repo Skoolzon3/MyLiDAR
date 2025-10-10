@@ -50,7 +50,7 @@ class ReportDialog(QDialog, form_class):
         self.checkPointFormat.setToolTip(self.tr("Point data record format used in the LAS file (e.g., Format 0, 1, 6) and its corresponding byte size"))
 
         self.checkCreationDate.setText(self.tr("Creation Date"))
-        self.checkCreationDate.setToolTip(self.tr("Date the LAS file was created, extracted from the file's header"))
+        self.checkCreationDate.setToolTip(self.tr("Date the LAS file was created"))
 
         # === Intensity checkboxes ===
         self.checkMinIntensity.setText(self.tr("Min Intensity"))

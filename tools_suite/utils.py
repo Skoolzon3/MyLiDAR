@@ -62,9 +62,6 @@ def generate_pie_chart_from_counts(classes, counts, tr):
     return buf
 
 def generate_return_bar_chart(unique_returns, return_counts, tr):
-    from io import BytesIO
-    import matplotlib.pyplot as plt
-
     labels = [f"{tr('Return')} {r}" for r in unique_returns]
 
     fig, ax = plt.subplots(figsize=(6, 4))
@@ -75,16 +72,20 @@ def generate_return_bar_chart(unique_returns, return_counts, tr):
         ax.annotate(
             f'{height:,}',
             xy=(bar.get_x() + bar.get_width() / 2, height),
-            xytext=(0, 3),
+            xytext=(0, 5),
             textcoords="offset points",
             ha='center',
             va='bottom',
             fontsize=10
         )
 
-    # Increase y-axis limit to add vertical space above tallest bar
+    ax.set_yscale('log')
+
+    min_positive = min([v for v in return_counts if v > 0])
+    ax.set_ylim(bottom=max(min_positive * 0.8, 1e-1))
+
     max_height = max(return_counts)
-    ax.set_ylim(0, max_height * 1.10) # Add 15% headroom
+    ax.set_ylim(top=max_height * 10)
 
     ax.set_xlabel(tr("Return Number"), fontname='Arial')
     ax.set_ylabel(tr("Count"), fontname='Arial')

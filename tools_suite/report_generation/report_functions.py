@@ -402,13 +402,13 @@ def generate_pdf_report(self, path, data: ReportData, tr):
         if data.max_time:
             write_item(tr("Max GPS Time"), data.max_time)
 
-    draw_page_number()
-    canvas.showPage()
-    canvas.setFont("Helvetica", 12)
-    y = height - 2 * cm
-
     # -- Classifications --
     if data.unique_classes is not None and data.class_counts is not None:
+        draw_page_number()
+        canvas.showPage()
+        canvas.setFont("Helvetica", 12)
+        y = height - 2 * cm
+
         write_heading(tr("Classification Counts"), level=2)
 
         # -- Classification distribution pie chart --
@@ -425,13 +425,13 @@ def generate_pdf_report(self, path, data: ReportData, tr):
         for cls, count in zip(data.unique_classes, data.class_counts):
             write_item(f"{tr('Class')} {cls}", count)
 
-    draw_page_number()
-    canvas.showPage()
-    canvas.setFont("Helvetica", 12)
-    y = height - 2 * cm
-
     # -- Return number --
     if data.unique_returns is not None and data.return_counts is not None:
+        draw_page_number()
+        canvas.showPage()
+        canvas.setFont("Helvetica", 12)
+        y = height - 2 * cm
+
         write_heading(tr("Return Number Counts"), level=2)
 
         # -- Return number bar chart --
@@ -448,13 +448,13 @@ def generate_pdf_report(self, path, data: ReportData, tr):
         for ret, count in zip(data.unique_returns, data.return_counts):
             write_item(f"{tr('Return')} {ret}", count)
 
-    draw_page_number()
-    canvas.showPage()
-    canvas.setFont("Helvetica", 12)
-    y = height - 2 * cm
-
     # -- Point density heatmap --
-    if hasattr(data, "x") and hasattr(data, "y") and data.x is not None and data.y is not None:
+    if getattr(data, "density", None) is not None and hasattr(data, "x") and hasattr(data, "y") and data.x is not None and data.y is not None:
+        draw_page_number()
+        canvas.showPage()
+        canvas.setFont("Helvetica", 12)
+        y = height - 2 * cm
+
         write_heading(tr("Point Density Heatmap"), level=2)
 
         heatmap_buf = generate_density_heatmap(data.x, data.y, tr)
