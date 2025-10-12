@@ -255,6 +255,26 @@
                                         </property>
                                     </widget>
                                 </item>
+                                <item>
+                                    <widget class="QCheckBox" name="checkIntensityMean">
+                                        <property name="text">
+                                            <string>Mean Intensity</string>
+                                        </property>
+                                        <property name="toolTip">
+                                            <string>Average intensity of the dataset</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QCheckBox" name="checkIntensitySD">
+                                        <property name="text">
+                                            <string>Standard deviation</string>
+                                        </property>
+                                        <property name="toolTip">
+                                            <string>Standard deviation of the dataset</string>
+                                        </property>
+                                    </widget>
+                                </item>
                             </layout>
                         </widget>
                     </item>

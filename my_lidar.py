@@ -8,12 +8,12 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction, QMessageBox, QMenu
 
 # --- Method-specific imports ---
-from .tools_suite.report_generation.report_generation import generate_report
 from .tools_suite.outlier_removal.outlier_removal import remove_outliers
 from .tools_suite.overlap_removal.overlap_removal import remove_overlap
-from .tools_suite.building_count.building_count import count_buildings
 from .tools_suite.vegetation_classification.vegetation_classification import classify_vegetation
+from .tools_suite.building_count.building_count import count_buildings
 from .tools_suite.dem_generation.dem_generation import generate_bare_earth_dem
+from .tools_suite.report_generation.report_generation import generate_report
 
 # -----------------------------
 # --- My LiDAR Plugin Class ---
@@ -30,13 +30,13 @@ class MyLiDARPlugin:
 
         self.load_language(self.current_lang)
 
-        self.report_action = None
+
         self.outliers_action = None
         self.overlap_action = None
-        self.count_action = None
         self.vegetation_action = None
+        self.count_action = None
         self.dem_action = None
-        self.statistics_action = None
+        self.report_action = None
 
     def load_language(self, lang_code: str):
         lang_file = os.path.join(self.plugin_dir, "translations", f"{lang_code}.json")
@@ -66,12 +66,12 @@ class MyLiDARPlugin:
             menubar.addMenu(self.menu)
 
         actions = [
-            ("report.png", self.tr("Generate LiDAR File Report"), self.report_generation),
             ("cleanup.png", self.tr("Remove outlier points"), self.outlier_removal),
             ("overlap.png", self.tr("Remove overlapping points"), self.overlap_removal),
             ("vegetation.png", self.tr("Classify vegetation"), self.vegetation_classification),
             ("building.png", self.tr("Count buildings"), self.building_count),
             ("dem.png", self.tr("Generate Bare Earth DEM"), self.bare_earth_dem_generation),
+            ("report.png", self.tr("Generate LiDAR File Report"), self.report_generation),
         ]
 
         self.actions = []
@@ -87,10 +87,6 @@ class MyLiDARPlugin:
             self.iface.mainWindow().menuBar().removeAction(self.menu.menuAction())
         self.menu = None
         self.actions = []
-
-    # --- Report Generation ---
-    def report_generation(self):
-        generate_report(self)
 
     # --- Outlier Removal ---
     def outlier_removal(self):
@@ -111,6 +107,10 @@ class MyLiDARPlugin:
     # --- Bare Earth DEM Generation ---
     def bare_earth_dem_generation(self):
         generate_bare_earth_dem(self)
+
+    # --- Report Generation ---
+    def report_generation(self):
+        generate_report(self)
 
     # --- Placeholder method ---
     def placeholder(self):

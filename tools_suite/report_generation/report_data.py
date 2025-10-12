@@ -6,8 +6,9 @@ class ReportData:
         num_points, bounds, x_axis_bounds, y_axis_bounds, z_axis_bounds,
         file_source=None, global_encoding=None, system_id=None, gen_software=None,
         creation_date=None, unique_classes=None, class_counts=None, unique_returns=None,
-        return_counts=None, min_intensity=None, max_intensity=None, min_time=None,
-        max_time=None, area=None, density=None, x=None, y=None
+        return_counts=None, min_intensity=None, max_intensity=None, mean_intensity=None,
+        sd_intensity=None, min_time=None, max_time=None, area=None,
+        density=None, x=None, y=None
     ):
         # -- Metadata --
         self.file_name = file_name
@@ -22,6 +23,8 @@ class ReportData:
         # -- Intensity --
         self.min_intensity = min_intensity
         self.max_intensity = max_intensity
+        self.mean_intensity = mean_intensity
+        self.sd_intensity = sd_intensity
 
         # -- Spatial Measures --
         self.num_points = num_points

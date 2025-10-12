@@ -52,12 +52,20 @@ class ReportDialog(QDialog, form_class):
         self.checkCreationDate.setText(self.tr("Creation Date"))
         self.checkCreationDate.setToolTip(self.tr("Date the LAS file was created"))
 
+
         # === Intensity checkboxes ===
         self.checkMinIntensity.setText(self.tr("Min Intensity"))
         self.checkMinIntensity.setToolTip(self.tr("Lowest recorded intensity value in the dataset"))
 
         self.checkMaxIntensity.setText(self.tr("Max Intensity"))
         self.checkMaxIntensity.setToolTip(self.tr("Highest recorded intensity value in the dataset"))
+
+        self.checkIntensityMean.setText(self.tr("Mean Intensity"))
+        self.checkIntensityMean.setToolTip(self.tr("Average intensity of the dataset"))
+
+        self.checkIntensitySD.setText(self.tr("Standard deviation"))
+        self.checkIntensitySD.setToolTip(self.tr("Standard deviation of the dataset"))
+
 
         # === Spatial checkboxes ===
         self.checkNumPoints.setText(self.tr("Number of Points"))
@@ -81,6 +89,7 @@ class ReportDialog(QDialog, form_class):
         self.checkZAxisBounds.setText(self.tr("Z-Axis Bounds"))
         self.checkZAxisBounds.setToolTip(self.tr("Minimum and maximum Z-axis values in the dataset"))
 
+
         # === Time checkboxes ===
         self.checkMinTime.setText(self.tr("Min Time"))
         self.checkMinTime.setToolTip(self.tr("Earliest timestamp recorded in the dataset"))
@@ -88,15 +97,16 @@ class ReportDialog(QDialog, form_class):
         self.checkMaxTime.setText(self.tr("Max Time"))
         self.checkMaxTime.setToolTip(self.tr("Latest timestamp recorded in the dataset"))
 
+
         # === Classification checkboxes ===
         self.checkClassCounts.setText(self.tr("Class Counts"))
         self.checkClassCounts.setToolTip(self.tr("Counts of points by classification codes (e.g., ground, vegetation, building...)"))
 
-        # === Return counts checkbox ===
+        # === Return counts checkboxes ===
         self.checkReturnCounts.setText(self.tr("Return Counts"))
         self.checkReturnCounts.setToolTip(self.tr("Counts of points by return number (first, last...)"))
 
-        # === Dock option ===
+        # === Dock checkboxes ===
         self.checkGenerateDock.setText(self.tr("Generate Dock Panel in QGIS"))
         self.checkGenerateDock.setToolTip(self.tr("If checked, a dockable report panel will be created alongside the generated report in QGIS"))
 
@@ -137,6 +147,8 @@ class ReportDialog(QDialog, form_class):
             # Intensity checkboxes
             self.checkMinIntensity,
             self.checkMaxIntensity,
+            self.checkIntensityMean,
+            self.checkIntensitySD,
 
             # Spatial bounds checkboxes
             self.checkNumPoints,
@@ -181,13 +193,19 @@ class ReportDialog(QDialog, form_class):
     def on_group_intensity_toggled(self, checked):
         self.checkMinIntensity.setEnabled(checked)
         self.checkMaxIntensity.setEnabled(checked)
+        self.checkIntensityMean.setEnabled(checked),
+        self.checkIntensitySD.setEnabled(checked),
 
         if checked:
             self.checkMinIntensity.setChecked(True)
             self.checkMaxIntensity.setChecked(True)
+            self.checkIntensityMean.setChecked(True)
+            self.checkIntensitySD.setChecked(True)
         else:
             self.checkMinIntensity.setChecked(False)
             self.checkMaxIntensity.setChecked(False)
+            self.checkIntensityMean.setChecked(False)
+            self.checkIntensitySD.setChecked(False)
 
         self.validate_state()
 
@@ -294,7 +312,8 @@ class ReportDialog(QDialog, form_class):
         any_format_checked = (
             self.checkTxt.isChecked() or
             self.checkMarkdown.isChecked() or
-            self.checkPdf.isChecked()
+            self.checkPdf.isChecked() or
+            self.checkGenerateDock.isChecked()
         )
 
         self.labelWarning.setVisible(not any_info_checked)

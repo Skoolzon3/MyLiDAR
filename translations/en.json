@@ -55,6 +55,10 @@
   "Lowest recorded intensity value in the dataset": "Lowest recorded intensity value in the dataset",
   "Max Intensity": "Max Intensity",
   "Highest recorded intensity value in the dataset": "Highest recorded intensity value in the dataset",
+  "Mean Intensity": "Mean Intensity",
+  "Average intensity of the dataset": "Average intensity of the dataset",
+  "Standard deviation": "Standard deviation",
+  "Standard deviation of the dataset": "Standard deviation of the dataset",
 
   "Time": "Time",
   "Min Time": "Min Time",
@@ -73,6 +77,7 @@
   "Plain Text (.txt)": "Plain Text (.txt)",
   "Generate Dock Panel in QGIS": "Generate Dock Panel in QGIS",
   "If checked, a dockable report panel will be created alongside the generated report in QGIS": "If checked, a dockable report panel will be created in QGIS, alongside the generated report",
+  "Save Report As": "Save Report As",
 
   "LiDAR File Report": "LiDAR File Report",
   "Report date": "Report date",

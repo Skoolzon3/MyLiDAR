@@ -78,6 +78,8 @@ class ReportGenerationTask(QgsTask):
 
                 min_intensity=las.intensity.min() if self.selected_fields["min_intensity"] else None,
                 max_intensity=las.intensity.max() if self.selected_fields["max_intensity"] else None,
+                mean_intensity=float(np.mean(las.intensity)) if self.selected_fields["mean_intensity"] else None,
+                sd_intensity=float(np.std(las.intensity)) if self.selected_fields["sd_intensity"] else None,
 
                 num_points=las.header.point_count if self.selected_fields["num_points"] else None,
                 area=(las.header.x_max - las.header.x_min) * (las.header.y_max - las.header.y_min) if self.selected_fields["area"] else None,
@@ -249,6 +251,8 @@ def generate_report(self):
         "creation_date": dialog.checkCreationDate.isChecked(),
         "min_intensity": dialog.checkMinIntensity.isChecked(),
         "max_intensity": dialog.checkMaxIntensity.isChecked(),
+        "mean_intensity": dialog.checkIntensityMean.isChecked(),
+        "sd_intensity": dialog.checkIntensitySD.isChecked(),
         "num_points": dialog.checkNumPoints.isChecked(),
         "area": dialog.checkArea.isChecked(),
         "density": dialog.checkDensity.isChecked(),

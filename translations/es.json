@@ -50,6 +50,11 @@
   "Max Time": "Tiempo máximo",
   "Latest timestamp recorded in the dataset": "Marca de tiempo más tardía registrada en el conjunto de datos",
 
+  "Mean Intensity": "Intensidad media",
+  "Average intensity of the dataset": "Intensidad media del conjunto de datos",
+  "Standard deviation": "Desviación estándar",
+  "Standard deviation of the dataset": "Desviación estándar del conjunto de datos",
+
   "Classification": "Clasificación",
   "Class Counts": "Conteo por clases",
   "Counts of points by classification codes (e.g., ground, vegetation, building...)": "Conteo de puntos por códigos de clasificación (p. ej., suelo, vegetación, edificios...)",
@@ -61,6 +66,7 @@
   "Plain Text (.txt)": "Texto plano (.txt)",
   "Generate Dock Panel in QGIS": "Generar panel acoplable en QGIS",
   "If checked, a dockable report panel will be created alongside the generated report in QGIS": "Si se marca, se creará un panel de informe acoplable en QGIS, junto al informe generado",
+  "Save Report As": "Save Report As",
 
   "LiDAR File Report": "Informe de archivo LiDAR",
   "Report date": "Fecha del informe",

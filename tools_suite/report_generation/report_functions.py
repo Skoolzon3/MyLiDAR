@@ -46,12 +46,16 @@ def generate_txt_report(self, path, data: ReportData, tr):
             f.write("\n")
 
         # -- Intensity --
-        if (data.min_intensity or data.max_intensity):
+        if (data.min_intensity or data.max_intensity or data.mean_intensity or data.sd_intensity):
             f.write(f"--- {tr('Intensity')} ---\n")
             if data.min_intensity:
                 f.write(f"{tr('Min Intensity')}: {data.min_intensity}\n")
             if data.max_intensity:
                 f.write(f"{tr('Max Intensity')}: {data.max_intensity}\n")
+            if data.mean_intensity:
+                f.write(f"{tr('Mean Intensity')}: {data.mean_intensity:.2f}\n")
+            if data.sd_intensity:
+                f.write(f"{tr('Standard deviation')}: {data.sd_intensity:.2f}\n")
             f.write("\n")
 
         # -- Spatial Measures --
@@ -135,12 +139,16 @@ def generate_dock_content(self, data: ReportData, tr) -> str:
         lines.append("")
 
     # -- Intensity --
-    if (data.min_intensity or data.max_intensity):
+    if (data.min_intensity or data.max_intensity or data.mean_intensity or data.sd_intensity):
         lines.append(f"--- {tr('Intensity')} ---")
         if data.min_intensity:
             lines.append(f"{tr('Min Intensity')}: {data.min_intensity}")
         if data.max_intensity:
             lines.append(f"{tr('Max Intensity')}: {data.max_intensity}")
+        if data.mean_intensity:
+            lines.append(f"{tr('Mean Intensity')}: {data.mean_intensity:.2f}")
+        if data.sd_intensity:
+            lines.append(f"{tr('Standard deviation')}: {data.sd_intensity:.2f}")
         lines.append("")
 
     # -- Spatial Measures --
@@ -230,6 +238,10 @@ def generate_markdown_report(self, path, data: ReportData, tr):
                 f.write(f"- **{tr('Min Intensity')}:** `{data.min_intensity}`\n")
             if data.max_intensity:
                 f.write(f"- **{tr('Max Intensity')}:** `{data.max_intensity}`\n")
+            if data.mean_intensity:
+                f.write(f"- **{tr('Mean Intensity')}:** `{data.mean_intensity:.2f}`\n")
+            if data.sd_intensity:
+                f.write(f"- **{tr('Standard deviation')}:** `{data.sd_intensity:.2f}`\n")
             f.write("\n")
 
         # -- Spatial Measures --
@@ -367,12 +379,16 @@ def generate_pdf_report(self, path, data: ReportData, tr):
             write_item(tr("Creation Date"), data.creation_date)
 
     # -- Intensity --
-    if data.min_intensity or data.max_intensity:
+    if data.min_intensity or data.max_intensity or data.mean_intensity or data.sd_intensity:
         write_heading(tr("Intensity"), level=2)
         if data.min_intensity:
             write_item(tr("Min Intensity"), data.min_intensity)
         if data.max_intensity:
             write_item(tr("Max Intensity"), data.max_intensity)
+        if data.mean_intensity:
+            write_item(tr("Mean Intensity"), f"{data.mean_intensity:.2f}")
+        if data.sd_intensity:
+            write_item(tr("Standard deviation"), f"{data.sd_intensity:.2f}")
 
     # -- Spatial Measures --
     if (data.num_points or data.area or data.density or
