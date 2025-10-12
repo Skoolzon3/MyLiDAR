@@ -190,7 +190,7 @@ def classify_vegetation(self):
 
     self.iface.messageBar().pushMessage(
         self.tr("Task Started"),
-        self.tr("Vegetation classification running in the background"),
+        self.tr("Classifying vegetation in the background"),
         level=Qgis.Info,
         duration=-1
     )

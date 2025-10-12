@@ -250,7 +250,7 @@ def count_buildings(self):
 
     self.iface.messageBar().pushMessage(
         self.tr("Task Started"),
-        self.tr("Building detection running in the background"),
+        self.tr("Detecting buildings in the background"),
         level=Qgis.Info,
         duration=-1
     )

@@ -325,7 +325,7 @@ def generate_report(self):
 
     self.iface.messageBar().pushMessage(
         self.tr("Task Started"),
-        self.tr(f"Report generation is running in the background"),
+        self.tr(f"Generating report in the background"),
         level=Qgis.Info,
         duration=-1
     )

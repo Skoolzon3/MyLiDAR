@@ -1,10 +1,10 @@
 {
-  "Generate LiDAR File Report": "Generar informe de archivo LiDAR",
   "Remove outlier points": "Eliminar puntos atípicos",
   "Remove overlapping points": "Eliminar solapamiento",
   "Classify vegetation": "Clasificar vegetación",
   "Count buildings": "Contar edificios",
   "Generate Bare Earth DEM": "Generar MDE de terreno base",
+  "Generate LiDAR File Report": "Generar informe de archivo LiDAR",
 
 
 
@@ -13,7 +13,7 @@
   "Select LiDAR File": "Seleccione archivo LiDAR",
   "Save Report": "Guardar informe",
   "Generating report for": "Generando informe de",
-  "Report generation is running in the background": "La generación del informe se está ejecutando en segundo plano",
+  "Generating report in the background": "Generando informe en segundo plano",
 
   "Select Report Contents": "Seleccionar contenido del informe",
   "Select the information to include in the report:": "Seleccione la información a incluir en el informe:",
@@ -138,7 +138,7 @@
   "Error saving output file": "Error al guardar el archivo de salida",
   "Select LiDAR File to Count Buildings": "Seleccione un archivo LiDAR para contar edificios",
   "Counting buildings in": "Contando edificios en",
-  "Building detection running in the background": "La detección de edificios se está ejecutando en segundo plano",
+  "Detecting buildings in the background": "Detectando edificios en segundo plano",
 
   "Building Detection Parameters": "Parámetros de detección de edificios",
   "DBSCAN Epsilon:": "Épsilon de DBSCAN:",
@@ -164,7 +164,7 @@
   "Generate Hillshade?": "¿Generar sombreado?",
   "Do you also want to create a hillshade raster from the DEM?": "¿Desea también crear un ráster de sombreado a partir del MDE?",
   "Generating DEM from": "Generando MDE desde",
-  "DEM generation running in the background": "La generación del MDE se está ejecutando en segundo plano",
+  "Generating DEM in the background": "Generando MED en segundo plano",
   "Save Hillshade Raster": "Guardar mapa de sombras del terreno",
 
   "Bare Earth DEM Settings": "Configuración del MDE del Terreno Base",
@@ -188,7 +188,7 @@
   "Select LiDAR File to Classify Vegetation": "Seleccione un archivo LiDAR para clasificar la vegetación",
   "Save Reclassified Vegetation File": "Guardar archivo de vegetación reclasificada",
   "Classifying vegetation in": "Clasificando vegetación en",
-  "Vegetation classification running in the background": "Clasificación de vegetación ejecutándose en segundo plano",
+  "Classifying vegetation in the background": "Clasificando vegetaciónen segundo plano",
 
   "Vegetation Thresholds": "Umbrales de vegetación",
   "Low Vegetation Threshold (m):": "Umbral de vegetación baja (m):",
@@ -247,12 +247,6 @@
   "Point Count": "Número de puntos",
   "Point Density Distribution": "Distribución de densidad de puntos",
   "Success": "Éxito",
-  "Statistics generated": "Estadísticas generadas",
-  "Statistics generation failed": "Falló la generación de estadísticas",
-  "Error Generating Statistics": "Error al generar estadísticas",
-  "Select LiDAR File to Analyze": "Seleccione un archivo LiDAR para analizar",
-  "Generating statistics for": "Generando estadísticas para",
-  "Generating statistics in the background": "Generando estadísticas en segundo plano",
   "GPS Time Type": "Tipo de hora GPS",
   "Waveform Internal": "Forma de onda interna",
   "Waveform External": "Forma de onda externa",

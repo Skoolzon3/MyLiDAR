@@ -270,7 +270,7 @@ def generate_bare_earth_dem(self):
 
     self.iface.messageBar().pushMessage(
         self.tr("Task Started"),
-        self.tr("DEM generation running in the background"),
+        self.tr("Generating DEM in the background"),
         level=Qgis.Info,
         duration=-1
     )

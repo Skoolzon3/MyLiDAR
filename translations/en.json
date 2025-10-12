@@ -1,10 +1,10 @@
 {
-  "Generate LiDAR File Report": "Generate LiDAR File Report",
   "Remove outlier points": "Remove outlier points",
   "Remove overlapping points": "Remove overlapping points",
   "Classify vegetation": "Classify vegetation",
   "Count buildings": "Count buildings",
   "Generate Bare Earth DEM": "Generate Bare Earth DEM",
+  "Generate LiDAR File Report": "Generate LiDAR File Report",
 
 
 
@@ -13,7 +13,7 @@
   "Select LiDAR File": "Select LiDAR File",
   "Save Report": "Save Report",
   "Generating report for": "Generating report for",
-  "Report generation is running in the background": "Report generation is running in the background",
+  "Generating report in the background": "Generating report in the background",
 
   "Select Report Contents": "Select Report Contents",
   "Select the information to include in the report:": "Select the information to include in the report:",
@@ -137,7 +137,7 @@
   "Error saving output file": "Error saving output file",
   "Select LiDAR File to Count Buildings": "Select LiDAR File to Count Buildings",
   "Counting buildings in": "Counting buildings in",
-  "Building detection running in the background": "Building detection running in the background",
+  "Detecting buildings in the background": "Detecting buildings in the background",
 
   "Building Detection Parameters": "Building Detection Parameters",
   "DBSCAN Epsilon:": "DBSCAN Epsilon:",
@@ -163,7 +163,7 @@
   "Generate Hillshade?": "Generate Hillshade?",
   "Do you also want to create a hillshade raster from the DEM?": "Do you also want to create a hillshade raster from the DEM?",
   "Generating DEM from": "Generating DEM from",
-  "DEM generation running in the background": "DEM generation running in the background",
+  "Generating DEM in the background": "Generating DEM in the background",
   "Save Hillshade Raster": "Save Hillshade Raster",
 
   "Bare Earth DEM Settings": "Bare Earth DEM Settings",
@@ -187,7 +187,7 @@
   "Select LiDAR File to Classify Vegetation": "Select LiDAR File to Classify Vegetation",
   "Save Reclassified Vegetation File": "Save Reclassified Vegetation File",
   "Classifying vegetation in": "Classifying vegetation in",
-  "Vegetation classification running in the background": "Vegetation classification running in the background",
+  "Classifying vegetation in the background": "Classifying vegetation in the background",
 
   "Vegetation Thresholds": "Vegetation Thresholds",
   "Low Vegetation Threshold (m):": "Low Vegetation Threshold (m):",
@@ -246,12 +246,6 @@
   "Point Count": "Point Count",
   "Point Density Distribution": "Point Density Distribution",
   "Success": "Success",
-  "Statistics generated": "Statistics generated",
-  "Statistics generation failed": "Statistics generation failed",
-  "Error Generating Statistics": "Error Generating Statistics",
-  "Select LiDAR File to Analyze": "Select LiDAR File to Analyze",
-  "Generating statistics for": "Generating statistics for",
-  "Generating statistics in the background": "Generating statistics in the background",
   "GPS Time Type": "GPS Time Type",
   "Waveform Internal": "Waveform Internal",
   "Waveform External": "Waveform External",
