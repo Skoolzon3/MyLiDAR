@@ -16,7 +16,7 @@ from .report_dialog import ReportDialog
 from .report_generation_dock import ReportDock
 
 # --- Utility & Report Generation Functions ---
-from ..utils import format_global_encoding, format_point_format, gps_time_to_datetime
+from ..utils import format_global_encoding, format_point_format, gps_time_to_datetime, generate_pie_chart_from_counts, generate_return_bar_chart, generate_density_heatmap
 from .report_functions import generate_txt_report, generate_markdown_report, generate_pdf_report, generate_dock_content
 
 # -------------------------
@@ -55,7 +55,7 @@ class ReportGenerationTask(QgsTask):
 
             # Step 2: Extract statistics
             unique_classes, class_counts = np.unique(las.classification, return_counts=True)
-            unique_returns, ret_counts = np.unique(las.return_number, return_counts=True)
+            unique_returns, return_counts = np.unique(las.return_number, return_counts=True)
 
             if hasattr(las, "gps_time"):
                 dt_min = gps_time_to_datetime(las.gps_time.min()).isoformat()
@@ -96,7 +96,7 @@ class ReportGenerationTask(QgsTask):
                 unique_classes=unique_classes if self.selected_fields["class_counts"] else None,
                 class_counts=class_counts if self.selected_fields["class_counts"] else None,
                 unique_returns=unique_returns if self.selected_fields["return_counts"] else None,
-                return_counts=ret_counts if self.selected_fields["return_counts"] else None,
+                return_counts=return_counts if self.selected_fields["return_counts"] else None,
                 x=las.x, y=las.y
             )
             self.setProgress(75)
@@ -106,56 +106,42 @@ class ReportGenerationTask(QgsTask):
                 self.setProgress(60)
                 self.report_text = generate_dock_content(self, data, self.tr)
 
-                # --- Classification Pie ---
-                classifications = las.classification
-                unique_classes, class_counts = np.unique(classifications, return_counts=True)
-
-                classification_info = {
-                    0: (self.tr("Created, Never Classified"), "#A0A0A0"), 1: (self.tr("Unclassified"), "#B0B0B0"),
-                    2: (self.tr("Ground"), "#8B4513"), 3: (self.tr("Low Vegetation"), "#ADFF2F"),
-                    4: (self.tr("Medium Vegetation"), "#32CD32"), 5: (self.tr("High Vegetation"), "#006400"),
-                    6: (self.tr("Building"), "#FF4500"), 7: (self.tr("Low Point (Noise)"), "#D3D3D3"),
-                    8: (self.tr("Model Key-point"), "#FFD700"), 9: (self.tr("Water"), "#1E90FF"),
-                    10: (self.tr("Rail"), "#8B0000"), 11: (self.tr("Road Surface"), "#A0522D"),
-                    12: (self.tr("Overlap"), "#C0C0C0"), 13: (self.tr("Wire Guard"), "#00CED1"),
-                    14: (self.tr("Wire Conductor"), "#20B2AA"), 15: (self.tr("Transmission Tower"), "#000080"),
-                    16: (self.tr("Wire-structure Connector"), "#708090"), 17: (self.tr("Bridge Deck"), "#A9A9A9"),
-                    18: (self.tr("High Noise"), "#800080"),
-                }
-
-                labels = [classification_info.get(c, (f"{self.tr('Class')} {c}", "#CCCCCC"))[0] for c in unique_classes]
-                colors = [classification_info.get(c, ("Unknown", "#CCCCCC"))[1] for c in unique_classes]
-
-                fig1, ax1 = plt.subplots(figsize=(8, 6))
-                ax1.pie(class_counts, labels=labels, colors=colors, autopct='%1.1f%%', startangle=140)
-                ax1.set_title(self.tr("Classification Distribution"), fontweight="bold")
+                # --- Classification pie chart ---
+                fig1 = generate_pie_chart_from_counts(
+                    data.unique_classes,
+                    data.class_counts,
+                    self.tr,
+                    as_buffer=False,
+                    title=self.tr("Classification Distribution"),
+                    figsize=(8, 6)
+                )
                 self.figures.append((fig1, self.tr("Classification Distribution")))
                 self.setProgress(70)
 
                 # --- Return Number Histogram ---
-                unique_returns, return_counts = np.unique(las.return_number, return_counts=True)
-                return_labels = [str(r) for r in unique_returns]
-
-                fig2, ax2 = plt.subplots(figsize=(5, 4))
-                bars = ax2.bar(return_labels, return_counts, color="lightgreen")
-                for bar, count in zip(bars, return_counts):
-                    ax2.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
-                            f"{count}", ha="center", va="bottom", fontsize=10)
-                ax2.set_title(self.tr("Return Number Distribution"), fontweight="bold")
-                ax2.set_xlabel(self.tr("Return Number"))
-                ax2.set_ylabel(self.tr("Count"))
+                fig2 = generate_return_bar_chart(
+                    unique_returns,
+                    return_counts,
+                    self.tr,
+                    as_buffer=False,
+                    title=self.tr("Return Number Distribution"),
+                    figsize=(5, 4)
+                )
                 self.figures.append((fig2, self.tr("Return Number Distribution")))
                 self.setProgress(85)
 
                 # --- Density Heatmap ---
-                x, y = las.x, las.y
-                fig3, ax3 = plt.subplots(figsize=(7, 5))
-                h = ax3.hist2d(x, y, bins=500, cmap="viridis")
-                fig3.colorbar(h[3], ax=ax3, label="Point Count")
-                ax3.set_title(self.tr("Point Density Heatmap"), fontweight="bold")
-                ax3.set_xlabel("X")
-                ax3.set_ylabel("Y")
+                fig3 = generate_density_heatmap(
+                    las.x,
+                    las.y,
+                    self.tr,
+                    bins=500,
+                    as_buffer=False,
+                    title=self.tr("Point Density Heatmap"),
+                    figsize=(7, 5)
+                )
                 self.figures.append((fig3, self.tr("Point Density Distribution")))
+                self.setProgress(90)
 
             # Step 5: Save report (only if format & path provided)
             if self.report_format and self.report_path:
@@ -186,7 +172,6 @@ class ReportGenerationTask(QgsTask):
                 for fig, title in self.figures:
                     self.parent.lidar_report_dock.add_button_for_figure(fig, title=title)
 
-            # Show appropriate success message
             if self.report_path and self.report_format:
                 QMessageBox.information(
                     self.parent.iface.mainWindow(),

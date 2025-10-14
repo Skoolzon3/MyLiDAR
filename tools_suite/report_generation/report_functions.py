@@ -430,7 +430,7 @@ def generate_pdf_report(self, path, data: ReportData, tr):
         # -- Classification distribution pie chart --
         chart_buf = generate_pie_chart_from_counts(data.unique_classes, data.class_counts, self.tr)
         chart_img = ImageReader(chart_buf)
-        chart_width, chart_height = 14 * cm, 12 * cm
+        chart_width, chart_height = 15 * cm, 12 * cm
         center_x = (width - chart_width) / 2
         if y - chart_height < 2 * cm:
             canvas.showPage()
@@ -450,7 +450,7 @@ def generate_pdf_report(self, path, data: ReportData, tr):
 
         write_heading(tr("Return Number Counts"), level=2)
 
-        # -- Return number bar chart --
+        # -- Return number distribution bar chart --
         return_chart_buf = generate_return_bar_chart(data.unique_returns, data.return_counts, self.tr)
         return_chart_img = ImageReader(return_chart_buf)
         chart_width, chart_height = 14 * cm, 12 * cm
@@ -464,7 +464,7 @@ def generate_pdf_report(self, path, data: ReportData, tr):
         for ret, count in zip(data.unique_returns, data.return_counts):
             write_item(f"{tr('Return')} {ret}", count)
 
-    # -- Point density heatmap --
+    # -- Point density --
     if getattr(data, "density", None) is not None and hasattr(data, "x") and hasattr(data, "y") and data.x is not None and data.y is not None:
         draw_page_number()
         canvas.showPage()
@@ -473,6 +473,7 @@ def generate_pdf_report(self, path, data: ReportData, tr):
 
         write_heading(tr("Point Density Heatmap"), level=2)
 
+        # -- Point density heatmap --
         heatmap_buf = generate_density_heatmap(data.x, data.y, tr)
         heatmap_img = ImageReader(heatmap_buf)
         chart_width, chart_height = 18 * cm, 14 * cm

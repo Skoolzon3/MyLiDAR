@@ -24,9 +24,13 @@ def format_point_format(pf, tr):
         f"  - {tr("Size")}: {pf.size} {tr("bytes")}\n"
     )
 
+# -------------------------------------------------
 # --- Graph generation functions for LiDAR data ---
+# -------------------------------------------------
 
-def generate_pie_chart_from_counts(classes, counts, tr):
+# --- Classification pie chart ---
+
+def generate_pie_chart_from_counts(classes, counts, tr, as_buffer=True, title=None, figsize=(6, 6)):
     class_info = {
         0: (tr("Created, Never Classified"), "#A0A0A0"),
         1: (tr("Unclassified"), "#B0B0B0"),
@@ -46,25 +50,40 @@ def generate_pie_chart_from_counts(classes, counts, tr):
         15: (tr("Transmission Tower"), "#000080"),
         16: (tr("Wire-structure Connector"), "#708090"),
         17: (tr("Bridge Deck"), "#A9A9A9"),
-        18: (tr("High Noise"), "#800080")
+        18: (tr("High Noise"), "#800080"),
     }
 
     labels = [class_info.get(c, (f"{tr('Class')} {c}", "#CCCCCC"))[0] for c in classes]
     colors = [class_info.get(c, (tr("Unknown"), "#CCCCCC"))[1] for c in classes]
 
-    fig, ax = plt.subplots(figsize=(6, 6))
-    ax.pie(counts, labels=labels, colors=colors, autopct=lambda pct: f'{pct:.1f}%', startangle=140, textprops={'fontsize': 10, 'fontweight': 'bold'})
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.pie(
+        counts,
+        labels=labels,
+        colors=colors,
+        autopct=lambda pct: f'{pct:.1f}%',
+        startangle=140,
+        textprops={'fontsize': 10, 'fontweight': 'bold'}
+    )
 
-    buf = BytesIO()
-    fig.savefig(buf, format='png', dpi=150, bbox_inches='tight')
-    plt.close(fig)
-    buf.seek(0)
-    return buf
+    if title:
+        ax.set_title(title, fontweight="bold")
 
-def generate_return_bar_chart(unique_returns, return_counts, tr):
-    labels = [f"{tr('Return')} {r}" for r in unique_returns]
+    if as_buffer:
+        buf = BytesIO()
+        fig.savefig(buf, format='png', dpi=150, bbox_inches='tight')
+        plt.close(fig)
+        buf.seek(0)
+        return buf
+    else:
+        return fig
 
-    fig, ax = plt.subplots(figsize=(6, 4))
+# --- Return count histogram ---
+
+def generate_return_bar_chart(unique_returns, return_counts, tr, as_buffer=True, title=None, figsize=(6, 4)):
+    labels = [f"{r}" for r in unique_returns]
+
+    fig, ax = plt.subplots(figsize=figsize)
     bars = ax.bar(labels, return_counts, color='lightgreen')
 
     for bar in bars:
@@ -83,29 +102,41 @@ def generate_return_bar_chart(unique_returns, return_counts, tr):
 
     min_positive = min([v for v in return_counts if v > 0])
     ax.set_ylim(bottom=max(min_positive * 0.8, 1e-1))
-
     max_height = max(return_counts)
     ax.set_ylim(top=max_height * 10)
 
     ax.set_xlabel(tr("Return Number"), fontname='Arial')
     ax.set_ylabel(tr("Count"), fontname='Arial')
+    if title:
+        ax.set_title(title, fontweight='bold')
     plt.xticks(rotation=45)
 
-    buf = BytesIO()
-    fig.savefig(buf, format='png', dpi=150, bbox_inches='tight')
-    plt.close(fig)
-    buf.seek(0)
-    return buf
+    if as_buffer:
+        buf = BytesIO()
+        fig.savefig(buf, format='png', dpi=150, bbox_inches='tight')
+        plt.close(fig)
+        buf.seek(0)
+        return buf
+    else:
+        return fig
 
-def generate_density_heatmap(x, y, tr, bins=500):
-    buf = BytesIO()
-    fig, ax = plt.subplots(figsize=(7, 5))
+# -- Point density heatmap
+
+def generate_density_heatmap(x, y, tr, bins=500, as_buffer=True, title=None, figsize=(7, 5)):
+    fig, ax = plt.subplots(figsize=figsize)
     bins = min(bins, max(50, int(np.sqrt(len(x))))) if len(x) > 0 else 50
-    h = ax.hist2d(x, y, bins=bins)
+    h = ax.hist2d(x, y, bins=bins, cmap="viridis")
     cbar = fig.colorbar(h[3], ax=ax, label=tr("Point Count"))
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
-    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
-    plt.close(fig)
-    buf.seek(0)
-    return buf
+    if title:
+        ax.set_title(title, fontweight="bold")
+
+    if as_buffer:
+        buf = BytesIO()
+        fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
+        plt.close(fig)
+        buf.seek(0)
+        return buf
+    else:
+        return fig
