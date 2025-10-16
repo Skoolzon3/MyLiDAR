@@ -3,7 +3,8 @@ import os
 import laspy
 from laspy import LazBackend
 import numpy as np
-import matplotlib.pyplot as plt
+import tempfile
+import zipfile
 
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox, QDialog
@@ -23,8 +24,9 @@ from .report_functions import generate_txt_report, generate_markdown_report, gen
 # --- Report Generation ---
 # -------------------------
 # Description:
-# This function generates a report based on the LiDAR file's metadata and statistics,
-# allowing the user to choose the report format (text, markdown, or PDF) and which metadata to include.
+# This function generates a report based on the LiDAR file's metadata and statistics, allowing
+# the user to choose the report format (text, markdown, or PDF) and which metadata to include, as
+# well as optionally generating a dock in QGIS with visualizations.
 # -------------------------
 
 # ---------------------------------------------
@@ -34,7 +36,7 @@ from .report_functions import generate_txt_report, generate_markdown_report, gen
 class ReportGenerationTask(QgsTask):
     """Background task for generating LiDAR information reports + dock"""
 
-    def __init__(self, description, filename, report_path, report_format, selected_fields, parent, translator, show_dock=False):
+    def __init__(self, description, filename, report_path, report_format, selected_fields, parent, translator, show_dock=False, is_zip_task=False, zip_output_path=None, temp_dir=None, is_primary_task=True):
         super().__init__(description, QgsTask.CanCancel)
         self.filename = filename
         self.report_path = report_path
@@ -45,7 +47,11 @@ class ReportGenerationTask(QgsTask):
         self.tr = translator
         self.show_dock = show_dock
         self.report_text = None
-        self.figures = []  # list of (figure, title)
+        self.figures = []
+        self.is_zip_task = is_zip_task
+        self.zip_output_path = zip_output_path
+        self.temp_dir = temp_dir
+        self.is_primary_task = is_primary_task
 
     def run(self):
         try:
@@ -107,43 +113,54 @@ class ReportGenerationTask(QgsTask):
                 self.report_text = generate_dock_content(self, data, self.tr)
 
                 # --- Classification pie chart ---
-                fig1 = generate_pie_chart_from_counts(
-                    data.unique_classes,
-                    data.class_counts,
-                    self.tr,
-                    as_buffer=False,
-                    title=self.tr("Classification Distribution"),
-                    figsize=(8, 6)
-                )
-                self.figures.append((fig1, self.tr("Classification Distribution")))
+                if getattr(data, "unique_classes", None) is not None and getattr(data, "class_counts", None) is not None:
+                    fig1 = generate_pie_chart_from_counts(
+                        data.unique_classes,
+                        data.class_counts,
+                        self.tr,
+                        as_buffer=False,
+                        title=self.tr("Classification Distribution"),
+                        figsize=(8, 6)
+                    )
+                    if fig1 is not None:
+                        self.figures.append((fig1, self.tr("Classification Distribution")))
                 self.setProgress(70)
 
                 # --- Return Number Histogram ---
-                fig2 = generate_return_bar_chart(
-                    unique_returns,
-                    return_counts,
-                    self.tr,
-                    as_buffer=False,
-                    title=self.tr("Return Number Distribution"),
-                    figsize=(5, 4)
-                )
-                self.figures.append((fig2, self.tr("Return Number Distribution")))
+                if getattr(unique_returns, "__len__", None) is not None and getattr(return_counts, "__len__", None) is not None:
+                    if unique_returns is not None and return_counts is not None and len(unique_returns) > 0 and len(return_counts) > 0:
+                        fig2 = generate_return_bar_chart(
+                            unique_returns,
+                            return_counts,
+                            self.tr,
+                            as_buffer=False,
+                            title=self.tr("Return Number Distribution"),
+                            figsize=(5, 4)
+                        )
+                        if fig2 is not None:
+                            self.figures.append((fig2, self.tr("Return Number Distribution")))
                 self.setProgress(85)
 
                 # --- Density Heatmap ---
-                fig3 = generate_density_heatmap(
-                    las.x,
-                    las.y,
-                    self.tr,
-                    bins=500,
-                    as_buffer=False,
-                    title=self.tr("Point Density Heatmap"),
-                    figsize=(7, 5)
-                )
-                self.figures.append((fig3, self.tr("Point Density Distribution")))
+                if getattr(las, "x", None) is not None and getattr(las, "y", None) is not None:
+                    try:
+                        if len(las.x) > 0 and len(las.y) > 0:
+                            fig3 = generate_density_heatmap(
+                                las.x,
+                                las.y,
+                                self.tr,
+                                bins=500,
+                                as_buffer=False,
+                                title=self.tr("Point Density Heatmap"),
+                                figsize=(7, 5)
+                            )
+                            if fig3 is not None:
+                                self.figures.append((fig3, self.tr("Point Density Distribution")))
+                    except Exception:
+                        QgsMessageLog.logMessage("Density heatmap generation skipped due to an error", "MyLiDAR", Qgis.Warning)
                 self.setProgress(90)
 
-            # Step 5: Save report (only if format & path provided)
+            # Step 5: Save report (format & path provided)
             if self.report_format and self.report_path:
                 if self.report_format == "pdf":
                     generate_pdf_report(self.parent, self.report_path, data, self.tr)
@@ -161,8 +178,7 @@ class ReportGenerationTask(QgsTask):
 
     def finished(self, result):
         if result:
-            if self.show_dock:
-                # Create dock if not visible
+            if self.show_dock and getattr(self, "is_primary_task", True):
                 if not hasattr(self.parent, "lidar_report_dock") or self.parent.lidar_report_dock is None or not self.parent.lidar_report_dock.isVisible():
                     self.parent.lidar_report_dock = ReportDock(self.parent.iface.mainWindow(), translator=self.tr)
                     self.parent.iface.addDockWidget(Qt.RightDockWidgetArea, self.parent.lidar_report_dock)
@@ -172,17 +188,38 @@ class ReportGenerationTask(QgsTask):
                 for fig, title in self.figures:
                     self.parent.lidar_report_dock.add_button_for_figure(fig, title=title)
 
-            if self.report_path and self.report_format:
+                QMessageBox.information(
+                    self.parent.iface.mainWindow(),
+                    self.tr("Success"),
+                    self.tr("Dock successfully generated in QGIS")
+                )
+
+            # --- ZIP Handling ---
+            if self.is_zip_task and self.zip_output_path and self.temp_dir:
+                try:
+                    with zipfile.ZipFile(self.zip_output_path, 'a', zipfile.ZIP_DEFLATED) as zipf:
+                        if os.path.exists(self.report_path):
+                            rel_name = os.path.basename(self.report_path)
+                            zipf.write(self.report_path, rel_name)
+
+                    QMessageBox.information(
+                        self.parent.iface.mainWindow(),
+                        self.tr("Success"),
+                        f"{self.tr('Report')} ({self.report_format.upper()}) "
+                        f"{self.tr('added to ZIP at')}:\n{self.zip_output_path}"
+                    )
+
+                except Exception as e:
+                    QgsMessageLog.logMessage(f"{self.tr('Failed to add')} {self.report_format} {self.tr('to ZIP')}: {e}", "MyLiDAR", Qgis.Critical)
+                    QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error"), str(e))
+                finally:
+                    pass
+
+            elif self.report_path and self.report_format:
                 QMessageBox.information(
                     self.parent.iface.mainWindow(),
                     self.tr("Success"),
                     f"{self.tr('Report created at')}:\n{self.report_path}"
-                )
-            elif self.show_dock:
-                QMessageBox.information(
-                    self.parent.iface.mainWindow(),
-                    self.tr("Success"),
-                    self.tr("Dock successfully generated in QGIS.")
                 )
 
         else:
@@ -276,24 +313,68 @@ def generate_report(self):
         )
         return
 
-    # Step 5: For file reports (TXT/MD/PDF)
-    default_name = os.path.splitext(filename)[0] + "_report"
-    report_base, _ = QFileDialog.getSaveFileName(
-        self.iface.mainWindow(),
-        self.tr("Save Report As"),
-        default_name,
-        self.tr("All Files (*)")
-    )
-    if not report_base:
-        return
-
+    # Step 5: Handle file report generation
     format_extensions = {"txt": ".txt", "md": ".md", "pdf": ".pdf"}
 
-    for fmt in selected_formats:
-        ext = format_extensions.get(fmt, ".txt")
-        report_path = f"{os.path.splitext(report_base)[0]}_{fmt}{ext}"
+    # --- Multiple format selection ---
+    if len(selected_formats) > 1:
+        zip_path, _ = QFileDialog.getSaveFileName(
+            self.iface.mainWindow(),
+            self.tr("Save ZIP As"),
+            os.path.splitext(filename)[0] + "_reports.zip",
+            "ZIP (*.zip)"
+        )
+        if not zip_path:
+            return
 
-        task_desc = f"{self.tr("Generating report for")} {os.path.basename(filename)} ({fmt.upper()})"
+        temp_dir = tempfile.mkdtemp(prefix="lidar_reports_")
+
+        for i, fmt in enumerate(selected_formats):
+            ext = format_extensions.get(fmt, ".txt")
+            report_path = os.path.join(temp_dir, f"{os.path.splitext(os.path.basename(filename))[0]}_{fmt}{ext}")
+
+            task_desc = f"{self.tr('Generating report for')} {os.path.basename(filename)} ({fmt.upper()})"
+            task = ReportGenerationTask(
+                task_desc,
+                filename,
+                report_path,
+                fmt,
+                selected_fields,
+                self,
+                self.tr,
+                show_dock=generate_dock,
+                is_zip_task=True,
+                zip_output_path=zip_path,
+                temp_dir=temp_dir,
+                is_primary_task=(i == 0)
+            )
+
+            self.running_tasks.append(task)
+            QgsApplication.taskManager().addTask(task)
+
+        self.iface.messageBar().pushMessage(
+            self.tr("Task Started"),
+            self.tr("Generating multiple reports in the background"),
+            level=Qgis.Info,
+            duration=-1
+        )
+        return
+
+    # --- Single format selection ---
+    elif len(selected_formats) == 1:
+        fmt = selected_formats[0]
+        ext = format_extensions.get(fmt, ".txt")
+
+        report_path, _ = QFileDialog.getSaveFileName(
+            self.iface.mainWindow(),
+            self.tr(f"Save Report As"),
+            os.path.splitext(filename)[0] + f"_report{ext}",
+            self.tr(f"{fmt.upper()} (*{ext})")
+        )
+        if not report_path:
+            return
+
+        task_desc = f"{self.tr('Generating report for')} {os.path.basename(filename)} ({fmt.upper()})"
         task = ReportGenerationTask(
             task_desc,
             filename,
@@ -308,9 +389,9 @@ def generate_report(self):
         self.running_tasks.append(task)
         QgsApplication.taskManager().addTask(task)
 
-    self.iface.messageBar().pushMessage(
-        self.tr("Task Started"),
-        self.tr(f"Generating report in the background"),
-        level=Qgis.Info,
-        duration=-1
-    )
+        self.iface.messageBar().pushMessage(
+            self.tr("Task Started"),
+            self.tr(f"Generating report in the background"),
+            level=Qgis.Info,
+            duration=-1
+        )

@@ -14,6 +14,7 @@
   "Save Report": "Save Report",
   "Generating report for": "Generating report for",
   "Generating report in the background": "Generating report in the background",
+  "Generating multiple reports in the background": "Generating multiple reports in the background",
 
   "Select Report Contents": "Select Report Contents",
   "Select the information to include in the report:": "Select the information to include in the report:",
@@ -77,7 +78,14 @@
   "Plain Text (.txt)": "Plain Text (.txt)",
   "Generate Dock Panel in QGIS": "Generate Dock Panel in QGIS",
   "If checked, a dockable report panel will be created alongside the generated report in QGIS": "If checked, a dockable report panel will be created in QGIS, alongside the generated report",
+  "Generating QGIS Dock in the background": "Generating QGIS Dock in the background",
+  "Dock successfully generated in QGIS": "Dock successfully generated in QGIS",
   "Save Report As": "Save Report As",
+  "Save ZIP As": "Save ZIP As",
+  "Report": "Report",
+  "added to ZIP at": "added to ZIP at",
+  "Failed to add": "Failed to add",
+  "to ZIP": "to ZIP",
 
   "LiDAR File Report": "LiDAR File Report",
   "Report date": "Report date",

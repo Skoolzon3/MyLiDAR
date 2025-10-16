@@ -14,6 +14,7 @@
   "Save Report": "Guardar informe",
   "Generating report for": "Generando informe de",
   "Generating report in the background": "Generando informe en segundo plano",
+  "Generating multiple reports in the background": "Generando múltiples informes en segundo plano",
 
   "Select Report Contents": "Seleccionar contenido del informe",
   "Select the information to include in the report:": "Seleccione la información a incluir en el informe:",
@@ -66,7 +67,14 @@
   "Plain Text (.txt)": "Texto plano (.txt)",
   "Generate Dock Panel in QGIS": "Generar panel acoplable en QGIS",
   "If checked, a dockable report panel will be created alongside the generated report in QGIS": "Si se marca, se creará un panel de informe acoplable en QGIS, junto al informe generado",
-  "Save Report As": "Save Report As",
+  "Generating QGIS Dock in the background": "Generando panel acoplable de QGIS en segundo plano",
+  "Dock successfully generated in QGIS": "Panel acoplable generado con éxito en QGIS",
+  "Save Report As": "Guardar informe como",
+  "Save ZIP As": "Guardar ZIP como",
+  "Report": "Informe",
+  "added to ZIP at": "añadido al ZIP en",
+  "Failed to add": "Error al añadir",
+  "to ZIP": "al ZIP",
 
   "LiDAR File Report": "Informe de archivo LiDAR",
   "Report date": "Fecha del informe",
