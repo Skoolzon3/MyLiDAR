@@ -56,14 +56,14 @@ This plugin requires the following Python libraries:
 
 **Note**: the numpy dependency used in the project is integrated into laspy, so there is no need to install it later on once the latter is installed.
 
-#### Install dependencies (Windows - QGIS installed via OSGeo4W)
+#### Install dependencies (Windows - QGIS installed alongside OSGeo4W)
   1. Open OSGeo4W Shell
   2. Paste and run the following command:
   ```bash
   python -m pip install laspy[lazrs,laszip] scipy GDAL OSR matplotlib reportlab scikit-learn
   ```
 
-Note: make sure the command is executed inside the QGIS path. It should look something like this:
+**Note**: make sure the command is executed inside the QGIS path. It should look something like this:
 
 ```bash
 C:\PROGRA~1\QGIS34~1.3>
@@ -74,6 +74,9 @@ C:\PROGRA~1\QGIS34~1.3>
   ```bash
   pip install laspy scipy gdal matplotlib reportlab scikit-learn
   ``` -->
+
+### Availability
+We recommend using the latest stable version of QGIS to take full advantage of its functionality. Not compatible with versions prior to QGIS 3.18.
 
 ### Credits
 Plugin developed in collaboration with the Media Engineering Group (GIM) of the Polytechnic School of Cáceres.
@@ -134,7 +137,7 @@ Este complemento requiere las siguientes bibliotecas de Python:
 
 **Nota**: la dependencia numpy utilizada en el proyecto está integrada en laspy, por lo que no es necesario instalarla posteriormente una vez que se haya instalado esta última.
 
-#### Instalar dependencias (Windows - QGIS instalado a través de OSGeo4W)
+#### Instalar dependencias (Windows - QGIS instalado junto con OSGeo4W)
   1. Abra OSGeo4W Shell.
   2. Pegue y ejecute el siguiente comando:
   ```bash
@@ -151,6 +154,9 @@ C:\PROGRA~1\QGIS34~1.3>
   Abra un terminal y ejecute:
   ```bash
   pip install laspy scipy gdal matplotlib reportlab scikit-learn -->
+
+### Disponibilidad
+Se recomienda utilizar la última versión estable de QGIS para aprovechar su funcionalidad al máximo. No compatible con versiones anteriores a QGIS 3.18.
 
 ### Créditos
 Complemento desarrollado en colaboración con el Grupo de Ingeniería de Medios (GIM) de la Escuela Politécnica de Cáceres.
