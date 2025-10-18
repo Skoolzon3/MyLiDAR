@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
-from matplotlib import pyplot as plt
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 import numpy as np
 
 # --- Formatting functions for LiDAR data processing ---

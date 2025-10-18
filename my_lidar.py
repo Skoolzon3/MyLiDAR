@@ -27,7 +27,6 @@ class MyLiDARPlugin:
         self.translations = {}
         system_lang = QLocale.system().name()[:2] # Detect system language ("en", "es")
         self.current_lang = system_lang if system_lang else "en"
-
         self.load_language(self.current_lang)
 
         self.outliers_action = None

@@ -1,15 +1,45 @@
+# --- General imports ---
 from .report_data import ReportData
 from datetime import datetime
 
-# PDF generation imports
+# --- PDF generation imports ---
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 
+# --- Graph generation imports ---
 from ..utils import generate_pie_chart_from_counts, generate_return_bar_chart, generate_density_heatmap
 
+# ------------------------------------
+# --- Global Classification Mapping ---
+# ------------------------------------
+
+CLASS_INFO = {
+    0: ("Created, Never Classified", "#A0A0A0"),
+    1: ("Unclassified", "#B0B0B0"),
+    2: ("Ground", "#8B4513"),
+    3: ("Low Vegetation", "#ADFF2F"),
+    4: ("Medium Vegetation", "#32CD32"),
+    5: ("High Vegetation", "#006400"),
+    6: ("Building", "#FF4500"),
+    7: ("Low Point (Noise)", "#D3D3D3"),
+    8: ("Model Key-point", "#FFD700"),
+    9: ("Water", "#1E90FF"),
+    10: ("Rail", "#8B0000"),
+    11: ("Road Surface", "#A0522D"),
+    12: ("Overlap", "#C0C0C0"),
+    13: ("Wire Guard", "#00CED1"),
+    14: ("Wire Conductor", "#20B2AA"),
+    15: ("Transmission Tower", "#000080"),
+    16: ("Wire-structure Connector", "#708090"),
+    17: ("Bridge Deck", "#A9A9A9"),
+    18: ("High Noise", "#800080"),
+}
+
+# ------------------------------
 # --- Text Report Generation ---
+# ------------------------------
 
 def generate_txt_report(self, path, data: ReportData, tr):
     with open(path, "w", encoding="utf-8") as f:
@@ -90,9 +120,13 @@ def generate_txt_report(self, path, data: ReportData, tr):
 
         # -- Classifications --
         if data.unique_classes is not None and data.class_counts is not None:
+            from .report_functions import CLASS_INFO
+
             f.write(f"--- {tr('Classification Counts')} ---\n")
             for cls, count in zip(data.unique_classes, data.class_counts):
-                f.write(f" - {tr('Class')} {cls}: {count}\n")
+                class_name_raw = CLASS_INFO.get(cls, ("Unknown", "#000000"))[0]
+                class_name = tr(class_name_raw)
+                f.write(f" - {tr('Class')} {cls} ({class_name}): {count}\n")
             f.write("\n")
 
         # -- Returns --
@@ -103,8 +137,9 @@ def generate_txt_report(self, path, data: ReportData, tr):
             f.write("\n")
 
 
-
+# --------------------------------------
 # --- Dock Report Content Generation ---
+# --------------------------------------
 
 def generate_dock_content(self, data: ReportData, tr) -> str:
     lines = []
@@ -183,14 +218,17 @@ def generate_dock_content(self, data: ReportData, tr) -> str:
 
     # -- Classifications --
     if data.unique_classes is not None and data.class_counts is not None:
+        from .report_functions import CLASS_INFO
+
         lines.append(f"--- {tr('Classification Counts')} ---")
         for cls, count in zip(data.unique_classes, data.class_counts):
-            lines.append(f" - {tr('Class')} {cls}: {count}")
-        lines.append("")
+            class_name_raw = CLASS_INFO.get(cls, ("Unknown", "#000000"))[0]
+            class_name = tr(class_name_raw)
+            lines.append(f" - {tr('Class')} {cls} ({class_name}): {count}")
 
     # -- Returns --
     if data.unique_returns is not None and data.return_counts is not None:
-        lines.append(f"--- {tr('Return Number Counts')} ---")
+        lines.append(f"\n--- {tr('Return Number Counts')} ---")
         for ret, count in zip(data.unique_returns, data.return_counts):
             lines.append(f" - {tr('Return')} {ret}: {count}")
         lines.append("")
@@ -198,8 +236,9 @@ def generate_dock_content(self, data: ReportData, tr) -> str:
     return "\n".join(lines)
 
 
-
+# ----------------------------------
 # --- Markdown Report Generation ---
+# ----------------------------------
 
 def generate_markdown_report(self, path, data: ReportData, tr):
     with open(path, "w", encoding="utf-8") as f:
@@ -276,21 +315,26 @@ def generate_markdown_report(self, path, data: ReportData, tr):
 
         # -- Classifications --
         if data.unique_classes is not None and data.class_counts is not None:
+            from .report_functions import CLASS_INFO
+
             f.write(f"## {tr('Classification Counts')}\n")
             for cls, count in zip(data.unique_classes, data.class_counts):
-                f.write(f" - **{tr('Class')} {cls}**: {count}\n")
+                class_name_raw = CLASS_INFO.get(cls, ("Unknown", "#000000"))[0]
+                class_name = tr(class_name_raw)
+                f.write(f" - **{tr('Class')} {cls}** ({class_name}): `{count}`\n")
             f.write("\n")
 
         # -- Returns --
         if data.unique_returns is not None and data.return_counts is not None:
             f.write(f"## {tr('Return Number Counts')}\n")
             for ret, count in zip(data.unique_returns, data.return_counts):
-                f.write(f" - **{tr('Return')} {ret}**: {count}\n")
+                f.write(f" - **{tr('Return')} {ret}**: `{count}`\n")
             f.write("\n")
 
 
-
+# -----------------------------
 # --- PDF Report Generation ---
+# -----------------------------
 
 def generate_pdf_report(self, path, data: ReportData, tr):
     canvas = Canvas(path, pagesize=A4)
@@ -330,9 +374,18 @@ def generate_pdf_report(self, path, data: ReportData, tr):
     def write_item(label, value):
         nonlocal y
         canvas.setFont("Helvetica-Bold", 12)
-        canvas.drawString(2 * cm, y, f"- {label}:")
+        label_text = f"- {label}:"
+        canvas.drawString(2 * cm, y, label_text)
+
+        label_width = canvas.stringWidth(label_text, "Helvetica-Bold", 12)
+        value_x = 2 * cm + label_width + 0.3 * cm
+
+        if value_x > width - 6 * cm:
+            value_x = 7 * cm
+
         canvas.setFont("Courier", 12)
-        canvas.drawString(7 * cm, y, str(value))
+        canvas.drawString(value_x, y, str(value))
+
         y -= 0.6 * cm
         check_page_space()
 
@@ -420,6 +473,8 @@ def generate_pdf_report(self, path, data: ReportData, tr):
 
     # -- Classifications --
     if data.unique_classes is not None and data.class_counts is not None:
+        from .report_functions import CLASS_INFO
+
         draw_page_number()
         canvas.showPage()
         canvas.setFont("Helvetica", 12)
@@ -439,7 +494,9 @@ def generate_pdf_report(self, path, data: ReportData, tr):
         y -= chart_height + 0.5 * cm
 
         for cls, count in zip(data.unique_classes, data.class_counts):
-            write_item(f"{tr('Class')} {cls}", count)
+            class_name_raw = CLASS_INFO.get(cls, ("Unknown", "#000000"))[0]
+            class_name = tr(class_name_raw)
+            write_item(f"{tr('Class')} {cls} ({class_name})", count)
 
     # -- Return number --
     if data.unique_returns is not None and data.return_counts is not None:
@@ -483,8 +540,6 @@ def generate_pdf_report(self, path, data: ReportData, tr):
             y = height - 2 * cm
         canvas.drawImage(heatmap_img, center_x, y - chart_height, width=chart_width, height=chart_height)
         y -= chart_height + 0.5 * cm
-
-    # -----------------------
 
     draw_page_number()
     canvas.save()
