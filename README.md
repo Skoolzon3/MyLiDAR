@@ -24,6 +24,14 @@ These functions are compatible with LiDAR `.las` and `.laz` files, and their exe
 
 2. In QGIS, select `Plugins → Manage and Install Plugins → Install from ZIP`.
 
+3. Drag and drop the ZIP file onto the menu's sole form field.
+
+4. Install the required dependencies (see [dependencies](#dependencies)).
+
+5. Restart QGIS.
+
+6. Manually activate the plugin from ``Plugins → Manage and Install Plugins → Installed``.
+
 <!-- Manual installation -->
 
 <!-- 1.Copy the plugin repository into your own QGIS plugin directory (in this example, the `plugins` folder):
@@ -35,14 +43,6 @@ These functions are compatible with LiDAR `.las` and `.laz` files, and their exe
   2. Restart QGIS.
 
   3. Manually activate the plugin from ``Plugins → Manage and Install Plugins``.-->
-
-3. Drag and drop the ZIP file onto the menu's sole form field.
-
-4. Install the required dependencies (see [dependencies](#dependencies))
-
-5. Restart QGIS.
-
-6. Manually activate the plugin from ``Plugins → Manage and Install Plugins → Installed``.
 
 #### Dependencies
 This plugin requires the following Python libraries:
@@ -103,6 +103,14 @@ Estas funciones son compatibles con archivos LiDAR `.las` y `.laz`, y su ejecuci
 
 2. En QGIS, seleccione ``Complementos → Administrar e instalar complementos → Instalar desde ZIP``.
 
+3. Arrastra y suelta el archivo ZIP en el único campo del formulario del menú.
+
+4. Instala las dependencias necesarias (consulta [dependencias](#dependencias)).
+
+5. Reinicia QGIS.
+
+6. Activa manualmente el complemento desde ``Complementos → Administrar e instalar complementos → Instalados``.
+
 <!-- Instalación manual -->
 
 <!-- 1. Copie la carpeta del complemento en su directorio de complementos QGIS propio (en este ejemplo, la carpeta `plugins`):
@@ -113,14 +121,6 @@ Estas funciones son compatibles con archivos LiDAR `.las` y `.laz`, y su ejecuci
 
 2. Reinicie QGIS.
 3. Active manualmente el complemento desde **Complementos > Administrar e instalar complementos**. -->
-
-3. Arrastra y suelta el archivo ZIP en el único campo del formulario del menú.
-
-4. Instala las dependencias necesarias (consulta [dependencias](#dependencias)).
-
-5. Reinicia QGIS.
-
-6. Activa manualmente el complemento desde ``Complementos → Administrar e instalar complementos → Instalados``.
 
 #### Dependencias
 Este complemento requiere las siguientes bibliotecas de Python:
