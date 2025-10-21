@@ -5,7 +5,7 @@ from laspy import LazBackend
 import numpy as np
 
 # --- QGIS and PyQt imports ---
-from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox, QDialog
+from qgis.PyQt.QtWidgets import QMessageBox, QDialog
 from qgis.core import QgsPointCloudLayer, QgsProject, QgsTask, QgsApplication, Qgis, QgsMessageLog
 
 # --- Method-specific imports ---
@@ -155,35 +155,34 @@ class VegetationClassificationTask(QgsTask):
 # ---------------------------------------------
 
 def classify_vegetation(self):
-    # Step 1: Select input file path
-    filename, _ = QFileDialog.getOpenFileName(
-        self.iface.mainWindow(),
-        self.tr('Select LiDAR File to Classify Vegetation'),
-        '',
-        self.tr('LiDAR Files (*.las *.laz)')
-    )
-    if not filename:
+    # Step 1: Select input file path and parameters via dialog
+    dialog = VegetationClassificationDialog(self.iface.mainWindow(), translator=self.tr)
+    if dialog.exec_() != QDialog.Accepted:
+        return
+
+    input_filename, output_filename = dialog.get_input_output()
+    if not input_filename:
+        QMessageBox.warning(
+            self.iface.mainWindow(),
+            self.tr("No Input Selected"),
+            self.tr("Please select a LiDAR layer or file.")
+        )
+        return
+
+    if not output_filename:
+        QMessageBox.warning(
+            self.iface.mainWindow(),
+            self.tr("No Output Selected"),
+            self.tr("Please specify an output file path.")
+        )
         return
 
     # Step 2: Get thresholds
-    dlg = VegetationClassificationDialog(self.iface.mainWindow(), translator=self.tr)
-    if dlg.exec_() != QDialog.Accepted:
-        return
-    low_thresh, high_thresh = dlg.get_values()
+    low_thresh, high_thresh = dialog.get_values()
 
-    # Step 3: Select output file path
-    output_path, _ = QFileDialog.getSaveFileName(
-        self.iface.mainWindow(),
-        self.tr('Save Reclassified Vegetation File'),
-        os.path.splitext(filename)[0] + '_classified_vegetation.laz',
-        self.tr('LiDAR Files (*.las *.laz)')
-    )
-    if not output_path:
-        return
-
-    # Step 4: Create and run the background task
-    task_desc = f"{self.tr('Classifying vegetation in')} {os.path.basename(filename)}"
-    task = VegetationClassificationTask(task_desc, filename, output_path, low_thresh, high_thresh, self, self.tr)
+    # Step 3: Create and run the background task
+    task_desc = f"{self.tr('Classifying vegetation in')} {os.path.basename(input_filename)}"
+    task = VegetationClassificationTask(task_desc, input_filename, output_filename, low_thresh, high_thresh, self, self.tr)
 
     self.running_tasks.append(task)
     QgsApplication.taskManager().addTask(task)

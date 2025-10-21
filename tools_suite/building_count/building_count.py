@@ -14,7 +14,7 @@ from sklearn.cluster import DBSCAN
 from shapely.geometry import MultiPoint
 
 # --- Dialog imports ---
-from .building_count_dialog import BuildingParamsDialog
+from .building_count_dialog import BuildingCountDialog
 
 # ----------------------
 # --- Building Count ---
@@ -180,7 +180,7 @@ class BuildingCountTask(QgsTask):
 
                     else:
                         QgsMessageLog.logMessage(
-                            f"{self.tr("Error saving output file")}: ({error})",
+                            f"{self.tr('Error saving output file')}: ({error})",
                             "MyLiDAR",
                             Qgis.Critical
                         )
@@ -190,11 +190,11 @@ class BuildingCountTask(QgsTask):
                 QMessageBox.information(
                     self.parent.iface.mainWindow(),
                     self.tr("Building Detection Complete"),
-                    f"{self.tr("Building points detected")}: {self.num_points:,}\n"
-                    f"{self.tr("Approximate number of buildings detected")}: {self.num_buildings:,}"
+                    f"{self.tr('Building points detected')}: {self.num_points:,}\n"
+                    f"{self.tr('Approximate number of buildings detected')}: {self.num_buildings:,}"
                 )
         else:
-            msg = f"{self.tr("An error occurred")}: {self.exception}" if self.exception else self.tr("Building detection failed")
+            msg = f"{self.tr('An error occurred')}: {self.exception}" if self.exception else self.tr("Building detection failed")
             QgsMessageLog.logMessage(msg, "MyLiDAR", Qgis.Critical)
             QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error Detecting Buildings"), msg)
 
@@ -206,44 +206,29 @@ class BuildingCountTask(QgsTask):
 # ----------------------------------
 
 def count_buildings(self):
-    # Step 1: Select input file path
-    filename, _ = QFileDialog.getOpenFileName(
-        self.iface.mainWindow(),
-        self.tr("Select LiDAR File to Count Buildings"),
-        "",
-        self.tr("LiDAR Files (*.las *.laz)")
-    )
-    if not filename:
+    # Stem 1: Select input/output and parameters
+    dialog = BuildingCountDialog(self.iface.mainWindow(), tr=self.tr)
+    if not dialog.exec_():
         return
 
-    # Step 2: Ask user for clustering parameters
-    param_dialog = BuildingParamsDialog(self.iface.mainWindow(), translator=self.tr)
-    if not param_dialog.exec_():
-        return
-    eps, min_samples, use_z = param_dialog.get_params()
-
-    # Step 3: Ask user if they want to save output
-    reply = QMessageBox.question(
-        self.iface.mainWindow(),
-        self.tr("Save Detected Buildings"),
-        self.tr("Would you like to save the detected building layer to a file?"),
-        QMessageBox.Yes | QMessageBox.No
-    )
-
-    output_path = None
-    if reply == QMessageBox.Yes:
-        output_path, _ = QFileDialog.getSaveFileName(
+    input_filename, output_filename = dialog.get_input_output()
+    if not input_filename:
+        QMessageBox.warning(
             self.iface.mainWindow(),
-            self.tr("Select Output File"),
-            os.path.splitext(filename)[0] + "_detected_buildings" + ".gpkg",
-            "GeoPackage (*.gpkg)"
+            self.tr("No Input Selected"),
+            self.tr("Please select a LiDAR layer or file.")
         )
-        if not output_path:
-            output_path = None
+        return
 
-    # Step 4: Create and run the background task
-    task_desc = f"{self.tr("Counting buildings in")} {os.path.basename(filename)}"
-    task = BuildingCountTask(task_desc, filename, eps, min_samples, use_z, self, self.tr, output_path)
+    eps, min_samples, use_z = dialog.get_params()
+
+    if not input_filename:
+        QMessageBox.warning(self.iface.mainWindow(), self.tr("Missing Input"), self.tr("Please select a LiDAR input file or layer."))
+        return
+
+    # Step 2: Create and run the background task
+    task_desc = f"{self.tr('Counting buildings in')} {os.path.basename(input_filename)}"
+    task = BuildingCountTask(task_desc, input_filename, eps, min_samples, use_z, self, self.tr, output_filename)
 
     self.running_tasks.append(task)
     QgsApplication.taskManager().addTask(task)

@@ -235,22 +235,22 @@ class ReportGenerationTask(QgsTask):
 # -------------------------------------
 
 def generate_report(self):
-    # Step 1: Select input file path
-    filename, _ = QFileDialog.getOpenFileName(
-        self.iface.mainWindow(),
-        self.tr("Select LiDAR File"),
-        "",
-        self.tr("LiDAR Files (*.las *.laz)")
-    )
-    if not filename:
-        return
 
-    # Step 2: Ask user what fields to include
-    dialog = ReportDialog(self.iface.mainWindow(), translator=self.tr)
+    # Step 1: Select input/output file path
+    dialog = ReportDialog(self.iface.mainWindow(), tr=self.tr)
     if dialog.exec_() != QDialog.Accepted:
         return
 
-    # Step 3: Retrieve all selected formats (list like ['txt', 'md', 'pdf'])
+    input_path, output_path = dialog.get_input_output()
+    if not input_path:
+        QMessageBox.warning(
+            self.iface.mainWindow(),
+            self.tr("Missing Input"),
+            self.tr("Please select a valid LiDAR file or layer.")
+        )
+        return
+
+    # Step 2: Retrieve all selected formats (list like ['txt', 'md', 'pdf'])
     selected_formats = dialog.selected_formats()
     generate_dock = dialog.generate_dock()
     if not selected_formats and not generate_dock:
@@ -261,7 +261,7 @@ def generate_report(self):
         )
         return
 
-    # Collect field selections from dialog
+    # Step 3: Collect field selections from dialog
     selected_fields = {
         "file_name": dialog.checkFileName.isChecked(),
         "file_source": dialog.checkFileSource.isChecked(),
@@ -290,10 +290,10 @@ def generate_report(self):
 
     # Step 4: Handle dock-only mode
     if generate_dock and not selected_formats:
-        task_desc = f"{self.tr('Generating QGIS Dock for')} {os.path.basename(filename)}"
+        task_desc = f"{self.tr('Generating QGIS Dock for')} {os.path.basename(input_path)}"
         task = ReportGenerationTask(
             task_desc,
-            filename,
+            input_path,
             report_path=None,
             report_format=None,
             selected_fields=selected_fields,
@@ -321,7 +321,7 @@ def generate_report(self):
         zip_path, _ = QFileDialog.getSaveFileName(
             self.iface.mainWindow(),
             self.tr("Save ZIP As"),
-            os.path.splitext(filename)[0] + "_reports.zip",
+            os.path.splitext(input_path)[0] + "_reports.zip",
             "ZIP (*.zip)"
         )
         if not zip_path:
@@ -331,12 +331,12 @@ def generate_report(self):
 
         for i, fmt in enumerate(selected_formats):
             ext = format_extensions.get(fmt, ".txt")
-            report_path = os.path.join(temp_dir, f"{os.path.splitext(os.path.basename(filename))[0]}_{fmt}{ext}")
+            report_path = os.path.join(temp_dir, f"{os.path.splitext(os.path.basename(input_path))[0]}_{fmt}{ext}")
 
-            task_desc = f"{self.tr('Generating report for')} {os.path.basename(filename)} ({fmt.upper()})"
+            task_desc = f"{self.tr('Generating report for')} {os.path.basename(input_path)} ({fmt.upper()})"
             task = ReportGenerationTask(
                 task_desc,
-                filename,
+                input_path,
                 report_path,
                 fmt,
                 selected_fields,
@@ -368,16 +368,16 @@ def generate_report(self):
         report_path, _ = QFileDialog.getSaveFileName(
             self.iface.mainWindow(),
             self.tr(f"Save Report As"),
-            os.path.splitext(filename)[0] + f"_report{ext}",
+            os.path.splitext(input_path)[0] + f"_report{ext}",
             self.tr(f"{fmt.upper()} (*{ext})")
         )
         if not report_path:
             return
 
-        task_desc = f"{self.tr('Generating report for')} {os.path.basename(filename)} ({fmt.upper()})"
+        task_desc = f"{self.tr('Generating report for')} {os.path.basename(input_path)} ({fmt.upper()})"
         task = ReportGenerationTask(
             task_desc,
-            filename,
+            input_path,
             report_path,
             fmt,
             selected_fields,

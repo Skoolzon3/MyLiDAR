@@ -1,325 +1,387 @@
+import os
+from qgis.core import QgsProject, QgsPointCloudLayer
+from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QGroupBox, QCheckBox, QPushButton, QDialogButtonBox, QScrollArea, QWidget, QSpacerItem, QSizePolicy, QLineEdit, QTextBrowser, QFileDialog, QComboBox
+from qgis.PyQt.QtCore import Qt
+
 # -----------------------
 # --- UI Dialog Class ---
 # -----------------------
 
-import os
-from qgis.PyQt.QtWidgets import QDialogButtonBox, QDialog
-from qgis.PyQt import uic
-
-form_class, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "./report_form.ui"))
-
-class ReportDialog(QDialog, form_class):
-    def __init__(self, parent=None, translator=None):
+class ReportDialog(QDialog):
+    """Dialog window for selecting LiDAR report contents and output."""
+    def __init__(self, parent=None, tr=lambda s: s):
         super().__init__(parent)
-        self.setupUi(self)
-        self.tr = translator if translator else (lambda s: s)
+        self.tr = tr
+        self.selected_input = None
+        self.selected_output = None
+        self.is_layer = False
+        self.user_edited_output = False
 
-        # === Window and main labels ===
-        self.setWindowTitle(self.tr("Select Report Contents"))
-        self.label.setText(self.tr("Select the information to include in the report:"))
-        self.labelWarning.setText(self.tr("No information selected"))
+        # --- Window ---
+        self.setWindowTitle(tr("Generate LiDAR Report"))
+        self.resize(900, 500)
+        self.setMinimumWidth(850)
 
-        # === Groups ===
-        self.groupFileMetadata.setTitle(self.tr("File Metadata"))
-        self.groupSpatial.setTitle(self.tr("Spatial"))
-        self.groupIntensity.setTitle(self.tr("Intensity"))
-        self.groupTime.setTitle(self.tr("Time"))
-        self.groupClassification.setTitle(self.tr("Classification"))
-        self.groupOutputFormat.setTitle(self.tr("Output Format"))
+        main_layout = QHBoxLayout(self)
 
-        # === Metadata checkboxes ===
-        self.checkFileName.setText(self.tr("File Name"))
-        self.checkFileName.setToolTip(self.tr("File name of the LiDAR dataset"))
+        # --- Left Panel (Inputs, Options, Buttons) ---
+        left_panel = QWidget()
+        left_layout = QVBoxLayout(left_panel)
+        left_layout.setContentsMargins(0, 0, 0, 0)
+        left_layout.setSpacing(8)
+        left_layout.setAlignment(Qt.AlignTop)
 
-        self.checkFileSource.setText(self.tr("File Source"))
-        self.checkFileSource.setToolTip(self.tr("Source ID specified in the LAS file header, identifying the generating system"))
+        # --- Input selection ---
+        left_layout.addWidget(QLabel(tr("LiDAR layer or file:")))
+        input_layout = QHBoxLayout()
+        self.input_combo = QComboBox()
+        self.input_combo.setEditable(False)
+        input_layout.addWidget(self.input_combo)
 
-        self.checkGlobalEncoding.setText(self.tr("Global Encoding"))
-        self.checkGlobalEncoding.setToolTip(self.tr("Flags describing GPS time type, waveform data and other global settings"))
+        self.input_button = QPushButton("...")
+        self.input_button.setToolTip(tr("Select input file (.las / .laz)"))
+        self.input_button.setFixedWidth(28)
+        self.input_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        input_layout.addWidget(self.input_button)
+        left_layout.addLayout(input_layout)
 
-        self.checkSystemId.setText(self.tr("System ID"))
-        self.checkSystemId.setToolTip(self.tr("Identifier of the system that created the file"))
+        # --- Output selection ---
+        left_layout.addWidget(QLabel(tr("Output report file:")))
+        output_layout = QHBoxLayout()
+        self.output_edit = QLineEdit()
+        self.output_edit.setPlaceholderText(tr("Select output report file path..."))
+        output_layout.addWidget(self.output_edit)
 
-        self.checkGenSoftware.setText(self.tr("Generating Software"))
-        self.checkGenSoftware.setToolTip(self.tr("Name of the software that generated the LAS file"))
+        self.output_button = QPushButton("...")
+        self.output_button.setToolTip(tr("Select output file (.txt / .md / .pdf)"))
+        self.output_button.setFixedWidth(28)
+        self.output_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        output_layout.addWidget(self.output_button)
+        left_layout.addLayout(output_layout)
 
-        self.checkVersion.setText(self.tr("LAS Version"))
-        self.checkVersion.setToolTip(self.tr("LAS file format version (e.g., 1.2, 1.4)"))
+        # --- Scroll area for report options ---
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout(scroll_widget)
+        scroll_layout.setAlignment(Qt.AlignTop)
+        scroll.setWidget(scroll_widget)
+        left_layout.addWidget(scroll, stretch=1)
 
-        self.checkPointFormat.setText(self.tr("Point Format"))
-        self.checkPointFormat.setToolTip(self.tr("Point data record format used in the LAS file (e.g., Format 0, 1, 6) and its corresponding byte size"))
+        # === Section: Selection Info ===
+        self.label = QLabel(self.tr("Select the information to include in the report:"))
+        self.label.setStyleSheet("font-weight: 600; font-size: 10.5pt;")
+        scroll_layout.addWidget(self.label)
 
-        self.checkCreationDate.setText(self.tr("Creation Date"))
-        self.checkCreationDate.setToolTip(self.tr("Date the LAS file was created"))
+        self.labelWarning = QLabel(self.tr("No information selected"))
+        self.labelWarning.setStyleSheet("color: #d9534f; font-style: italic;")
+        scroll_layout.addWidget(self.labelWarning)
 
+        # --- Report Groups ---
+        self.groupFileMetadata = self.create_group(self.tr("File Metadata"), scroll_layout)
+        self.groupSpatial = self.create_group(self.tr("Spatial"), scroll_layout)
+        self.groupIntensity = self.create_group(self.tr("Intensity"), scroll_layout)
+        self.groupTime = self.create_group(self.tr("Time"), scroll_layout)
+        self.groupClassification = self.create_group(self.tr("Classification"), scroll_layout)
 
-        # === Intensity checkboxes ===
-        self.checkMinIntensity.setText(self.tr("Min Intensity"))
-        self.checkMinIntensity.setToolTip(self.tr("Lowest recorded intensity value in the dataset"))
+        # --- Output Format ---
+        self.groupOutputFormat = QGroupBox(self.tr("Output Format"))
+        scroll_layout.addWidget(self.groupOutputFormat)
+        self.groupOutputFormat.setCheckable(False)
+        output_layout_format = QVBoxLayout(self.groupOutputFormat)
+        output_layout_format.setAlignment(Qt.AlignTop)
 
-        self.checkMaxIntensity.setText(self.tr("Max Intensity"))
-        self.checkMaxIntensity.setToolTip(self.tr("Highest recorded intensity value in the dataset"))
+        # === File Metadata ===
+        self.checkFileName = self.add_check(self.groupFileMetadata, "File Name", "File name of the LiDAR dataset")
+        self.checkFileSource = self.add_check(self.groupFileMetadata, "File Source", "Source ID specified in the LAS file header")
+        self.checkGlobalEncoding = self.add_check(self.groupFileMetadata, "Global Encoding", "Flags describing GPS time, waveform, etc.")
+        self.checkSystemId = self.add_check(self.groupFileMetadata, "System ID", "Identifier of the system that created the file")
+        self.checkGenSoftware = self.add_check(self.groupFileMetadata, "Generating Software", "Software that generated the LAS file")
+        self.checkVersion = self.add_check(self.groupFileMetadata, "LAS Version", "LAS file format version (e.g., 1.2, 1.4)")
+        self.checkPointFormat = self.add_check(self.groupFileMetadata, "Point Format", "Point data record format and byte size")
+        self.checkCreationDate = self.add_check(self.groupFileMetadata, "Creation Date", "Date the LAS file was created")
 
-        self.checkIntensityMean.setText(self.tr("Mean Intensity"))
-        self.checkIntensityMean.setToolTip(self.tr("Average intensity of the dataset"))
+        # === Spatial ===
+        self.checkNumPoints = self.add_check(self.groupSpatial, "Number of Points", "Total number of points")
+        self.checkArea = self.add_check(self.groupSpatial, "Area", "Area covered by the point cloud")
+        self.checkDensity = self.add_check(self.groupSpatial, "Density", "Average number of points per m²")
+        self.checkBounds = self.add_check(self.groupSpatial, "Bounds (Min/Max)", "Minimum and maximum X/Y/Z coordinates")
+        self.checkXAxisBounds = self.add_check(self.groupSpatial, "X-Axis Bounds")
+        self.checkYAxisBounds = self.add_check(self.groupSpatial, "Y-Axis Bounds")
+        self.checkZAxisBounds = self.add_check(self.groupSpatial, "Z-Axis Bounds")
 
-        self.checkIntensitySD.setText(self.tr("Standard deviation"))
-        self.checkIntensitySD.setToolTip(self.tr("Standard deviation of the dataset"))
+        # === Intensity ===
+        self.checkMinIntensity = self.add_check(self.groupIntensity, "Min Intensity")
+        self.checkMaxIntensity = self.add_check(self.groupIntensity, "Max Intensity")
+        self.checkIntensityMean = self.add_check(self.groupIntensity, "Mean Intensity")
+        self.checkIntensitySD = self.add_check(self.groupIntensity, "Standard deviation")
 
+        # === Time ===
+        self.checkMinTime = self.add_check(self.groupTime, "Min Time")
+        self.checkMaxTime = self.add_check(self.groupTime, "Max Time")
 
-        # === Spatial checkboxes ===
-        self.checkNumPoints.setText(self.tr("Number of Points"))
-        self.checkNumPoints.setToolTip(self.tr("Total number of points in the dataset"))
+        # === Classification ===
+        self.checkClassCounts = self.add_check(self.groupClassification, "Class Counts")
+        self.checkReturnCounts = self.add_check(self.groupClassification, "Return Counts")
 
-        self.checkArea.setText(self.tr("Area"))
-        self.checkArea.setToolTip(self.tr("Area covered by the point cloud, based on spatial extent"))
+        # === Output Format ===
+        self.checkTxt = self.add_check(self.groupOutputFormat, "Plain Text (.txt)")
+        self.checkMarkdown = self.add_check(self.groupOutputFormat, "Markdown (.md)")
+        self.checkPdf = self.add_check(self.groupOutputFormat, "PDF (.pdf)")
+        self.checkGenerateDock = self.add_check(self.groupOutputFormat, "Generate Dock Panel in QGIS")
 
-        self.checkDensity.setText(self.tr("Density"))
-        self.checkDensity.setToolTip(self.tr("Average number of points per unit area (e.g., points per square meter)"))
+        self.labelWarningOutputFormat = QLabel(self.tr("No output format selected"))
+        self.labelWarningOutputFormat.setStyleSheet("color: #d9534f; font-style: italic;")
+        scroll_layout.addWidget(self.labelWarningOutputFormat)
 
-        self.checkBounds.setText(self.tr("Bounds (Min/Max)"))
-        self.checkBounds.setToolTip(self.tr("Minimum and maximum coordinates (X, Y, Z) bounding the dataset"))
+        # --- Select All Button ---
+        self.btnSelectAll = QPushButton(self.tr("Select All Attributes"))
+        self.btnSelectAll.setFixedWidth(180)
+        scroll_layout.addWidget(self.btnSelectAll, alignment=Qt.AlignLeft)
 
-        self.checkXAxisBounds.setText(self.tr("X-Axis Bounds"))
-        self.checkXAxisBounds.setToolTip(self.tr("Minimum and maximum X-axis values in the dataset"))
+        # Default Selections
+        self.checkFileName.setChecked(True)
+        self.checkVersion.setChecked(True)
+        self.checkPointFormat.setChecked(True)
+        self.checkNumPoints.setChecked(True)
+        self.checkBounds.setChecked(True)
+        self.checkTxt.setChecked(True)
 
-        self.checkYAxisBounds.setText(self.tr("Y-Axis Bounds"))
-        self.checkYAxisBounds.setToolTip(self.tr("Minimum and maximum Y-axis values in the dataset"))
+        # Default group state
+        self.groupFileMetadata.setChecked(True)
+        self.groupSpatial.setChecked(True)
+        self.groupIntensity.setChecked(True)
+        self.groupTime.setChecked(True)
+        self.groupClassification.setChecked(False)
 
-        self.checkZAxisBounds.setText(self.tr("Z-Axis Bounds"))
-        self.checkZAxisBounds.setToolTip(self.tr("Minimum and maximum Z-axis values in the dataset"))
+        # --- Spacer before buttons ---
+        scroll_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
+        # --- OK/Cancel buttons ---
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        left_layout.addWidget(buttons)
+        self.ok_button = buttons.button(QDialogButtonBox.Ok)
 
-        # === Time checkboxes ===
-        self.checkMinTime.setText(self.tr("Min Time"))
-        self.checkMinTime.setToolTip(self.tr("Earliest timestamp recorded in the dataset"))
+        # --- Right Panel (Description) ---
+        desc_box = QTextBrowser()
+        desc_box.setOpenExternalLinks(False)
+        desc_box.setFixedWidth(320)
+        desc_box.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        desc_box.setStyleSheet("""
+            QTextBrowser {
+                background-color: #fafafa;
+                border: 1px solid #dcdcdc;
+                padding: 10px;
+                border-radius: 6px;
+                font-family: "Segoe UI", sans-serif;
+                font-size: 10pt;
+            }
+        """)
+        desc_box.setHtml(f"""
+            <div style="position: relative;">
+                <h3 style="margin-bottom:4px;">LiDAR Report Generator</h3>
+                <p style="font-size:9.5pt; color:#444;">
+                    This tool creates <b>summary reports</b> for LiDAR datasets, providing
+                    metadata, spatial statistics, intensity measures, classification summaries,
+                    and other relevant information.
+                </p>
+                <hr style="border:none; border-top:1px solid #ccc; margin:6px 0;">
+                <h4 style="margin-bottom:2px;">Workflow:</h4>
+                <ul>
+                    <li>Select a LiDAR <b>layer or file</b> (.las / .laz).</li>
+                    <li>Choose which attributes and metrics to include in the report.</li>
+                    <li>Select one or more <b>output formats</b> (TXT, Markdown, PDF).</li>
+                    <li>Optionally generate a <b>dockable report panel</b> in QGIS.</li>
+                </ul>
+                <p style="margin-top:4px; font-size:9pt; color:#666;">
+                    Use this tool to quickly inspect, summarize, or document LiDAR dataset properties.
+                </p>
+            </div>
+        """)
 
-        self.checkMaxTime.setText(self.tr("Max Time"))
-        self.checkMaxTime.setToolTip(self.tr("Latest timestamp recorded in the dataset"))
+        main_layout.addWidget(left_panel, stretch=3)
+        main_layout.addWidget(desc_box, stretch=2)
 
+        # --- Connections ---
+        self.populate_input_layers()
+        self.input_combo.currentIndexChanged.connect(self.on_input_changed)
+        self.input_button.clicked.connect(self.select_input_file)
+        self.output_button.clicked.connect(self.select_output_file)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
 
-        # === Classification checkboxes ===
-        self.checkClassCounts.setText(self.tr("Class Counts"))
-        self.checkClassCounts.setToolTip(self.tr("Counts of points by classification codes (e.g., ground, vegetation, building...)"))
-
-        # === Return counts checkboxes ===
-        self.checkReturnCounts.setText(self.tr("Return Counts"))
-        self.checkReturnCounts.setToolTip(self.tr("Counts of points by return number (first, last...)"))
-
-        # === Dock checkboxes ===
-        self.checkGenerateDock.setText(self.tr("Generate Dock Panel in QGIS"))
-        self.checkGenerateDock.setToolTip(self.tr("If checked, a dockable report panel will be created alongside the generated report in QGIS"))
-
-        # === Buttons ===
-        self.btnSelectAll.setText(self.tr("Select All Attributes"))
-
-        # === Output Format checkboxes (formerly radio buttons) ===
-        self.checkTxt.setText(self.tr("Plain Text (.txt)"))
-        self.checkMarkdown.setText("Markdown (.md)")
-        self.checkPdf.setText("PDF (.pdf)")
-        self.checkGenerateDock.setText(self.tr("Generate Dock Panel in QGIS"))
-        self.checkGenerateDock.setToolTip(self.tr("If checked, a dockable report panel will be created alongside the generated report in QGIS"))
-
-        # === Toggle groups and connect signals ===
-        self.groupTime.toggled.connect(self.on_group_time_toggled)
-        self.groupIntensity.toggled.connect(self.on_group_intensity_toggled)
-        self.groupSpatial.toggled.connect(self.on_group_spatial_toggled)
+        # Group toggles
         self.groupFileMetadata.toggled.connect(self.on_group_file_metadata_toggled)
+        self.groupSpatial.toggled.connect(self.on_group_spatial_toggled)
+        self.groupIntensity.toggled.connect(self.on_group_intensity_toggled)
+        self.groupTime.toggled.connect(self.on_group_time_toggled)
         self.groupClassification.toggled.connect(self.on_group_classification_toggled)
-
         self.btnSelectAll.clicked.connect(self.on_select_all_clicked)
 
-        self.checkTxt.stateChanged.connect(self.validate_state)
-        self.checkMarkdown.stateChanged.connect(self.validate_state)
-        self.checkPdf.stateChanged.connect(self.validate_state)
-
+        # Checkbox tracking
         self.checkboxes = [
-            # Metadata checkboxes
-            self.checkFileName,
-            self.checkFileSource,
-            self.checkGlobalEncoding,
-            self.checkSystemId,
-            self.checkGenSoftware,
-            self.checkVersion,
-            self.checkPointFormat,
-            self.checkCreationDate,
-
-            # Intensity checkboxes
-            self.checkMinIntensity,
-            self.checkMaxIntensity,
-            self.checkIntensityMean,
-            self.checkIntensitySD,
-
-            # Spatial bounds checkboxes
-            self.checkNumPoints,
-            self.checkArea,
-            self.checkDensity,
-            self.checkBounds,
-            self.checkXAxisBounds,
-            self.checkYAxisBounds,
-            self.checkZAxisBounds,
-
-            # GPS time checkboxes
-            self.checkMinTime,
-            self.checkMaxTime,
-
-            # Point metrics checkboxes
-            self.checkClassCounts,
-            self.checkReturnCounts,
+            self.checkFileName, self.checkFileSource, self.checkGlobalEncoding, self.checkSystemId,
+            self.checkGenSoftware, self.checkVersion, self.checkPointFormat, self.checkCreationDate,
+            self.checkNumPoints, self.checkArea, self.checkDensity, self.checkBounds,
+            self.checkXAxisBounds, self.checkYAxisBounds, self.checkZAxisBounds,
+            self.checkMinIntensity, self.checkMaxIntensity, self.checkIntensityMean, self.checkIntensitySD,
+            self.checkMinTime, self.checkMaxTime,
+            self.checkClassCounts, self.checkReturnCounts
         ]
 
-        self.ok_button = self.buttonBox.button(QDialogButtonBox.Ok)
-        for checkbox in self.checkboxes:
-            checkbox.stateChanged.connect(self.validate_state)
+        for cb in self.checkboxes + [self.checkTxt, self.checkMarkdown, self.checkPdf, self.checkGenerateDock]:
+            cb.stateChanged.connect(self.validate_state)
 
         self.validate_state()
 
-        self.buttonBox.accepted.connect(self.accept)
-        self.buttonBox.rejected.connect(self.reject)
+    # --- Helper Methods ---
+    def create_group(self, title, parent_layout):
+        group = QGroupBox(self.tr(title))
+        group.setCheckable(True)
+        group.setChecked(False)
+        layout = QVBoxLayout(group)
+        layout.setAlignment(Qt.AlignTop)
+        parent_layout.addWidget(group)
+        return group
 
-    def on_group_time_toggled(self, checked):
-        self.checkMinTime.setEnabled(checked)
-        self.checkMaxTime.setEnabled(checked)
+    def add_check(self, parent_group, text, tooltip=None):
+        cb = QCheckBox(self.tr(text))
+        if tooltip:
+            cb.setToolTip(self.tr(tooltip))
+        parent_group.layout().addWidget(cb)
+        return cb
 
-        if checked:
-            self.checkMinTime.setChecked(True)
-            self.checkMaxTime.setChecked(True)
+    # --- Layer & File Management ---
+    def populate_input_layers(self):
+        """Populate combo with loaded LiDAR layers."""
+        self.input_combo.clear()
+        layers = [
+            lyr for lyr in QgsProject.instance().mapLayers().values()
+            if isinstance(lyr, QgsPointCloudLayer)
+        ]
+        if not layers:
+            self.selected_input = None
+            self.is_layer = False
+            return
+        for lyr in layers:
+            crs = f" [{lyr.crs().authid()}]" if lyr.crs().isValid() else ""
+            self.input_combo.addItem(f"{lyr.name()}{crs}", lyr)
+        self.input_combo.setCurrentIndex(0)
+        self.on_input_changed(0)
+
+    def on_input_changed(self, index):
+        """Update input and output defaults."""
+        layer = self.input_combo.itemData(index)
+        if isinstance(layer, QgsPointCloudLayer):
+            self.selected_input = layer.source()
+            self.is_layer = True
+        elif isinstance(layer, str):
+            self.selected_input = layer
+            self.is_layer = False
         else:
-            self.checkMinTime.setChecked(False)
-            self.checkMaxTime.setChecked(False)
+            return
+        if not self.user_edited_output:
+            self.update_default_output()
 
+    def update_default_output(self):
+        if not self.selected_input:
+            return
+        base = os.path.splitext(os.path.basename(self.selected_input))[0]
+        default_output = os.path.join(os.path.dirname(self.selected_input), base + "_report.txt")
+        self.output_edit.setText(default_output)
+        self.selected_output = default_output
+
+    def select_input_file(self):
+        filename, _ = QFileDialog.getOpenFileName(
+            self, self.tr("Select LiDAR File"), "", self.tr("LiDAR Files (*.las *.laz)")
+        )
+        if not filename:
+            return
+        existing_index = self.input_combo.findData(filename)
+        if existing_index == -1:
+            self.input_combo.addItem(filename, filename)
+            self.input_combo.setCurrentIndex(self.input_combo.count() - 1)
+        else:
+            self.input_combo.setCurrentIndex(existing_index)
+        self.selected_input = filename
+        self.is_layer = False
+        self.user_edited_output = False
+        self.update_default_output()
+
+    def select_output_file(self):
+        filename, _ = QFileDialog.getSaveFileName(
+            self,
+            self.tr("Save LiDAR Report File"),
+            self.output_edit.text() or "",
+            self.tr("Report Files (*.txt *.md *.pdf)")
+        )
+        if filename:
+            self.output_edit.setText(filename)
+            self.selected_output = filename
+            self.user_edited_output = True
+
+    def get_input_output(self):
+        return self.selected_input, self.output_edit.text().strip()
+
+    # --- Group Logic & Validation ---
+    def on_group_time_toggled(self, checked):
+        for cb in [self.checkMinTime, self.checkMaxTime]:
+            cb.setEnabled(checked)
+            cb.setChecked(checked)
         self.validate_state()
 
     def on_group_intensity_toggled(self, checked):
-        self.checkMinIntensity.setEnabled(checked)
-        self.checkMaxIntensity.setEnabled(checked)
-        self.checkIntensityMean.setEnabled(checked),
-        self.checkIntensitySD.setEnabled(checked),
-
-        if checked:
-            self.checkMinIntensity.setChecked(True)
-            self.checkMaxIntensity.setChecked(True)
-            self.checkIntensityMean.setChecked(True)
-            self.checkIntensitySD.setChecked(True)
-        else:
-            self.checkMinIntensity.setChecked(False)
-            self.checkMaxIntensity.setChecked(False)
-            self.checkIntensityMean.setChecked(False)
-            self.checkIntensitySD.setChecked(False)
-
+        for cb in [self.checkMinIntensity, self.checkMaxIntensity, self.checkIntensityMean, self.checkIntensitySD]:
+            cb.setEnabled(checked)
+            cb.setChecked(checked)
         self.validate_state()
 
     def on_group_spatial_toggled(self, checked):
-        self.checkNumPoints.setEnabled(checked)
-        self.checkArea.setEnabled(checked)
-        self.checkDensity.setEnabled(checked)
-        self.checkBounds.setEnabled(checked)
-        self.checkXAxisBounds.setEnabled(checked)
-        self.checkYAxisBounds.setEnabled(checked)
-        self.checkZAxisBounds.setEnabled(checked)
-
-        if checked:
-            self.checkNumPoints.setChecked(True)
-            self.checkArea.setChecked(True)
-            self.checkDensity.setChecked(True)
-            self.checkBounds.setChecked(True)
-            self.checkXAxisBounds.setChecked(True)
-            self.checkYAxisBounds.setChecked(True)
-            self.checkZAxisBounds.setChecked(True)
-        else:
-            self.checkNumPoints.setChecked(False)
-            self.checkArea.setChecked(False)
-            self.checkDensity.setChecked(False)
-            self.checkBounds.setChecked(False)
-            self.checkXAxisBounds.setChecked(False)
-            self.checkYAxisBounds.setChecked(False)
-            self.checkZAxisBounds.setChecked(False)
-
+        for cb in [self.checkNumPoints, self.checkArea, self.checkDensity,
+                   self.checkBounds, self.checkXAxisBounds, self.checkYAxisBounds, self.checkZAxisBounds]:
+            cb.setEnabled(checked)
+            cb.setChecked(checked)
         self.validate_state()
 
     def on_group_file_metadata_toggled(self, checked):
-        self.checkFileName.setEnabled(checked)
-        self.checkFileSource.setEnabled(checked)
-        self.checkGlobalEncoding.setEnabled(checked)
-        self.checkSystemId.setEnabled(checked)
-        self.checkGenSoftware.setEnabled(checked)
-        self.checkVersion.setEnabled(checked)
-        self.checkPointFormat.setEnabled(checked)
-        self.checkCreationDate.setEnabled(checked)
-
-        if checked:
-            self.checkFileName.setChecked(True)
-            self.checkFileSource.setChecked(True)
-            self.checkGlobalEncoding.setChecked(True)
-            self.checkSystemId.setChecked(True)
-            self.checkGenSoftware.setChecked(True)
-            self.checkVersion.setChecked(True)
-            self.checkPointFormat.setChecked(True)
-            self.checkCreationDate.setChecked(True)
-        else:
-            self.checkFileName.setChecked(False)
-            self.checkFileSource.setChecked(False)
-            self.checkGlobalEncoding.setChecked(False)
-            self.checkSystemId.setChecked(False)
-            self.checkGenSoftware.setChecked(False)
-            self.checkVersion.setChecked(False)
-            self.checkPointFormat.setChecked(False)
-            self.checkCreationDate.setChecked(False)
-
+        for cb in [self.checkFileName, self.checkFileSource, self.checkGlobalEncoding, self.checkSystemId,
+                   self.checkGenSoftware, self.checkVersion, self.checkPointFormat, self.checkCreationDate]:
+            cb.setEnabled(checked)
+            cb.setChecked(checked)
         self.validate_state()
 
     def on_group_classification_toggled(self, checked):
-        self.checkClassCounts.setEnabled(checked)
-        self.checkReturnCounts.setEnabled(checked)
-
-        if checked:
-            self.checkClassCounts.setChecked(True)
-            self.checkReturnCounts.setChecked(True)
-        else:
-            self.checkClassCounts.setChecked(False)
-            self.checkReturnCounts.setChecked(False)
-
+        for cb in [self.checkClassCounts, self.checkReturnCounts]:
+            cb.setEnabled(checked)
+            cb.setChecked(checked)
         self.validate_state()
 
     def on_select_all_clicked(self):
         for cb in self.checkboxes:
             cb.setEnabled(True)
             cb.setChecked(True)
-
-        self.groupFileMetadata.setChecked(True)
-        self.groupSpatial.setChecked(True)
-        self.groupIntensity.setChecked(True)
-        self.groupTime.setChecked(True)
-        self.groupClassification.setChecked(True)
-
+        for grp in [self.groupFileMetadata, self.groupSpatial, self.groupIntensity,
+                    self.groupTime, self.groupClassification]:
+            grp.setChecked(True)
         self.validate_state()
 
+    def validate_state(self):
+        any_info = any(cb.isChecked() for cb in self.checkboxes)
+        any_format = any(cb.isChecked() for cb in [self.checkTxt, self.checkMarkdown, self.checkPdf, self.checkGenerateDock])
+        self.labelWarning.setVisible(not any_info)
+        self.labelWarningOutputFormat.setVisible(not any_format)
+        self.ok_button.setEnabled(any_info and any_format)
+
+    # --- Output Utilities ---
     def selected_formats(self):
-        formats = []
+        fmt = []
         if self.checkTxt.isChecked():
-            formats.append("txt")
+            fmt.append("txt")
         if self.checkMarkdown.isChecked():
-            formats.append("md")
+            fmt.append("md")
         if self.checkPdf.isChecked():
-            formats.append("pdf")
-        return formats
+            fmt.append("pdf")
+        return fmt
 
     def generate_dock(self):
         return self.checkGenerateDock.isChecked()
-
-    def validate_state(self):
-        any_info_checked = any(cb.isChecked() for cb in self.checkboxes)
-        any_format_checked = (
-            self.checkTxt.isChecked() or
-            self.checkMarkdown.isChecked() or
-            self.checkPdf.isChecked() or
-            self.checkGenerateDock.isChecked()
-        )
-
-        self.labelWarning.setVisible(not any_info_checked)
-        self.labelWarning.setText("" if any_info_checked else self.tr("No information selected"))
-
-        self.labelWarningOutputFormat.setVisible(not any_format_checked)
-        self.labelWarningOutputFormat.setText("" if any_format_checked else self.tr("No output format selected"))
-
-        self.ok_button.setEnabled(any_info_checked and any_format_checked)

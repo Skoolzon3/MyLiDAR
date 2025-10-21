@@ -5,8 +5,11 @@ from laspy import LazBackend
 import numpy as np
 
 # --- QGIS and PyQt imports ---
-from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
+from qgis.PyQt.QtWidgets import QMessageBox, QDialog
 from qgis.core import QgsApplication, QgsPointCloudLayer, QgsProject, QgsTask, Qgis, QgsMessageLog
+
+# --- Dialog imports ---
+from .overlap_removal_dialog import OverlapRemovalDialog
 
 # -----------------------
 # --- Overlap Removal ---
@@ -107,28 +110,27 @@ class RemoveOverlapTask(QgsTask):
 # -----------------------------------
 
 def remove_overlap(self):
-    # Step 1: Select input file path
-    input_filename, _ = QFileDialog.getOpenFileName(
-        self.iface.mainWindow(),
-        self.tr("Select LiDAR File to Remove Overlap Points"),
-        '',
-        self.tr("LiDAR Files (*.las *.laz)")
-    )
+    dlg = OverlapRemovalDialog(self.iface.mainWindow(), self.tr)
+    if dlg.exec_() != QDialog.Accepted:
+        return
+
+    input_filename, output_filename = dlg.get_input_output()
     if not input_filename:
+        QMessageBox.warning(
+            self.iface.mainWindow(),
+            self.tr("No Input Selected"),
+            self.tr("Please select a LiDAR layer or file.")
+        )
         return
 
-    # Step 2: Select output file path
-    default_output = os.path.splitext(input_filename)[0] + '_non_overlap.laz'
-    output_filename, _ = QFileDialog.getSaveFileName(
-        self.iface.mainWindow(),
-        self.tr("Save Non-Overlap LiDAR File"),
-        default_output,
-        self.tr("LiDAR Files (*.las *.laz)")
-    )
     if not output_filename:
+        QMessageBox.warning(
+            self.iface.mainWindow(),
+            self.tr("No Output Selected"),
+            self.tr("Please specify an output file path.")
+        )
         return
 
-    # Step 3: Create and run the background task
     task_description = f"{self.tr('Removing overlap from')} {os.path.basename(input_filename)}"
     task = RemoveOverlapTask(task_description, input_filename, output_filename, self, self.tr)
     self.running_tasks.append(task)

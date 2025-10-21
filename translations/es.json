@@ -162,7 +162,7 @@
 
 
   "No ground points found in the file": "No se han encontrado puntos de suelo en el archivo",
-  "DEM successfully generated from ground points.\nOutput saved at": "MDE generado correctamente a partir de puntos de suelo.\nSalida guardada en",
+  "DEM successfully generated from ground points. Output saved at": "MDE generado correctamente a partir de puntos de suelo. Salida guardada en",
   "Hillshade saved at": "Sombreado guardado en",
   "Bare Earth DEM Generated": "MDE del Terreno Base Generado",
   "DEM generation failed": "La generación del MDE falló",

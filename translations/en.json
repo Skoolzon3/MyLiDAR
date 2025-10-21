@@ -161,7 +161,7 @@
 
 
   "No ground points found in the file": "No ground points found in the file",
-  "DEM successfully generated from ground points.\nOutput saved at": "DEM successfully generated from ground points.\nOutput saved at",
+  "DEM successfully generated from ground points. Output saved at": "DEM successfully generated from ground points. Output saved at",
   "Hillshade saved at": "Hillshade saved at",
   "Bare Earth DEM Generated": "Bare Earth DEM Generated",
   "DEM generation failed": "DEM generation failed",
