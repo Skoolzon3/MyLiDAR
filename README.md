@@ -46,13 +46,13 @@ These functions are compatible with LiDAR `.las` and `.laz` files, and their exe
 
 #### Dependencies
 This plugin requires the following Python libraries:
-- **matplotlib** for generating graphs and visualisations.
 - **laspy** for reading and writing LAS/LAZ files.
-- **numpy** for numerical calculations and statistical queries.
-- **scipy** for scientific data processing and analysis.
-- **reportlab** for generating PDF reports.
 - **GDAL** and **OSR** for geospatial data manipulation.
+- **numpy** for numerical calculations and statistical queries.
 - **scikit-learn** for point clustering.
+- **scipy** for scientific data processing and analysis.
+- **matplotlib** for generating graphs and visualisations.
+- **reportlab** for generating PDF reports.
 
 **Note**: the numpy dependency used in the project is integrated into laspy, so there is no need to install it later on once the latter is installed.
 
@@ -127,13 +127,13 @@ Estas funciones son compatibles con archivos LiDAR `.las` y `.laz`, y su ejecuci
 
 #### Dependencias
 Este complemento requiere las siguientes bibliotecas de Python:
-- **matplotlib** para la generación de gráficos y visualizaciones.
 - **laspy** para leer y escribir archivos LAS/LAZ.
-- **numpy** para cálculos numéricos y consultas estadísticas.
-- **scipy** para el procesamiento y análisis de datos científicos.
-- **reportlab** para la generación de informes en PDF.
 - **GDAL** y **OSR** para la manipulación de datos geoespaciales.
+- **numpy** para cálculos numéricos y consultas estadísticas.
 - **scikit-learn** para la clusterización de puntos.
+- **scipy** para el procesamiento y análisis de datos científicos.
+- **matplotlib** para la generación de gráficos y visualizaciones.
+- **reportlab** para la generación de informes en PDF.
 
 **Nota**: la dependencia numpy utilizada en el proyecto está integrada en laspy, por lo que no es necesario instalarla posteriormente una vez que se haya instalado esta última.
 
