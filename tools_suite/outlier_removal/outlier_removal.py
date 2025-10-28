@@ -16,11 +16,12 @@ from .outlier_removal_dialog import OutlierRemovalDialog
 
 # -----------------------
 # --- Outlier Removal ---
-# -----------------------
+# --------------------------------------------------------------------------------------------
 # Description:
-# This function removes outliers from a LiDAR file based on a specified radius and minimum number of neighbors.
-# It uses a KD-tree during neighbor searching and allows the user to save the processed file.
-# -----------------------
+# This function removes outliers from a LiDAR file based on a specified radius and minimum
+# number of neighbors. It uses a KD-tree during neighbor searching and allows the user to save
+# the processed file.
+# --------------------------------------------------------------------------------------------
 
 # -------------------------------------------
 # --- Background Task for Outlier Removal ---

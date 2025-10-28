@@ -8,6 +8,85 @@
 
 
 
+  "Building Count (DBSCAN)": "Recuento de edificios (DBSCAN)",
+  "This tool estimates the number of buildings in a LiDAR dataset by clustering points classified as buildings (code 6).": "Esta herramienta estima el número de edificios en un conjunto de datos LiDAR agrupando puntos clasificados como edificios (código 6).",
+  "Workflow:": "Flujo de trabajo:",
+  "Filters building-classified points (code 6).": "Filtra puntos clasificados como edificios (código 6).",
+  "Applies DBSCAN clustering to group nearby building points.": "Aplica el agrupamiento DBSCAN para agrupar puntos de edificios cercanos.",
+  "Creates polygons representing each detected building cluster.": "Crea polígonos que representan cada clúster de edificios detectado.",
+  "The number of detected clusters approximates the total number of buildings.": "El número de clústeres detectados calcula aproximadamente el número total de edificios.",
+
+  "Bare Earth DEM Generation": "Generación de MDT de Terreno Desnudo",
+  "This tool generates a Bare Earth DEM by filtering ground-classified points from LiDAR data and interpolating them into a continuous elevation grid.": "Esta herramienta genera un MDT de terreno desnudo filtrando los puntos clasificados como suelo a partir de datos LiDAR e interpolándolos en una cuadrícula de elevación continua.",
+  "Extracts ground-classified points (code 2).": "Extrae los puntos clasificados como suelo (código 2).",
+  "Interpolates points into a raster DEM using either TIN or grid-based methods.": "Interpola los puntos en un MDT ráster utilizando métodos TIN o basados en cuadrícula.",
+  "Optionally generates a hillshade raster for visualization.": "Opcionalmente genera un ráster de sombreado (hillshade) para la visualización.",
+  "The output raster represents the underlying terrain surface without vegetation or buildings.": "El ráster resultante representa la superficie del terreno sin vegetación ni edificaciones.",
+
+
+
+  "Outlier Removal": "Borrado de puntos atípicos",
+  "This tool removes isolated points (outliers) from a LiDAR dataset. By using a radius-based neighbor search, it detects points that have too few nearby neighbors within a given distance.": "Esta herramienta elimina los puntos aislados (atípicos) de un conjunto de datos LiDAR. Mediante una búsqueda de vecinos basada en radio, detecta los puntos que tienen muy pocos vecinos cercanos dentro de una distancia determinada.",
+  "Builds a KD-tree from all points in the cloud.": "Construye un árbol KD a partir de todos los puntos de la nube.",
+  "Counts neighbors within a specified radius.": "Cuenta los vecinos dentro de un radio especificado.",
+  "Removes points with fewer than minimum neighbors.": "Elimina los puntos con menos vecinos de los mínimos requeridos.",
+  "Adjust the parameters to control how strictly isolated points are removed. Smaller radius or higher neighbor counts will remove more points.": "Ajuste los parámetros para controlar la estricta eliminación de puntos aislados. Un radio más pequeño o un número mayor de vecinos eliminará más puntos.",
+
+
+
+  "Overlap Removal": "Borrado de solapamiento",
+  "This tool removes overlap points from a LiDAR file based on classification codes. Points classified as overlap are filtered out, and the remaining points are saved as a new point cloud.": "Esta herramienta elimina los puntos superpuestos de un archivo LiDAR basándose en los códigos de clasificación. Los puntos clasificados como solapados se filtran y los puntos restantes se guardan como una nueva nube de puntos.",
+  "Reads the input .las or .laz file.": "Lee el archivo de entrada .las o .laz.",
+  "Filters out points with overlap classification codes (12, 17).": "Filtra los puntos con códigos de clasificación de solapamiento (12, 17).",
+  "Writes the cleaned point cloud to a new file.": "Escribe la nube de puntos depurada en un nuevo archivo.",
+  "The resulting dataset contains only non-overlapping LiDAR points.": "El conjunto de datos resultante contiene únicamente puntos LiDAR no solapados.",
+
+
+
+  "LiDAR Report Generator": "Generador de informes LiDAR",
+  "This tool creates summary reports for LiDAR datasets, providing metadata, spatial statistics, intensity measures, classification summaries, and other relevant information.": "Esta herramienta crea informes resumidos para conjuntos de datos LiDAR, proporcionando metadatos, estadísticas espaciales, medidas de intensidad, resúmenes de clasificación y otra información relevante.",
+  "Select a LiDAR layer or file (.las / .laz).": "Seleccione una capa o archivo LiDAR (.las / .laz).",
+  "Choose which attributes and metrics to include in the report.": "Elija qué atributos y métricas incluir en el informe.",
+  "Select one or more output formats (TXT, Markdown, PDF).": "Seleccione uno o más formatos de salida (TXT, Markdown, PDF).",
+  "Optionally generate a dockable report panel in QGIS.": "Opcionalmente, genere un panel de informe acoplable en QGIS.",
+  "Use this tool to quickly inspect, summarize, or document LiDAR dataset properties.": "Utilice esta herramienta para inspeccionar, resumir o documentar rápidamente las propiedades de un conjunto de datos LiDAR.",
+
+
+
+  "Vegetation Classification": "Clasificación de vegetación",
+  "This tool classifies vegetation points in a LiDAR dataset into low, medium, and high vegetation categories based on their height above ground.": "Esta herramienta clasifica los puntos de vegetación en un conjunto de datos LiDAR en categorías de vegetación baja, media y alta, basándose en su altura sobre el suelo.",
+  "Detects ground and high vegetation points in the dataset.": "Detecta los puntos de suelo y vegetación alta en el conjunto de datos.",
+  "Estimates local ground elevation using nearest neighbors.": "Estima la elevación del terreno local utilizando los vecinos más cercanos.",
+  "Calculates point height above ground and classifies accordingly:": "Calcula la altura de los puntos sobre el suelo y los clasifica en consecuencia:",
+  "Low vegetation: height < low threshold": "Vegetación baja: altura < umbral bajo",
+  "Medium vegetation: between thresholds": "Vegetación media: entre los umbrales",
+  "High vegetation: height > high threshold": "Vegetación alta: altura > umbral alto",
+  "The classified LiDAR file will contain new classification codes corresponding to the vegetation height detected by the thresholds: 3 (low) and 4 (medium).": "El archivo LiDAR clasificado contendrá nuevos códigos de clasificación correspondientes a la altura de la vegetación detectada por los umbrales: 3 (baja) y 4 (media).",
+
+
+
+  "LiDAR layer or file:": "Capa o archivo LiDAR:",
+  "Output file:":"Archivo de salida:",
+  "Output vector file (optional):": "Archivo vectorial de salida (opcional):",
+  "Output report file:": "Archivo de informe de salida:",
+  "Select output file path...": "Seleccione la ruta del archivo de salida...",
+  "Select output file path (optional)...": "Seleccione la ruta del archivo de salida (opcional)...",
+  "Select output raster path (.tif)...": "Seleccione la ruta del ráster de salida (.tif)...",
+  "Select output report file path...": "Seleccione la ruta del archivo de informe de salida...",
+  "Outlier Removal Parameters": "Parámetros de eliminación de valores atípicos",
+  "Vegetation Height Thresholds": "Umbrales de altura de la vegetación",
+  "Low vegetation threshold:": "Umbral de vegetación baja:",
+  "High vegetation threshold:": "Umbral de vegetación alta:",
+  "DBSCAN Parameters": "Parámetros DBSCAN",
+  "Epsilon:": "Épsilon:",
+  "Output DEM file:": "Archivo MDE de salida:",
+  "DEM Generation Parameters": "Parámetros de generación de MDE",
+  "Cell size:": "Tamaño de celda:",
+  "Interpolation method:":"Método de interpolación:",
+  "Grid-based (min Z per cell)":"Basado en cuadrículas (Z mínimo por celda)",
+  "Triangulation-based (TIN)":"Basado en triangulación (TIN)",
+  "Generate Hillshade": "Generar mapa de sombras",
+
   "Report created at": "Informe creado en",
   "Report generation failed": "La generación del informe falló",
   "Select LiDAR File": "Seleccione archivo LiDAR",
@@ -15,17 +94,19 @@
   "Generating report for": "Generando informe de",
   "Generating report in the background": "Generando informe en segundo plano",
   "Generating multiple reports in the background": "Generando múltiples informes en segundo plano",
-
-  "Select Report Contents": "Seleccionar contenido del informe",
   "Select the information to include in the report:": "Seleccione la información a incluir en el informe:",
   "No information selected": "No se seleccionó ninguna información",
 
+  "File Metadata": "Metadatos del archivo",
   "File Name": "Nombre del archivo",
   "File name of the LiDAR dataset": "Nombre del archivo del conjunto de datos LiDAR",
   "File Source": "Fuente del archivo",
-  "Source ID specified in the LAS file header, identifying the generating system": "ID de fuente especificado en la cabecera del archivo LAS, identificando el sistema generador",
+  "File Source ID": "ID de origen del archivo",
+  "Source ID specified in the LAS file header": "ID de fuente especificado en la cabecera del archivo LAS",
+  "Global Encoding": "Codificación global",
   "Flags describing GPS time type, waveform data and other global settings": "Indicadores que describen el tipo de tiempo GPS, datos de forma de onda y otras configuraciones globales",
   "Identifier of the system that created the file": "Identificador del sistema que creó el archivo",
+  "Generating Software": "Software generador",
   "Name of the software that generated the LAS file": "Nombre del software que generó el archivo LAS",
   "LAS Version": "Versión LAS",
   "LAS file format version (e.g., 1.2, 1.4)": "Versión del formato de archivo LAS (p. ej., 1.2, 1.4)",
@@ -80,10 +161,6 @@
   "Report date": "Fecha del informe",
   "Name": "Nombre",
   "File": "Archivo",
-  "File Metadata": "Metadatos del archivo",
-  "File Source ID": "ID de origen del archivo",
-  "Global Encoding": "Codificación global",
-  "Generating Software": "Software generador",
   "Version": "Versión",
   "Point Format": "Formato de puntos",
   "Creation Date": "Fecha de creación",
@@ -128,9 +205,9 @@
   "Removing outliers in the background": "Eliminando puntos atípicos en segundo plano",
 
   "Outlier Removal Settings": "Configuración de eliminación de puntos atípicos",
-  "Search Radius (units):": "Radio de búsqueda (unidades):",
+  "Search radius:": "Radio de búsqueda:",
   "Neighborhood search radius. Points with too few neighbors within this radius are considered outliers": "Radio de búsqueda de vecinos. Los puntos con pocos vecinos dentro de este radio se consideran atípicos",
-  "Minimum Neighbors:": "Vecinos mínimos:",
+  "Minimum neighbors:": "Vecinos mínimos:",
   "Minimum number of neighbors required within the radius to retain a point. Points with fewer are removed as outliers": "Número mínimo de vecinos requeridos dentro del radio para conservar un punto. Los puntos con menos se marcan como atípicos",
 
 
@@ -149,11 +226,10 @@
   "Detecting buildings in the background": "Detectando edificios en segundo plano",
 
   "Building Detection Parameters": "Parámetros de detección de edificios",
-  "DBSCAN Epsilon:": "Épsilon de DBSCAN:",
   "Maximum distance between points to be considered neighbors": "Distancia máxima entre puntos para ser considerados vecinos",
-  "Min Samples:": "Número mínimo de muestras:",
+  "Min samples:": "Número mínimo de muestras:",
   "Minimum number of points required to form a cluster": "Número mínimo de puntos necesarios para formar un clúster",
-  "Use Z-axis for clustering (3D)": "Usar eje Z para el agrupamiento (3D)",
+  "Use Z-axis (3D clustering)": "Usar eje Z (agrupamiento 3D)",
   "Clustering will consider height (Z) as well as X and Y. This may improve building detection in areas with varying terrain": "El agrupamiento considerará la altura (Z) además de X e Y. Esto puede mejorar la detección de edificios en áreas con relieve variable",
   "Save Detected Buildings": "Guardar edificios detectados",
   "Would you like to save the detected building layer to a file?": "¿Desea guardar la capa de edificios detectados en un archivo?",
@@ -214,9 +290,6 @@
   "Global encoding": "Codificación global",
   "System ID": "ID del sistema",
   "Generating software": "Software generador",
-  "LAS version": "Versión LAS",
-  "Point format": "Formato de puntos",
-  "Creation date": "Fecha de creación",
   "N/A": "N/D",
   "Min": "Mínimo",
   "Max": "Máximo",

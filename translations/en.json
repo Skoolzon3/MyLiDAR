@@ -7,6 +7,88 @@
   "Generate LiDAR File Report": "Generate LiDAR File Report",
 
 
+  "LiDAR layer or file:": "LiDAR layer or file:",
+  "Output file:":"Output file:",
+  "Output vector file (optional):": "Output vector file (optional):",
+  "Output report file:": "Output report file:",
+  "Select output file path...": "Select output file path...",
+  "Select output file path (optional)...": "Select output file path (optional)...",
+  "Select output raster path (.tif)...": "Select output raster path (.tif)...",
+  "Select output report file path...": "Select output report file path...",
+  "Outlier Removal Parameters": "Outlier Removal Parameters",
+  "Vegetation Height Thresholds": "Vegetation Height Thresholds",
+  "Low vegetation threshold:": "Low vegetation threshold:",
+  "High vegetation threshold:": "High vegetation threshold:",
+  "DBSCAN Parameters": "DBSCAN Parameters",
+  "Epsilon:": "Epsilon:",
+  "Output DEM file:": "Output DEM file:",
+  "DEM Generation Parameters": "DEM Generation Parameters",
+  "Cell size:": "Cell size:",
+  "Interpolation method:":"Interpolation method:",
+  "Grid-based (min Z per cell)":"Grid-based (min Z per cell)",
+  "Triangulation-based (TIN)":"Triangulation-based (TIN)",
+  "Generate Hillshade": "Generate Hillshade",
+
+
+
+  "Building Count (DBSCAN)":  "Building Count (DBSCAN)",
+  "This tool estimates the number of buildings in a LiDAR dataset by clustering points classified as buildings (code 6).": "This tool estimates the number of buildings in a LiDAR dataset by clustering points classified as buildings (code 6).",
+  "Workflow:": "Workflow:",
+  "Filters building-classified points (code 6).": "Filters building-classified points (code 6).",
+  "Applies DBSCAN clustering to group nearby building points.": "Filters building-classified points (code 6).",
+  "Creates polygons representing each detected building cluster.": "Creates polygons representing each detected building cluster.",
+  "The number of detected clusters approximates the total number of buildings.": "The number of detected clusters approximates the total number of buildings.",
+
+
+
+  "Bare Earth DEM Generation": "Bare Earth DEM Generation",
+  "This tool generates a Bare Earth DEM by filtering ground-classified points from LiDAR data and interpolating them into a continuous elevation grid.": "This tool generates a Bare Earth DEM by filtering ground-classified points from LiDAR data and interpolating them into a continuous elevation grid.",
+  "Extracts ground-classified points (code 2).": "Extracts ground-classified points (code 2).",
+  "Interpolates points into a raster DEM using either TIN or grid-based methods.": "Interpolates points into a raster DEM using either TIN or grid-based methods.",
+  "Optionally generates a hillshade raster for visualization.": "Optionally generates a hillshade raster for visualization.",
+  "The output raster represents the underlying terrain surface without vegetation or buildings.": "The output raster represents the underlying terrain surface without vegetation or buildings.",
+
+
+
+  "Outlier Removal": "Outlier Removal",
+  "This tool removes isolated points (outliers) from a LiDAR dataset. By using a radius-based neighbor search, it detects points that have too few nearby neighbors within a given distance.": "This tool removes isolated points (outliers) from a LiDAR dataset. By using a radius-based neighbor search, it detects points that have too few nearby neighbors within a given distance.",
+  "Builds a KD-tree from all points in the cloud.": "Builds a KD-tree from all points in the cloud.",
+  "Counts neighbors within a specified radius.": "Counts neighbors within a specified radius.",
+  "Removes points with fewer than minimum neighbors.": "Removes points with fewer than minimum neighbors.",
+  "Adjust the parameters to control how strictly isolated points are removed. Smaller radius or higher neighbor counts will remove more points.": "Adjust the parameters to control how strictly isolated points are removed. Smaller radius or higher neighbor counts will remove more points.",
+
+
+
+  "Overlap Removal": "Overlap Removal",
+  "This tool removes overlap points from a LiDAR file based on classification codes. Points classified as overlap are filtered out, and the remaining points are saved as a new point cloud.": "This tool removes overlap points from a LiDAR file based on classification codes. Points classified as overlap are filtered out, and the remaining points are saved as a new point cloud.",
+  "Reads the input .las or .laz file.": "Reads the input .las or .laz file.",
+  "Filters out points with overlap classification codes (12, 17).": "Filters out points with overlap classification codes (12, 17).",
+  "Writes the cleaned point cloud to a new file.": "Writes the cleaned point cloud to a new file.",
+  "The resulting dataset contains only non-overlapping LiDAR points.": "The resulting dataset contains only non-overlapping LiDAR points.",
+
+
+
+  "LiDAR Report Generator": "LiDAR Report Generator",
+  "This tool creates summary reports for LiDAR datasets, providing metadata, spatial statistics, intensity measures, classification summaries, and other relevant information.": "This tool creates summary reports for LiDAR datasets, providing metadata, spatial statistics, intensity measures, classification summaries, and other relevant information.",
+  "Select a LiDAR layer or file (.las / .laz).": "Select a LiDAR layer or file (.las / .laz).",
+  "Choose which attributes and metrics to include in the report.": "Choose which attributes and metrics to include in the report.",
+  "Select one or more output formats (TXT, Markdown, PDF).": "Select one or more output formats (TXT, Markdown, PDF).",
+  "Optionally generate a dockable report panel in QGIS.": "Optionally generate a dockable report panel in QGIS.",
+  "Use this tool to quickly inspect, summarize, or document LiDAR dataset properties.": "Use this tool to quickly inspect, summarize, or document LiDAR dataset properties.",
+
+
+
+  "Vegetation Classification": "Vegetation Classification",
+  "This tool classifies vegetation points in a LiDAR dataset into low, medium, and high vegetation categories based on their height above ground.": "This tool classifies vegetation points in a LiDAR dataset into low, medium, and high vegetation categories based on their height above ground.",
+  "Detects ground and high vegetation points in the dataset.": "Detects ground and high vegetation points in the dataset.",
+  "Estimates local ground elevation using nearest neighbors.": "Estimates local ground elevation using nearest neighbors.",
+  "Calculates point height above ground and classifies accordingly:": "Calculates point height above ground and classifies accordingly:",
+  "Low vegetation: height < low threshold": "Low vegetation: height < low threshold",
+  "Medium vegetation: between thresholds": "Medium vegetation: between thresholds",
+  "High vegetation: height > high threshold": "High vegetation: height > high threshold",
+  "The classified LiDAR file will contain new classification codes corresponding to the vegetation height detected by the thresholds: 3 (low) and 4 (medium).": "The classified LiDAR file will contain new classification codes corresponding to the vegetation height detected by the thresholds: 3 (low) and 4 (medium).",
+
+
 
   "Report created at": "Report created at",
   "Report generation failed": "Report generation failed",
@@ -15,8 +97,6 @@
   "Generating report for": "Generating report for",
   "Generating report in the background": "Generating report in the background",
   "Generating multiple reports in the background": "Generating multiple reports in the background",
-
-  "Select Report Contents": "Select Report Contents",
   "Select the information to include in the report:": "Select the information to include in the report:",
   "No information selected": "No information selected",
 
@@ -24,9 +104,11 @@
   "File Name": "File Name",
   "File name of the LiDAR dataset": "File name of the LiDAR dataset",
   "File Source": "File Source",
-  "Source ID specified in the LAS file header, identifying the generating system": "Source ID specified in the LAS file header, identifying the generating system",
+  "File Source ID": "File Source ID",
+  "Source ID specified in the LAS file header": "Source ID specified in the LAS file header",
   "Global Encoding": "Global Encoding",
   "Flags describing GPS time type, waveform data and other global settings": "Flags describing GPS time type, waveform data and other global settings",
+  "System ID": "System ID",
   "Identifier of the system that created the file": "Identifier of the system that created the file",
   "Generating Software": "Generating Software",
   "Name of the software that generated the LAS file": "Name of the software that generated the LAS file",
@@ -91,7 +173,6 @@
   "Report date": "Report date",
   "Name": "Name",
   "File": "File",
-  "File Source ID": "File Source ID",
   "Version": "Version",
   "Spatial Measures": "Spatial Measures",
   "Bounds Min": "Bounds Min",
@@ -127,9 +208,9 @@
   "Removing outliers in the background": "Removing outliers in the background",
 
   "Outlier Removal Settings": "Outlier Removal Settings",
-  "Search Radius (units):": "Search Radius (units):",
+  "Search radius:": "Search radius:",
   "Neighborhood search radius. Points with too few neighbors within this radius are considered outliers": "Neighborhood search radius. Points with too few neighbors within this radius are considered outliers",
-  "Minimum Neighbors:": "Minimum Neighbors:",
+  "Minimum neighbors:": "Minimum neighbors:",
   "Minimum number of neighbors required within the radius to retain a point. Points with fewer are removed as outliers": "Minimum number of neighbors required within the radius to retain a point. Points with fewer are tagged as outliers",
 
 
@@ -148,11 +229,10 @@
   "Detecting buildings in the background": "Detecting buildings in the background",
 
   "Building Detection Parameters": "Building Detection Parameters",
-  "DBSCAN Epsilon:": "DBSCAN Epsilon:",
   "Maximum distance between points to be considered neighbors": "Maximum distance between points to be considered neighbors",
-  "Min Samples:": "Min Samples:",
+  "Min samples:": "Min samples:",
   "Minimum number of points required to form a cluster": "Minimum number of points required to form a cluster",
-  "Use Z-axis for clustering (3D)": "Use Z-axis for clustering (3D)",
+  "Use Z-axis (3D clustering)": "Use Z-axis (3D clustering)",
   "Clustering will consider height (Z) as well as X and Y. This may improve building detection in areas with varying terrain": "Clustering will consider height (Z) as well as X and Y. This may improve building detection in areas with varying terrain",
   "Save Detected Buildings": "Save Detected Buildings",
   "Would you like to save the detected building layer to a file?": "Would you like to save the detected building layer to a file?",
@@ -211,11 +291,7 @@
   "File name": "File name",
   "File source ID": "File source ID",
   "Global encoding": "Global encoding",
-  "System ID": "System ID",
   "Generating software": "Generating software",
-  "LAS version": "LAS version",
-  "Point format": "Point format",
-  "Creation date": "Creation date",
   "N/A": "N/A",
   "Min": "Min",
   "Max": "Max",

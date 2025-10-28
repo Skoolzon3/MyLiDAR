@@ -5,7 +5,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-# --- Formatting functions for LiDAR data processing ---
+# --------------------------------------
+# --- Auxiliary Formatting Functions ---
+# --------------------------------------
 
 def gps_time_to_datetime(gps_time: float) -> datetime:
     gps_epoch = datetime(1980, 1, 6, tzinfo=timezone.utc)
@@ -30,7 +32,7 @@ def format_point_format(pf, tr):
 # --- Graph generation functions for LiDAR data ---
 # -------------------------------------------------
 
-# --- Classification pie chart ---
+# --- Classification Pie Chart ---
 
 def generate_pie_chart_from_counts(classes, counts, tr, as_buffer=True, title=None, figsize=(6, 6)):
     class_info = {
@@ -80,7 +82,7 @@ def generate_pie_chart_from_counts(classes, counts, tr, as_buffer=True, title=No
     else:
         return fig
 
-# --- Return count histogram ---
+# --- Return Count Histogram ---
 
 def generate_return_bar_chart(unique_returns, return_counts, tr, as_buffer=True, title=None, figsize=(6, 4)):
     labels = [f"{r}" for r in unique_returns]
@@ -122,7 +124,7 @@ def generate_return_bar_chart(unique_returns, return_counts, tr, as_buffer=True,
     else:
         return fig
 
-# -- Point density heatmap
+# -- Point Density Heatmap
 
 def generate_density_heatmap(x, y, tr, bins=500, as_buffer=True, title=None, figsize=(7, 5)):
     fig, ax = plt.subplots(figsize=figsize)

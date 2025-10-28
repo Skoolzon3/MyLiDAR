@@ -14,7 +14,7 @@ class DemGenerationDialog(QDialog):
 
         # --- Window ---
         self.setWindowTitle(self.tr("Bare Earth DEM Generation"))
-        self.resize(900, 370)
+        self.resize(900, 440)
         self.setMinimumWidth(820)
 
         # --- Layout ---
@@ -101,23 +101,30 @@ class DemGenerationDialog(QDialog):
                 font-size: 10pt;
             }
         """)
-        desc_box.setHtml(f"""
+
+        title = self.tr("Bare Earth DEM Generation")
+        intro = self.tr("This tool generates a Bare Earth DEM by filtering ground-classified points from LiDAR data and interpolating them into a continuous elevation grid.")
+        workflow = self.tr("Workflow:")
+        step1 = self.tr("Extracts ground-classified points (code 2).")
+        step2 = self.tr("Interpolates points into a raster DEM using either TIN or grid-based methods.")
+        step3 = self.tr("Optionally generates a hillshade raster for visualization.")
+        note = self.tr("The output raster represents the underlying terrain surface without vegetation or buildings.")
+
+        desc_html = f"""
             <div style="position: relative;">
-                <h3 style="margin-bottom:4px;">{self.tr("Bare Earth DEM Generation")}</h3>
-                <p style="font-size:9.5pt; color:#444;">
-                    {self.tr("This tool generates a <b>Bare Earth DEM</b> by filtering ground-classified points from LiDAR data and interpolating them into a continuous elevation grid.")}</p>
+                <h3 style="margin-bottom:4px;">{title}</h3>
+                <p style="font-size:9.5pt; color:#444;">{intro}</p>
                 <hr style="border:none; border-top:1px solid #ccc; margin:6px 0;">
-                <h4 style="margin-bottom:2px;">{self.tr("Workflow:")}</h4>
+                <h4 style="margin-bottom:2px;">{workflow}</h4>
                 <ul>
-                    <li>{self.tr("Extracts ground-classified points (code 2).")}</li>
-                    <li>{self.tr("Interpolates points into a raster DEM using either TIN or grid-based methods.")}</li>
-                    <li>{self.tr("Optionally generates a hillshade raster for visualization.")}</li>
+                    <li>{step1}</li>
+                    <li>{step2}</li>
+                    <li>{step3}</li>
                 </ul>
-                <p style="margin-top:4px; font-size:9pt; color:#666;">
-                    {self.tr("The output raster represents the underlying terrain surface without vegetation or buildings.")}
-                </p>
+                <p style="margin-top:4px; font-size:9pt; color:#666;">{note}</p>
             </div>
-        """)
+        """
+        desc_box.setHtml(desc_html)
 
         main_layout.addWidget(left_panel, stretch=3)
         main_layout.addWidget(desc_box, stretch=2)

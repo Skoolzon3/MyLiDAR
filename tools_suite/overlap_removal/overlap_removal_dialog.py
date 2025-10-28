@@ -14,7 +14,7 @@ class OverlapRemovalDialog(QDialog):
 
         # --- Window ---
         self.setWindowTitle(tr("Remove Overlap Points"))
-        self.resize(850, 380)
+        self.resize(850, 400)
         self.setMinimumWidth(800)
 
         # --- Layout ---
@@ -87,26 +87,32 @@ class OverlapRemovalDialog(QDialog):
         #      style="position: absolute; top: 4px; right: 4px; width: 24px; height: 24px;"
         #      alt="Icon">
 
-        desc_box.setHtml(f"""
+        title = self.tr("Overlap Removal")
+        intro = self.tr(
+            "This tool removes overlap points from a LiDAR file based on classification codes. "
+            "Points classified as overlap are filtered out, and the remaining points are saved as a new point cloud."
+        )
+        workflow = self.tr("Workflow:")
+        step1 = self.tr("Reads the input .las or .laz file.")
+        step2 = self.tr("Filters out points with overlap classification codes (12, 17).")
+        step3 = self.tr("Writes the cleaned point cloud to a new file.")
+        note = self.tr("The resulting dataset contains only non-overlapping LiDAR points.")
+
+        desc_html = f"""
             <div style="position: relative;">
-                <h3 style="margin-bottom:4px;">Overlap Removal</h3>
-                <p style="font-size:9.5pt; color:#444;">
-                    This tool removes <b>overlap points</b> from a LiDAR file based on
-                    <b>classification codes</b>. Points classified as <code>overlap</code>
-                    are filtered out, and the remaining points are saved as a new point cloud.
-                </p>
+                <h3 style="margin-bottom:4px;">{title}</h3>
+                <p style="font-size:9.5pt; color:#444;">{intro}</p>
                 <hr style="border:none; border-top:1px solid #ccc; margin:6px 0;">
-                <h4 style="margin-bottom:2px;">Workflow:</h4>
+                <h4 style="margin-bottom:2px;">{workflow}</h4>
                 <ul>
-                    <li>Reads the input <code>.las</code> or <code>.laz</code> file.</li>
-                    <li>Filters out points with overlap classification codes (<b>12</b>, <b>17</b>).</li>
-                    <li>Writes the cleaned point cloud to a new file.</li>
+                    <li>{step1}</li>
+                    <li>{step2}</li>
+                    <li>{step3}</li>
                 </ul>
-                <p style="margin-top:4px; font-size:9pt; color:#666;">
-                    The resulting dataset contains only <b>non-overlapping LiDAR points</b>.
-                </p>
+                <p style="margin-top:4px; font-size:9pt; color:#666;">{note}</p>
             </div>
-        """)
+        """
+        desc_box.setHtml(desc_html)
 
         main_layout.addWidget(left_panel, stretch=3)
         main_layout.addWidget(desc_box, stretch=2)

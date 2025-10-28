@@ -18,12 +18,12 @@ from .dem_generation_dialog import DemGenerationDialog
 
 # ---------------------------------
 # --- Bare Earth DEM Generation ---
-# ---------------------------------
+# --------------------------------------------------------------------------------------------
 # Description:
 # This function generates a bare earth DEM from LiDAR point clouds by filtering ground points,
 # creating a raster grid and filling gaps using nearest-neighbor interpolation.
 # It allows users to specify the cell size for the DEM.
-# ---------------------------------
+# --------------------------------------------------------------------------------------------
 
 # -------------------------------------------
 # --- Background Task for DEM Generation ---
@@ -244,57 +244,6 @@ def generate_bare_earth_dem(self):
         )
         if not hillshade_output_path:
             hillshade_requested = False
-
-    # # Step 1: Select input file path
-    # filename, _ = QFileDialog.getOpenFileName(
-    #     self.iface.mainWindow(),
-    #     self.tr("Select LiDAR File for Bare Earth DEM"),
-    #     '',
-    #     self.tr("LiDAR Files (*.las *.laz)")
-    # )
-    # if not filename:
-    #     return
-
-    # # Step 2: Get parameters via a custom dialog
-    # dlg = DemGenerationDialog(self.iface.mainWindow(), translator=self.tr)
-    # if dlg.exec_() != QDialog.Accepted:
-    #     return
-    # cell_size, use_triangulation = dlg.get_values()
-
-    # # Step 3: Select input file path
-    # suffix = "_bare_earth_dem_TIN" if use_triangulation else "_bare_earth_dem"
-    # default_name = os.path.splitext(filename)[0] + suffix + ".tif"
-    # output_path, _ = QFileDialog.getSaveFileName(
-    #     self.iface.mainWindow(),
-    #     self.tr("Save Bare Earth DEM"),
-    #     default_name,
-    #     "GeoTIFF (*.tif)"
-    # )
-    # if not output_path:
-    #     return
-
-    # # Step 4 (optional): Select hillshade generation
-    # reply = QMessageBox.question(
-    #     self.iface.mainWindow(),
-    #     self.tr("Generate Hillshade?"),
-    #     self.tr("Do you also want to create a hillshade raster from the DEM?"),
-    #     QMessageBox.Yes | QMessageBox.No,
-    #     QMessageBox.No
-    # )
-    # hillshade_requested = (reply == QMessageBox.Yes)
-    # hillshade_output_path = None
-
-    # # Step 4.1: Ask for hillshade save path
-    # if hillshade_requested:
-    #     default_hillshade = os.path.splitext(output_path)[0] + "_hillshade.tif"
-    #     hillshade_output_path, _ = QFileDialog.getSaveFileName(
-    #         self.iface.mainWindow(),
-    #         self.tr("Save Hillshade Raster"),
-    #         default_hillshade,
-    #         "GeoTIFF (*.tif)"
-    #     )
-    #     if not hillshade_output_path:
-    #         hillshade_requested = False
 
     # Step 2: Create and run the background task
     task_desc = f"{self.tr('Generating DEM from')} {os.path.basename(input_path)}"

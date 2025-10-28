@@ -18,12 +18,12 @@ from .building_count_dialog import BuildingCountDialog
 
 # ----------------------
 # --- Building Count ---
-# ----------------------
+# ------------------------------------------------------------------------------------------------
 # Description:
 # This function counts buildings in LiDAR point clouds through DBSCAN clustering
 # on building-classified points, providing an approximate count of buildings based on its results.
 # Users can specify parameters for clustering (eps and min_samples).
-# ----------------------
+# ------------------------------------------------------------------------------------------------
 
 # ------------------------------------------
 # --- Background Task for Building Count ---

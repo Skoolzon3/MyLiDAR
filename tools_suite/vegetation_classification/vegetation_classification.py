@@ -16,11 +16,11 @@ from .vegetation_classification_dialog import VegetationClassificationDialog
 
 # ---------------------------------
 # --- Vegetation Classification ---
-# ---------------------------------
+# --------------------------------------------------------------------------------------
 # Description:
 # This module classifies vegetation in LiDAR data into low, medium, and high categories,
 # based on user-defined height thresholds.
-# ---------------------------------
+# --------------------------------------------------------------------------------------
 
 # -----------------------------------------------------
 # --- Background Task for Vegetation Classification ---

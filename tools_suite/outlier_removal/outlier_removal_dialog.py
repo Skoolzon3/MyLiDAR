@@ -6,9 +6,9 @@ import os
 class OutlierRemovalDialog(QDialog):
     """Dialog window for outlier removal settings."""
 
-    def __init__(self, parent=None, translator=lambda s: s):
+    def __init__(self, parent=None, translator=None):
         super().__init__(parent)
-        self.tr = translator
+        self.tr = translator if translator else (lambda s: s)
         self.selected_input = None
         self.selected_output = None
         self.is_layer = False
@@ -16,7 +16,7 @@ class OutlierRemovalDialog(QDialog):
 
         # --- Window ---
         self.setWindowTitle(self.tr("Remove LiDAR Outliers"))
-        self.resize(850, 400)
+        self.resize(850, 440)
         self.setMinimumWidth(800)
 
         # --- Layout ---
@@ -102,27 +102,37 @@ class OutlierRemovalDialog(QDialog):
                 font-size: 10pt;
             }
         """)
-        desc_box.setHtml(f"""
+
+        title = self.tr("Outlier Removal")
+        intro = self.tr(
+            "This tool removes isolated points (outliers) from a LiDAR dataset. "
+            "By using a radius-based neighbor search, it detects points that have "
+            "too few nearby neighbors within a given distance."
+        )
+        workflow = self.tr("Workflow:")
+        step1 = self.tr("Builds a KD-tree from all points in the cloud.")
+        step2 = self.tr("Counts neighbors within a specified radius.")
+        step3 = self.tr("Removes points with fewer than minimum neighbors.")
+        note = self.tr(
+            "Adjust the parameters to control how strictly isolated points are removed. "
+            "Smaller radius or higher neighbor counts will remove more points."
+        )
+
+        desc_html = f"""
             <div style="position: relative;">
-                <h3 style="margin-bottom:4px;">Outlier Removal</h3>
-                <p style="font-size:9.5pt; color:#444;">
-                    This tool removes <b>isolated points</b> (outliers) from a LiDAR dataset.
-                    By using a <b>radius-based neighbor search</b>, it detect points that have
-                    too few nearby neighbors within a given distance.
-                </p>
+                <h3 style="margin-bottom:4px;">{title}</h3>
+                <p style="font-size:9.5pt; color:#444;">{intro}</p>
                 <hr style="border:none; border-top:1px solid #ccc; margin:6px 0;">
-                <h4 style="margin-bottom:2px;">Workflow:</h4>
+                <h4 style="margin-bottom:2px;">{workflow}</h4>
                 <ul>
-                    <li>Builds a KD-tree from all points in the cloud.</li>
-                    <li>Counts neighbors within a specified <b>radius</b>.</li>
-                    <li>Removes points with fewer than <b>minimum neighbors</b>.</li>
+                    <li>{step1}</li>
+                    <li>{step2}</li>
+                    <li>{step3}</li>
                 </ul>
-                <p style="margin-top:4px; font-size:9pt; color:#666;">
-                    Adjust the parameters to control how strictly isolated points are removed.
-                    Smaller radius or higher neighbor counts will remove more points.
-                </p>
+                <p style="margin-top:4px; font-size:9pt; color:#666;">{note}</p>
             </div>
-        """)
+        """
+        desc_box.setHtml(desc_html)
 
         main_layout.addWidget(left_panel, stretch=3)
         main_layout.addWidget(desc_box, stretch=2)

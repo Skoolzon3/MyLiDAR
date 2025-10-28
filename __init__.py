@@ -8,7 +8,6 @@ def ensure_dependencies():
         except ImportError:
             subprocess.check_call([sys.executable, "-m", "pip", "install", pkg])
 
-
 def classFactory(iface):
     ensure_dependencies()
 

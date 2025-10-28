@@ -13,11 +13,11 @@ from .overlap_removal_dialog import OverlapRemovalDialog
 
 # -----------------------
 # --- Overlap Removal ---
-# -----------------------
+# ----------------------------------------------------------------------------------------------
 # Description:
 # This function removes overlap points from a LiDAR file based on classification codes, by
 # filting out points classified as overlap and saving the remaining points to a new point cloud.
-# -----------------------
+# ----------------------------------------------------------------------------------------------
 
 # -------------------------------------------
 # --- Background Task for Overlap Removal ---

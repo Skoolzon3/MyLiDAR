@@ -3,11 +3,7 @@ from qgis.core import QgsProject, QgsPointCloudLayer
 from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QGroupBox, QCheckBox, QPushButton, QDialogButtonBox, QScrollArea, QWidget, QSpacerItem, QSizePolicy, QLineEdit, QTextBrowser, QFileDialog, QComboBox
 from qgis.PyQt.QtCore import Qt
 
-# -----------------------
-# --- UI Dialog Class ---
-# -----------------------
-
-class ReportDialog(QDialog):
+class ReportGenerationDialog(QDialog):
     """Dialog window for selecting LiDAR report contents and output."""
     def __init__(self, parent=None, tr=lambda s: s):
         super().__init__(parent)
@@ -20,8 +16,9 @@ class ReportDialog(QDialog):
         # --- Window ---
         self.setWindowTitle(tr("Generate LiDAR Report"))
         self.resize(900, 500)
-        self.setMinimumWidth(850)
+        self.setMinimumWidth(885)
 
+        # --- Layout ---
         main_layout = QHBoxLayout(self)
 
         # --- Left Panel (Inputs, Options, Buttons) ---
@@ -69,9 +66,21 @@ class ReportDialog(QDialog):
         left_layout.addWidget(scroll, stretch=1)
 
         # === Section: Selection Info ===
+        header_layout = QHBoxLayout()
+        header_layout.setAlignment(Qt.AlignLeft)
+
         self.label = QLabel(self.tr("Select the information to include in the report:"))
         self.label.setStyleSheet("font-weight: 600; font-size: 10.5pt;")
-        scroll_layout.addWidget(self.label)
+        header_layout.addWidget(self.label)
+
+        # Add some stretch between the label and button so they don't stick together
+        header_layout.addStretch()
+
+        self.btnSelectAll = QPushButton(self.tr("Select All Attributes"))
+        self.btnSelectAll.setFixedWidth(150)
+        header_layout.addWidget(self.btnSelectAll)
+
+        scroll_layout.addLayout(header_layout)
 
         self.labelWarning = QLabel(self.tr("No information selected"))
         self.labelWarning.setStyleSheet("color: #d9534f; font-style: italic;")
@@ -94,7 +103,7 @@ class ReportDialog(QDialog):
         # === File Metadata ===
         self.checkFileName = self.add_check(self.groupFileMetadata, "File Name", "File name of the LiDAR dataset")
         self.checkFileSource = self.add_check(self.groupFileMetadata, "File Source", "Source ID specified in the LAS file header")
-        self.checkGlobalEncoding = self.add_check(self.groupFileMetadata, "Global Encoding", "Flags describing GPS time, waveform, etc.")
+        self.checkGlobalEncoding = self.add_check(self.groupFileMetadata, "Global Encoding", "Flags describing GPS time type, waveform data and other global settings")
         self.checkSystemId = self.add_check(self.groupFileMetadata, "System ID", "Identifier of the system that created the file")
         self.checkGenSoftware = self.add_check(self.groupFileMetadata, "Generating Software", "Software that generated the LAS file")
         self.checkVersion = self.add_check(self.groupFileMetadata, "LAS Version", "LAS file format version (e.g., 1.2, 1.4)")
@@ -134,11 +143,6 @@ class ReportDialog(QDialog):
         self.labelWarningOutputFormat.setStyleSheet("color: #d9534f; font-style: italic;")
         scroll_layout.addWidget(self.labelWarningOutputFormat)
 
-        # --- Select All Button ---
-        self.btnSelectAll = QPushButton(self.tr("Select All Attributes"))
-        self.btnSelectAll.setFixedWidth(180)
-        scroll_layout.addWidget(self.btnSelectAll, alignment=Qt.AlignLeft)
-
         # Default Selections
         self.checkFileName.setChecked(True)
         self.checkVersion.setChecked(True)
@@ -177,27 +181,35 @@ class ReportDialog(QDialog):
                 font-size: 10pt;
             }
         """)
-        desc_box.setHtml(f"""
+
+        title = self.tr("LiDAR Report Generator")
+        intro = self.tr(
+            "This tool creates summary reports for LiDAR datasets, providing metadata, spatial statistics, "
+            "intensity measures, classification summaries, and other relevant information."
+        )
+        workflow = self.tr("Workflow:")
+        step1 = self.tr("Select a LiDAR layer or file (.las / .laz).")
+        step2 = self.tr("Choose which attributes and metrics to include in the report.")
+        step3 = self.tr("Select one or more output formats (TXT, Markdown, PDF).")
+        step4 = self.tr("Optionally generate a dockable report panel in QGIS.")
+        note = self.tr("Use this tool to quickly inspect, summarize, or document LiDAR dataset properties.")
+
+        desc_html = f"""
             <div style="position: relative;">
-                <h3 style="margin-bottom:4px;">LiDAR Report Generator</h3>
-                <p style="font-size:9.5pt; color:#444;">
-                    This tool creates <b>summary reports</b> for LiDAR datasets, providing
-                    metadata, spatial statistics, intensity measures, classification summaries,
-                    and other relevant information.
-                </p>
+                <h3 style="margin-bottom:4px;">{title}</h3>
+                <p style="font-size:9.5pt; color:#444;">{intro}</p>
                 <hr style="border:none; border-top:1px solid #ccc; margin:6px 0;">
-                <h4 style="margin-bottom:2px;">Workflow:</h4>
+                <h4 style="margin-bottom:2px;">{workflow}</h4>
                 <ul>
-                    <li>Select a LiDAR <b>layer or file</b> (.las / .laz).</li>
-                    <li>Choose which attributes and metrics to include in the report.</li>
-                    <li>Select one or more <b>output formats</b> (TXT, Markdown, PDF).</li>
-                    <li>Optionally generate a <b>dockable report panel</b> in QGIS.</li>
+                    <li>{step1}</li>
+                    <li>{step2}</li>
+                    <li>{step3}</li>
+                    <li>{step4}</li>
                 </ul>
-                <p style="margin-top:4px; font-size:9pt; color:#666;">
-                    Use this tool to quickly inspect, summarize, or document LiDAR dataset properties.
-                </p>
+                <p style="margin-top:4px; font-size:9pt; color:#666;">{note}</p>
             </div>
-        """)
+        """
+        desc_box.setHtml(desc_html)
 
         main_layout.addWidget(left_panel, stretch=3)
         main_layout.addWidget(desc_box, stretch=2)

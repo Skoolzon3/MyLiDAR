@@ -108,31 +108,43 @@ class VegetationClassificationDialog(QDialog):
             }
         """)
 
-        desc_box.setHtml(f"""
+        title = self.tr("Vegetation Classification")
+        intro = self.tr(
+            "This tool classifies vegetation points in a LiDAR dataset into low, medium, and high vegetation "
+            "categories based on their height above ground."
+        )
+        workflow = self.tr("Workflow:")
+        step1 = self.tr("Detects ground and high vegetation points in the dataset.")
+        step2 = self.tr("Estimates local ground elevation using nearest neighbors.")
+        step3 = self.tr("Calculates point height above ground and classifies accordingly:")
+        sub1 = self.tr("Low vegetation: height < low threshold")
+        sub2 = self.tr("Medium vegetation: between thresholds")
+        sub3 = self.tr("High vegetation: height > high threshold")
+        note = self.tr(
+            "The classified LiDAR file will contain new classification codes corresponding to the vegetation height "
+            "detected by the thresholds: 3 (low) and 4 (medium)."
+        )
+
+        desc_html = f"""
             <div style="position: relative;">
-                <h3 style="margin-bottom:4px;">Vegetation Classification</h3>
-                <p style="font-size:9.5pt; color:#444;">
-                    This tool classifies <b>vegetation points</b> in a LiDAR dataset into
-                    <b>low</b>, <b>medium</b>, and <b>high</b> vegetation categories based on
-                    their <b>height above ground</b>.
-                </p>
+                <h3 style="margin-bottom:4px;">{title}</h3>
+                <p style="font-size:9.5pt; color:#444;">{intro}</p>
                 <hr style="border:none; border-top:1px solid #ccc; margin:6px 0;">
-                <h4 style="margin-bottom:2px;">Workflow:</h4>
+                <h4 style="margin-bottom:2px;">{workflow}</h4>
                 <ul>
-                    <li>Detects ground and high vegetation points in the dataset.</li>
-                    <li>Estimates local ground elevation using nearest neighbors.</li>
-                    <li>Calculates point height above ground and classifies accordingly:</li>
+                    <li>{step1}</li>
+                    <li>{step2}</li>
+                    <li>{step3}</li>
                     <ul>
-                        <li><b>Low vegetation</b>: height &lt; low threshold</li>
-                        <li><b>Medium vegetation</b>: between thresholds</li>
-                        <li><b>High vegetation</b>: height &gt; high threshold</li>
+                        <li><b>{sub1}</b></li>
+                        <li><b>{sub2}</b></li>
+                        <li><b>{sub3}</b></li>
                     </ul>
                 </ul>
-                <p style="margin-top:4px; font-size:9pt; color:#666;">
-                    The classified LiDAR file will contain new classification codes corresponding to the vegetation height detected by the thresholds: <b>3 (low)</b> and <b>4 (medium)</b>.
-                </p>
+                <p style="margin-top:4px; font-size:9pt; color:#666;">{note}</p>
             </div>
-        """)
+        """
+        desc_box.setHtml(desc_html)
 
         main_layout.addWidget(left_panel, stretch=3)
         main_layout.addWidget(desc_box, stretch=2)

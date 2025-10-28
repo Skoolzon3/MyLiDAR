@@ -13,7 +13,7 @@ from qgis.PyQt.QtCore import Qt
 
 # --- Dialogs and Data Classes imports ---
 from .report_data import ReportData
-from .report_dialog import ReportDialog
+from .report_generation_dialog import ReportGenerationDialog
 from .report_generation_dock import ReportDock
 
 # --- Utility & Report Generation Functions ---
@@ -22,12 +22,12 @@ from .report_functions import generate_txt_report, generate_markdown_report, gen
 
 # -------------------------
 # --- Report Generation ---
-# -------------------------
+# -----------------------------------------------------------------------------------------------
 # Description:
 # This function generates a report based on the LiDAR file's metadata and statistics, allowing
 # the user to choose the report format (text, markdown, or PDF) and which metadata to include, as
 # well as optionally generating a dock in QGIS with visualizations.
-# -------------------------
+# -----------------------------------------------------------------------------------------------
 
 # ---------------------------------------------
 # --- Background Task for Report Generation ---
@@ -237,7 +237,7 @@ class ReportGenerationTask(QgsTask):
 def generate_report(self):
 
     # Step 1: Select input/output file path
-    dialog = ReportDialog(self.iface.mainWindow(), tr=self.tr)
+    dialog = ReportGenerationDialog(self.iface.mainWindow(), tr=self.tr)
     if dialog.exec_() != QDialog.Accepted:
         return
 

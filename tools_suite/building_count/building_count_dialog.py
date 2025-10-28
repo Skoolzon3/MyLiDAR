@@ -68,7 +68,7 @@ class BuildingCountDialog(QDialog):
         self.eps_spin.setSingleStep(0.1)
         self.eps_spin.setValue(2.0)
         self.eps_spin.setSuffix(" m")
-        param_layout.addRow(tr("Epsilon (m):"), self.eps_spin)
+        param_layout.addRow(tr("Epsilon:"), self.eps_spin)
 
         # Min samples
         self.min_samples_spin = QSpinBox()
@@ -77,7 +77,7 @@ class BuildingCountDialog(QDialog):
         param_layout.addRow(tr("Min samples:"), self.min_samples_spin)
 
         # Z-axis (3D clustering)
-        self.use_z_check = QCheckBox(tr("Use Z (3D clustering)"))
+        self.use_z_check = QCheckBox(tr("Use Z-axis (3D clustering)"))
         self.use_z_check.setChecked(True)
         param_layout.addRow("", self.use_z_check)
 
@@ -102,22 +102,27 @@ class BuildingCountDialog(QDialog):
                 font-size: 10pt;
             }
         """)
+
+        title = self.tr("Building Count (DBSCAN)")
+        intro = self.tr("This tool estimates the number of buildings in a LiDAR dataset by clustering points classified as buildings (code 6).")
+        workflow = self.tr("Workflow:")
+        step1 = self.tr("Filters building-classified points (code 6).")
+        step2 = self.tr("Applies DBSCAN clustering to group nearby building points.")
+        step3 = self.tr("Creates polygons representing each detected building cluster.")
+        note = self.tr("The number of detected clusters approximates the total number of buildings.")
+
         desc_box.setHtml(f"""
             <div style="position: relative;">
-                <h3 style="margin-bottom:4px;">{tr("Building Count (DBSCAN)")}</h3>
-                <p style="font-size:9.5pt; color:#444;">
-                    {tr("This tool estimates the number of buildings in a LiDAR dataset by clustering points classified as <b>buildings</b> (code 6).")}
-                </p>
+                <h3 style="margin-bottom:4px;">{title}</h3>
+                <p style="font-size:9.5pt; color:#444;">{intro}</p>
                 <hr style="border:none; border-top:1px solid #ccc; margin:6px 0;">
-                <h4 style="margin-bottom:2px;">{tr("Workflow:")}</h4>
+                <h4 style="margin-bottom:2px;">{workflow}</h4>
                 <ul>
-                    <li>{tr("Filters building-classified points (code 6).")}</li>
-                    <li>{tr("Applies <b>DBSCAN</b> clustering to group nearby building points.")}</li>
-                    <li>{tr("Creates polygons representing each detected building cluster.")}</li>
+                    <li>{step1}</li>
+                    <li>{step2}</li>
+                    <li>{step3}</li>
                 </ul>
-                <p style="margin-top:4px; font-size:9pt; color:#666;">
-                    {tr("The number of detected clusters approximates the total number of buildings.")}
-                </p>
+                <p style="margin-top:4px; font-size:9pt; color:#666;">{note}</p>
             </div>
         """)
 
