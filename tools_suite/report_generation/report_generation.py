@@ -7,7 +7,7 @@ import tempfile
 import zipfile
 
 # --- QGIS and PyQt imports ---
-from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox, QDialog
+from qgis.PyQt.QtWidgets import QMessageBox, QDialog
 from qgis.core import QgsApplication, QgsTask, Qgis, QgsMessageLog
 from qgis.PyQt.QtCore import Qt
 
@@ -318,15 +318,6 @@ def generate_report(self):
 
     # --- Multiple format selection ---
     if len(selected_formats) > 1:
-        zip_path, _ = QFileDialog.getSaveFileName(
-            self.iface.mainWindow(),
-            self.tr("Save ZIP As"),
-            os.path.splitext(input_path)[0] + "_reports.zip",
-            "ZIP (*.zip)"
-        )
-        if not zip_path:
-            return
-
         temp_dir = tempfile.mkdtemp(prefix="lidar_reports_")
 
         for i, fmt in enumerate(selected_formats):
@@ -344,7 +335,7 @@ def generate_report(self):
                 self.tr,
                 show_dock=generate_dock,
                 is_zip_task=True,
-                zip_output_path=zip_path,
+                zip_output_path=output_path,
                 temp_dir=temp_dir,
                 is_primary_task=(i == 0)
             )
@@ -365,20 +356,11 @@ def generate_report(self):
         fmt = selected_formats[0]
         ext = format_extensions.get(fmt, ".txt")
 
-        report_path, _ = QFileDialog.getSaveFileName(
-            self.iface.mainWindow(),
-            self.tr(f"Save Report As"),
-            os.path.splitext(input_path)[0] + f"_report{ext}",
-            self.tr(f"{fmt.upper()} (*{ext})")
-        )
-        if not report_path:
-            return
-
         task_desc = f"{self.tr('Generating report for')} {os.path.basename(input_path)} ({fmt.upper()})"
         task = ReportGenerationTask(
             task_desc,
             input_path,
-            report_path,
+            output_path,
             fmt,
             selected_fields,
             self,

@@ -244,6 +244,9 @@ class ReportGenerationDialog(QDialog):
         for cb in self.checkboxes + [self.checkTxt, self.checkMarkdown, self.checkPdf, self.checkGenerateDock]:
             cb.stateChanged.connect(self.validate_state)
 
+        for cb in [self.checkTxt, self.checkMarkdown, self.checkPdf]:
+            cb.stateChanged.connect(self.on_format_changed)
+
         self.validate_state()
 
     # --- Helper Methods ---
@@ -262,6 +265,10 @@ class ReportGenerationDialog(QDialog):
             cb.setToolTip(self.tr(tooltip))
         parent_group.layout().addWidget(cb)
         return cb
+
+    def on_format_changed(self):
+        self.validate_state()
+        self.update_output_extension()
 
     # --- Layer & File Management ---
     def populate_input_layers(self):
@@ -376,6 +383,31 @@ class ReportGenerationDialog(QDialog):
                     self.groupTime, self.groupClassification]:
             grp.setChecked(True)
         self.validate_state()
+
+    def update_output_extension(self):
+        """Update output file extension based on selected output formats."""
+        if self.user_edited_output:
+            return
+
+        formats = self.selected_formats()
+        if not formats:
+            return
+
+        current_output = self.output_edit.text().strip()
+        if not current_output:
+            self.update_default_output()
+            current_output = self.output_edit.text().strip()
+
+        base, _ = os.path.splitext(current_output)
+
+        if len(formats) == 1:
+            new_ext = f".{formats[0]}"
+        else:
+            new_ext = ".zip"
+
+        new_output = base + new_ext
+        self.output_edit.setText(new_output)
+        self.selected_output = new_output
 
     def validate_state(self):
         any_info = any(cb.isChecked() for cb in self.checkboxes)
