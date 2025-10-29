@@ -3,7 +3,7 @@ from .report_data import ReportData
 from datetime import datetime
 
 # --- PDF generation imports ---
-from reportlab.lib.utils import ImageReader
+from reportlab.lib.utils import ImageReader, simpleSplit
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
@@ -389,12 +389,40 @@ def generate_pdf_report(self, path, data: ReportData, tr):
         y -= 0.6 * cm
         check_page_space()
 
+    def write_item_filename(label, value):
+        nonlocal y
+        canvas.setFont("Helvetica-Bold", 12)
+        label_text = f"- {label}:"
+        canvas.drawString(2 * cm, y, label_text)
+
+        label_width = canvas.stringWidth(label_text, "Helvetica-Bold", 12)
+        value_x = 2 * cm + label_width + 0.3 * cm
+        max_width = width - value_x - 2 * cm
+
+        value_str = str(value)
+        canvas.setFont("Courier", 12)
+
+        lines = simpleSplit(value_str, "Courier", 12, max_width)
+
+        if len(lines) == 1:
+            line = lines[0]
+            line_width = canvas.stringWidth(line, "Courier", 12)
+            if line_width > max_width:
+                avg_char_width = canvas.stringWidth("M", "Courier", 12)
+                max_chars = int(max_width // avg_char_width)
+                lines = [line[i:i + max_chars] for i in range(0, len(line), max_chars)]
+
+        for line in lines:
+            canvas.drawString(value_x, y, line)
+            y -= 0.6 * cm
+            check_page_space()
+
     write_heading(tr("LiDAR File Report"), level=1)
 
     current_time = datetime.now()
     write_item(tr("Report date"), current_time)
     if data.file_name:
-        write_item(tr("File"), data.file_name)
+        write_item_filename(tr("File"), data.file_name)
 
     # -- File Metadata --
     if (data.file_source or data.global_encoding or data.system_id or
