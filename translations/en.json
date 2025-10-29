@@ -8,55 +8,24 @@
 
 
 
-  "LiDAR layer or file:": "LiDAR layer or file:",
-  "Output file:":"Output file:",
-  "Output vector file (optional):": "Output vector file (optional):",
-  "Output report file:": "Output report file:",
-  "Select output file path...": "Select output file path...",
-  "Select output file path (optional)...": "Select output file path (optional)...",
-  "Select output raster path (.tif)...": "Select output raster path (.tif)...",
-  "Select output report file path...": "Select output report file path...",
-  "Outlier Removal Parameters": "Outlier Removal Parameters",
-  "Vegetation Height Thresholds": "Vegetation Height Thresholds",
-  "Low vegetation threshold:": "Low vegetation threshold:",
-  "High vegetation threshold:": "High vegetation threshold:",
-  "DBSCAN Parameters": "DBSCAN Parameters",
-  "Epsilon:": "Epsilon:",
-  "Output DEM file:": "Output DEM file:",
-  "DEM Generation Parameters": "DEM Generation Parameters",
-  "Cell size:": "Cell size:",
-  "Interpolation method:":"Interpolation method:",
-  "Grid-based (min Z per cell)":"Grid-based (min Z per cell)",
-  "Triangulation-based (TIN)":"Triangulation-based (TIN)",
-  "Generate Hillshade": "Generate Hillshade",
-
-
-
-  "Building Count (DBSCAN)":  "Building Count (DBSCAN)",
-  "This tool estimates the number of buildings in a LiDAR dataset by clustering points classified as buildings (code 6).": "This tool estimates the number of buildings in a LiDAR dataset by clustering points classified as buildings (code 6).",
-  "Workflow:": "Workflow:",
-  "Filters building-classified points (code 6).": "Filters building-classified points (code 6).",
-  "Applies DBSCAN clustering to group nearby building points.": "Filters building-classified points (code 6).",
-  "Creates polygons representing each detected building cluster.": "Creates polygons representing each detected building cluster.",
-  "The number of detected clusters approximates the total number of buildings.": "The number of detected clusters approximates the total number of buildings.",
-
-
-
-  "Bare Earth DEM Generation": "Bare Earth DEM Generation",
-  "This tool generates a Bare Earth DEM by filtering ground-classified points from LiDAR data and interpolating them into a continuous elevation grid.": "This tool generates a Bare Earth DEM by filtering ground-classified points from LiDAR data and interpolating them into a continuous elevation grid.",
-  "Extracts ground-classified points (code 2).": "Extracts ground-classified points (code 2).",
-  "Interpolates points into a raster DEM using either TIN or grid-based methods.": "Interpolates points into a raster DEM using either TIN or grid-based methods.",
-  "Optionally generates a hillshade raster for visualization.": "Optionally generates a hillshade raster for visualization.",
-  "The output raster represents the underlying terrain surface without vegetation or buildings.": "The output raster represents the underlying terrain surface without vegetation or buildings.",
-
-
-
   "Outlier Removal": "Outlier Removal",
+  "Outlier Removal Parameters": "Outlier Removal Parameters",
   "This tool removes isolated points (outliers) from a LiDAR dataset. By using a radius-based neighbor search, it detects points that have too few nearby neighbors within a given distance.": "This tool removes isolated points (outliers) from a LiDAR dataset. By using a radius-based neighbor search, it detects points that have too few nearby neighbors within a given distance.",
   "Builds a KD-tree from all points in the cloud.": "Builds a KD-tree from all points in the cloud.",
   "Counts neighbors within a specified radius.": "Counts neighbors within a specified radius.",
   "Removes points with fewer than minimum neighbors.": "Removes points with fewer than minimum neighbors.",
   "Adjust the parameters to control how strictly isolated points are removed. Smaller radius or higher neighbor counts will remove more points.": "Adjust the parameters to control how strictly isolated points are removed. Smaller radius or higher neighbor counts will remove more points.",
+  "All points were classified as outliers. No data would remain": "All points were classified as outliers. No data would remain",
+  "Outlier Removal Complete": "Outlier Removal Complete",
+  "Removed outlier points": "Removed outlier points",
+  "Error Removing Outliers": "Error Removing Outliers",
+  "An error occurred during outlier removal": "An error occurred during outlier removal",
+  "Outlier removal was canceled by the user": "Outlier removal was canceled by the user",
+  "Save Cleaned LiDAR File": "Save Cleaned LiDAR File",
+  "Removing outliers from": "Removing outliers from",
+  "Removing outliers in the background": "Removing outliers in the background",
+  "Search radius:": "Search radius:",
+  "Minimum neighbors:": "Minimum neighbors:",
 
 
 
@@ -66,6 +35,91 @@
   "Filters out points with overlap classification codes (12, 17).": "Filters out points with overlap classification codes (12, 17).",
   "Writes the cleaned point cloud to a new file.": "Writes the cleaned point cloud to a new file.",
   "The resulting dataset contains only non-overlapping LiDAR points.": "The resulting dataset contains only non-overlapping LiDAR points.",
+  "Overlap Removal Complete": "Overlap Removal Complete",
+  "Overlap points removed": "Overlap points removed",
+  "Filtered file saved to": "Filtered file saved to",
+  "Save Non-Overlap LiDAR File": "Save Non-Overlap LiDAR File",
+  "Removing overlap from": "Removing overlap from",
+  "Removing overlapping points in the background": "Removing overlapping points in the background",
+
+
+
+  "Vegetation Classification": "Vegetation Classification",
+  "Vegetation Height Thresholds": "Vegetation Height Thresholds",
+  "Low vegetation threshold:": "Low vegetation threshold:",
+  "High vegetation threshold:": "High vegetation threshold:",
+  "This tool classifies vegetation points in a LiDAR dataset into low, medium, and high vegetation categories based on their height above ground.": "This tool classifies vegetation points in a LiDAR dataset into low, medium, and high vegetation categories based on their height above ground.",
+  "Detects ground and high vegetation points in the dataset.": "Detects ground and high vegetation points in the dataset.",
+  "Estimates local ground elevation using nearest neighbors.": "Estimates local ground elevation using nearest neighbors.",
+  "Calculates point height above ground and classifies accordingly:": "Calculates point height above ground and classifies accordingly:",
+  "Low vegetation: height < low threshold": "Low vegetation: height < low threshold",
+  "Medium vegetation: between thresholds": "Medium vegetation: between thresholds",
+  "High vegetation: height > high threshold": "High vegetation: height > high threshold",
+  "The classified LiDAR file will contain new classification codes corresponding to the vegetation height detected by the thresholds: 3 (low) and 4 (medium).": "The classified LiDAR file will contain new classification codes corresponding to the vegetation height detected by the thresholds: 3 (low) and 4 (medium).",
+  "No ground points (class 2) found in the file": "No ground points (class 2) found in the file",
+  "No high vegetation points (class 5) found in the file": "No high vegetation points (class 5) found in the file",
+  "Vegetation Reclassification Complete": "Vegetation Reclassification Complete",
+  "Original high veg points": "Original high veg points",
+  "Low vegetation": "Low vegetation",
+  "Medium vegetation": "Medium vegetation",
+  "High vegetation": "High vegetation",
+  "Updated file saved to": "Updated file saved to",
+  "Vegetation classification failed": "Vegetation classification failed",
+  "Error During Classification": "Error During Classification",
+  "Classifying vegetation in": "Classifying vegetation in",
+  "Classifying vegetation in the background": "Classifying vegetation in the background",
+
+
+
+  "Building Count (DBSCAN)":  "Building Count (DBSCAN)",
+  "DBSCAN Parameters": "DBSCAN Parameters",
+  "Epsilon:": "Epsilon:",
+  "This tool estimates the number of buildings in a LiDAR dataset by clustering points classified as buildings (code 6).": "This tool estimates the number of buildings in a LiDAR dataset by clustering points classified as buildings (code 6).",
+  "Workflow:": "Workflow:",
+  "Filters building-classified points (code 6).": "Filters building-classified points (code 6).",
+  "Applies DBSCAN clustering to group nearby building points.": "Filters building-classified points (code 6).",
+  "Creates polygons representing each detected building cluster.": "Creates polygons representing each detected building cluster.",
+  "The number of detected clusters approximates the total number of buildings.": "The number of detected clusters approximates the total number of buildings.",
+  "No Buildings Found": "No Buildings Found",
+  "No buildings were found in this file": "No buildings were found in this file",
+  "Building Detection Complete": "Building Detection Complete",
+  "Building points detected": "Building points detected",
+  "Approximate number of buildings detected": "Approximate number of buildings detected",
+  "Building detection failed": "Building detection failed",
+  "Error Detecting Buildings": "Error Detecting Buildings",
+  "Output saved, but style not saved": "Output saved, but style not saved",
+  "Error saving output file": "Error saving output file",
+  "Counting buildings in": "Counting buildings in",
+  "Detecting buildings in the background": "Detecting buildings in the background",
+  "Min samples:": "Min samples:",
+  "Use Z-axis (3D clustering)": "Use Z-axis (3D clustering)",
+  "Select Output File": "Select Output File",
+
+
+
+  "Bare Earth DEM Generation": "Bare Earth DEM Generation",
+  "Output DEM file:": "Output DEM file:",
+  "DEM Generation Parameters": "DEM Generation Parameters",
+  "Cell size:": "Cell size:",
+  "Interpolation method:":"Interpolation method:",
+  "Grid-based (min Z per cell)":"Grid-based (min Z per cell)",
+  "Triangulation-based (TIN)":"Triangulation-based (TIN)",
+  "Generate Hillshade": "Generate Hillshade",
+  "This tool generates a Bare Earth DEM by filtering ground-classified points from LiDAR data and interpolating them into a continuous elevation grid.": "This tool generates a Bare Earth DEM by filtering ground-classified points from LiDAR data and interpolating them into a continuous elevation grid.",
+  "Extracts ground-classified points (code 2).": "Extracts ground-classified points (code 2).",
+  "Interpolates points into a raster DEM using either TIN or grid-based methods.": "Interpolates points into a raster DEM using either TIN or grid-based methods.",
+  "Optionally generates a hillshade raster for visualization.": "Optionally generates a hillshade raster for visualization.",
+  "The output raster represents the underlying terrain surface without vegetation or buildings.": "The output raster represents the underlying terrain surface without vegetation or buildings.",
+  "No ground points found in the file": "No ground points found in the file",
+  "DEM successfully generated from ground points. Output saved at": "DEM successfully generated from ground points. Output saved at",
+  "Hillshade saved at": "Hillshade saved at",
+  "Bare Earth DEM Generated": "Bare Earth DEM Generated",
+  "DEM generation failed": "DEM generation failed",
+  "Error whilst generating Bare Earth DEM": "Error whilst generating Bare Earth DEM",
+  "Save Bare Earth DEM": "Save Bare Earth DEM",
+  "Generating DEM from": "Generating DEM from",
+  "Generating DEM in the background": "Generating DEM in the background",
+  "Save Hillshade Raster": "Save Hillshade Raster",
 
 
 
@@ -76,20 +130,6 @@
   "Select one or more output formats (TXT, Markdown, PDF).": "Select one or more output formats (TXT, Markdown, PDF).",
   "Optionally generate a dockable report panel in QGIS.": "Optionally generate a dockable report panel in QGIS.",
   "Use this tool to quickly inspect, summarize, or document LiDAR dataset properties.": "Use this tool to quickly inspect, summarize, or document LiDAR dataset properties.",
-
-
-
-  "Vegetation Classification": "Vegetation Classification",
-  "This tool classifies vegetation points in a LiDAR dataset into low, medium, and high vegetation categories based on their height above ground.": "This tool classifies vegetation points in a LiDAR dataset into low, medium, and high vegetation categories based on their height above ground.",
-  "Detects ground and high vegetation points in the dataset.": "Detects ground and high vegetation points in the dataset.",
-  "Estimates local ground elevation using nearest neighbors.": "Estimates local ground elevation using nearest neighbors.",
-  "Calculates point height above ground and classifies accordingly:": "Calculates point height above ground and classifies accordingly:",
-  "Low vegetation: height < low threshold": "Low vegetation: height < low threshold",
-  "Medium vegetation: between thresholds": "Medium vegetation: between thresholds",
-  "High vegetation: height > high threshold": "High vegetation: height > high threshold",
-  "The classified LiDAR file will contain new classification codes corresponding to the vegetation height detected by the thresholds: 3 (low) and 4 (medium).": "The classified LiDAR file will contain new classification codes corresponding to the vegetation height detected by the thresholds: 3 (low) and 4 (medium).",
-
-
 
   "Report created at": "Report created at",
   "Report generation failed": "Report generation failed",
@@ -167,76 +207,6 @@
   "Return Number Counts": "Return Number Counts",
   "Return": "Return",
 
-
-
-  "Overlap Removal Complete": "Overlap Removal Complete",
-  "Overlap points removed": "Overlap points removed",
-  "Filtered file saved to": "Filtered file saved to",
-  "Save Non-Overlap LiDAR File": "Save Non-Overlap LiDAR File",
-  "Removing overlap from": "Removing overlap from",
-  "Removing overlapping points in the background": "Removing overlapping points in the background",
-
-
-
-  "All points were classified as outliers. No data would remain": "All points were classified as outliers. No data would remain",
-  "Outlier Removal Complete": "Outlier Removal Complete",
-  "Removed outlier points": "Removed outlier points",
-  "Error Removing Outliers": "Error Removing Outliers",
-  "An error occurred during outlier removal": "An error occurred during outlier removal",
-  "Outlier removal was canceled by the user": "Outlier removal was canceled by the user",
-  "Save Cleaned LiDAR File": "Save Cleaned LiDAR File",
-  "Removing outliers from": "Removing outliers from",
-  "Removing outliers in the background": "Removing outliers in the background",
-  "Search radius:": "Search radius:",
-  "Minimum neighbors:": "Minimum neighbors:",
-
-
-
-  "No Buildings Found": "No Buildings Found",
-  "No buildings were found in this file": "No buildings were found in this file",
-  "Building Detection Complete": "Building Detection Complete",
-  "Building points detected": "Building points detected",
-  "Approximate number of buildings detected": "Approximate number of buildings detected",
-  "Building detection failed": "Building detection failed",
-  "Error Detecting Buildings": "Error Detecting Buildings",
-  "Output saved, but style not saved": "Output saved, but style not saved",
-  "Error saving output file": "Error saving output file",
-  "Counting buildings in": "Counting buildings in",
-  "Detecting buildings in the background": "Detecting buildings in the background",
-  "Min samples:": "Min samples:",
-  "Use Z-axis (3D clustering)": "Use Z-axis (3D clustering)",
-  "Select Output File": "Select Output File",
-
-
-
-  "No ground points found in the file": "No ground points found in the file",
-  "DEM successfully generated from ground points. Output saved at": "DEM successfully generated from ground points. Output saved at",
-  "Hillshade saved at": "Hillshade saved at",
-  "Bare Earth DEM Generated": "Bare Earth DEM Generated",
-  "DEM generation failed": "DEM generation failed",
-  "Error whilst generating Bare Earth DEM": "Error whilst generating Bare Earth DEM",
-  "Save Bare Earth DEM": "Save Bare Earth DEM",
-  "Generating DEM from": "Generating DEM from",
-  "Generating DEM in the background": "Generating DEM in the background",
-  "Save Hillshade Raster": "Save Hillshade Raster",
-
-
-
-  "No ground points (class 2) found in the file": "No ground points (class 2) found in the file",
-  "No high vegetation points (class 5) found in the file": "No high vegetation points (class 5) found in the file",
-  "Vegetation Reclassification Complete": "Vegetation Reclassification Complete",
-  "Original high veg points": "Original high veg points",
-  "Low vegetation": "Low vegetation",
-  "Medium vegetation": "Medium vegetation",
-  "High vegetation": "High vegetation",
-  "Updated file saved to": "Updated file saved to",
-  "Vegetation classification failed": "Vegetation classification failed",
-  "Error During Classification": "Error During Classification",
-  "Classifying vegetation in": "Classifying vegetation in",
-  "Classifying vegetation in the background": "Classifying vegetation in the background",
-
-
-
   "LiDAR Statistics": "LiDAR Statistics",
   "View": "View",
   "Area": "Area",
@@ -280,6 +250,14 @@
 
 
 
+  "LiDAR layer or file:": "LiDAR layer or file:",
+  "Output file:":"Output file:",
+  "Output vector file (optional):": "Output vector file (optional):",
+  "Output report file:": "Output report file:",
+  "Select output file path...": "Select output file path...",
+  "Select output file path (optional)...": "Select output file path (optional)...",
+  "Select output raster path (.tif)...": "Select output raster path (.tif)...",
+  "Select output report file path...": "Select output report file path...",
   "LiDAR Files (*.las *.laz)": "LiDAR Files (*.las *.laz)",
   "Layer Load Warning": "Layer Load Warning",
   "The LiDAR file was saved but could not be loaded into QGIS": "The LiDAR file was saved but could not be loaded into QGIS",

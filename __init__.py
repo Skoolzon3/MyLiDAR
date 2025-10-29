@@ -9,8 +9,6 @@ def ensure_dependencies():
             subprocess.check_call([sys.executable, "-m", "pip", "install", pkg])
 
 def classFactory(iface):
-    ensure_dependencies()
-
-def classFactory(iface):
     from .my_lidar import MyLiDARPlugin
+    ensure_dependencies()
     return MyLiDARPlugin(iface)

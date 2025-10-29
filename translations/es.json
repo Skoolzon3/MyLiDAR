@@ -8,55 +8,24 @@
 
 
 
-  "LiDAR layer or file:": "Capa o archivo LiDAR:",
-  "Output file:":"Archivo de salida:",
-  "Output vector file (optional):": "Archivo vectorial de salida (opcional):",
-  "Output report file:": "Archivo de informe de salida:",
-  "Select output file path...": "Seleccione la ruta del archivo de salida...",
-  "Select output file path (optional)...": "Seleccione la ruta del archivo de salida (opcional)...",
-  "Select output raster path (.tif)...": "Seleccione la ruta del ráster de salida (.tif)...",
-  "Select output report file path...": "Seleccione la ruta del archivo de informe de salida...",
-  "Outlier Removal Parameters": "Parámetros de eliminación de valores atípicos",
-  "Vegetation Height Thresholds": "Umbrales de altura de la vegetación",
-  "Low vegetation threshold:": "Umbral de vegetación baja:",
-  "High vegetation threshold:": "Umbral de vegetación alta:",
-  "DBSCAN Parameters": "Parámetros DBSCAN",
-  "Epsilon:": "Épsilon:",
-  "Output DEM file:": "Archivo MDE de salida:",
-  "DEM Generation Parameters": "Parámetros de generación de MDE",
-  "Cell size:": "Tamaño de celda:",
-  "Interpolation method:":"Método de interpolación:",
-  "Grid-based (min Z per cell)":"Basado en cuadrículas (Z mínimo por celda)",
-  "Triangulation-based (TIN)":"Basado en triangulación (TIN)",
-  "Generate Hillshade": "Generar mapa de sombras",
-
-
-
-  "Building Count (DBSCAN)": "Recuento de edificios (DBSCAN)",
-  "This tool estimates the number of buildings in a LiDAR dataset by clustering points classified as buildings (code 6).": "Esta herramienta estima el número de edificios en un conjunto de datos LiDAR agrupando puntos clasificados como edificios (código 6).",
-  "Workflow:": "Flujo de trabajo:",
-  "Filters building-classified points (code 6).": "Filtra puntos clasificados como edificios (código 6).",
-  "Applies DBSCAN clustering to group nearby building points.": "Aplica el agrupamiento DBSCAN para agrupar puntos de edificios cercanos.",
-  "Creates polygons representing each detected building cluster.": "Crea polígonos que representan cada clúster de edificios detectado.",
-  "The number of detected clusters approximates the total number of buildings.": "El número de clústeres detectados calcula aproximadamente el número total de edificios.",
-
-
-
-  "Bare Earth DEM Generation": "Generación de MDT de Terreno Desnudo",
-  "This tool generates a Bare Earth DEM by filtering ground-classified points from LiDAR data and interpolating them into a continuous elevation grid.": "Esta herramienta genera un MDT de terreno desnudo filtrando los puntos clasificados como suelo a partir de datos LiDAR e interpolándolos en una cuadrícula de elevación continua.",
-  "Extracts ground-classified points (code 2).": "Extrae los puntos clasificados como suelo (código 2).",
-  "Interpolates points into a raster DEM using either TIN or grid-based methods.": "Interpola los puntos en un MDT ráster utilizando métodos TIN o basados en cuadrícula.",
-  "Optionally generates a hillshade raster for visualization.": "Opcionalmente genera un ráster de sombreado (hillshade) para la visualización.",
-  "The output raster represents the underlying terrain surface without vegetation or buildings.": "El ráster resultante representa la superficie del terreno sin vegetación ni edificaciones.",
-
-
-
   "Outlier Removal": "Borrado de puntos atípicos",
+  "Outlier Removal Parameters": "Parámetros de eliminación de valores atípicos",
   "This tool removes isolated points (outliers) from a LiDAR dataset. By using a radius-based neighbor search, it detects points that have too few nearby neighbors within a given distance.": "Esta herramienta elimina los puntos aislados (atípicos) de un conjunto de datos LiDAR. Mediante una búsqueda de vecinos basada en radio, detecta los puntos que tienen muy pocos vecinos cercanos dentro de una distancia determinada.",
   "Builds a KD-tree from all points in the cloud.": "Construye un árbol KD a partir de todos los puntos de la nube.",
   "Counts neighbors within a specified radius.": "Cuenta los vecinos dentro de un radio especificado.",
   "Removes points with fewer than minimum neighbors.": "Elimina los puntos con menos vecinos de los mínimos requeridos.",
   "Adjust the parameters to control how strictly isolated points are removed. Smaller radius or higher neighbor counts will remove more points.": "Ajuste los parámetros para controlar la estricta eliminación de puntos aislados. Un radio más pequeño o un número mayor de vecinos eliminará más puntos.",
+  "All points were classified as outliers. No data would remain": "Todos los puntos fueron clasificados como atípicos. No quedarán datos",
+  "Outlier Removal Complete": "Eliminación de puntos atípicos completada",
+  "Removed outlier points": "Puntos atípicos eliminados",
+  "Error Removing Outliers": "Error al eliminar puntos atípicos",
+  "An error occurred during outlier removal": "Se produjo un error durante la eliminación de puntos atípicos",
+  "Outlier removal was canceled by the user": "La eliminación de puntos atípicos fue cancelada por el usuario",
+  "Save Cleaned LiDAR File": "Guardar archivo LiDAR limpio",
+  "Removing outliers from": "Eliminando puntos atípicos de",
+  "Removing outliers in the background": "Eliminando puntos atípicos en segundo plano",
+  "Search radius:": "Radio de búsqueda:",
+  "Minimum neighbors:": "Vecinos mínimos:",
 
 
 
@@ -66,6 +35,91 @@
   "Filters out points with overlap classification codes (12, 17).": "Filtra los puntos con códigos de clasificación de solapamiento (12, 17).",
   "Writes the cleaned point cloud to a new file.": "Escribe la nube de puntos depurada en un nuevo archivo.",
   "The resulting dataset contains only non-overlapping LiDAR points.": "El conjunto de datos resultante contiene únicamente puntos LiDAR no solapados.",
+  "Overlap Removal Complete": "Borrado de solapamiento completado",
+  "Overlap points removed": "Puntos solapados eliminados",
+  "Filtered file saved to": "Archivo filtrado guardado en",
+  "Save Non-Overlap LiDAR File": "Guardar archivo LiDAR sin solapamiento",
+  "Removing overlap from": "Eliminando solapamiento de",
+  "Removing overlapping points in the background": "Eliminando puntos solapados en segundo plano",
+
+
+
+  "Vegetation Classification": "Clasificación de vegetación",
+  "Vegetation Height Thresholds": "Umbrales de altura de la vegetación",
+  "Low vegetation threshold:": "Umbral de vegetación baja:",
+  "High vegetation threshold:": "Umbral de vegetación alta:",
+  "This tool classifies vegetation points in a LiDAR dataset into low, medium, and high vegetation categories based on their height above ground.": "Esta herramienta clasifica los puntos de vegetación en un conjunto de datos LiDAR en categorías de vegetación baja, media y alta, basándose en su altura sobre el suelo.",
+  "Detects ground and high vegetation points in the dataset.": "Detecta los puntos de suelo y vegetación alta en el conjunto de datos.",
+  "Estimates local ground elevation using nearest neighbors.": "Estima la elevación del terreno local utilizando los vecinos más cercanos.",
+  "Calculates point height above ground and classifies accordingly:": "Calcula la altura de los puntos sobre el suelo y los clasifica en consecuencia:",
+  "Low vegetation: height < low threshold": "Vegetación baja: altura < umbral bajo",
+  "Medium vegetation: between thresholds": "Vegetación media: entre los umbrales",
+  "High vegetation: height > high threshold": "Vegetación alta: altura > umbral alto",
+  "The classified LiDAR file will contain new classification codes corresponding to the vegetation height detected by the thresholds: 3 (low) and 4 (medium).": "El archivo LiDAR clasificado contendrá nuevos códigos de clasificación correspondientes a la altura de la vegetación detectada por los umbrales: 3 (baja) y 4 (media).",
+  "No ground points (class 2) found in the file": "No se encontraron puntos de suelo (clase 2) en el archivo",
+  "No high vegetation points (class 5) found in the file": "No se encontraron puntos de vegetación alta (clase 5) en el archivo",
+  "Vegetation Reclassification Complete": "Reclasificación de vegetación completada",
+  "Original high veg points": "Puntos de vegetación alta originales",
+  "Low vegetation": "Vegetación baja",
+  "Medium vegetation": "Vegetación media",
+  "High vegetation": "Vegetación alta",
+  "Updated file saved to": "Archivo actualizado guardado en",
+  "Vegetation classification failed": "La clasificación de vegetación falló",
+  "Error During Classification": "Error durante la clasificación",
+  "Classifying vegetation in": "Clasificando vegetación en",
+  "Classifying vegetation in the background": "Clasificando vegetaciónen segundo plano",
+
+
+
+  "Building Count (DBSCAN)": "Recuento de edificios (DBSCAN)",
+  "DBSCAN Parameters": "Parámetros DBSCAN",
+  "Epsilon:": "Épsilon:",
+  "This tool estimates the number of buildings in a LiDAR dataset by clustering points classified as buildings (code 6).": "Esta herramienta estima el número de edificios en un conjunto de datos LiDAR agrupando puntos clasificados como edificios (código 6).",
+  "Workflow:": "Flujo de trabajo:",
+  "Filters building-classified points (code 6).": "Filtra puntos clasificados como edificios (código 6).",
+  "Applies DBSCAN clustering to group nearby building points.": "Aplica el agrupamiento DBSCAN para agrupar puntos de edificios cercanos.",
+  "Creates polygons representing each detected building cluster.": "Crea polígonos que representan cada clúster de edificios detectado.",
+  "The number of detected clusters approximates the total number of buildings.": "El número de clústeres detectados calcula aproximadamente el número total de edificios.",
+  "No Buildings Found": "No se encontraron edificios",
+  "No buildings were found in this file": "No se encontraron edificios en este archivo",
+  "Building Detection Complete": "Detección de edificios completada",
+  "Building points detected": "Puntos de edificios detectados",
+  "Approximate number of buildings detected": "Número aproximado de edificios detectados",
+  "Building detection failed": "La detección de edificios falló",
+  "Error Detecting Buildings": "Error en la detección de edificios",
+  "Output saved, but style not saved": "Salida guardada, pero estilo no guardado",
+  "Error saving output file": "Error al guardar el archivo de salida",
+  "Counting buildings in": "Contando edificios en",
+  "Detecting buildings in the background": "Detectando edificios en segundo plano",
+  "Min samples:": "Número mínimo de muestras:",
+  "Use Z-axis (3D clustering)": "Usar eje Z (agrupamiento 3D)",
+  "Select Output File": "Seleccionar archivo de salida",
+
+
+
+  "Bare Earth DEM Generation": "Generación de MDT de Terreno Desnudo",
+  "DEM Generation Parameters": "Parámetros de generación de MDE",
+  "Output DEM file:": "Archivo MDE de salida:",
+  "Cell size:": "Tamaño de celda:",
+  "Interpolation method:":"Método de interpolación:",
+  "Grid-based (min Z per cell)":"Basado en cuadrículas (Z mínimo por celda)",
+  "Triangulation-based (TIN)":"Basado en triangulación (TIN)",
+  "Generate Hillshade": "Generar mapa de sombras",
+  "This tool generates a Bare Earth DEM by filtering ground-classified points from LiDAR data and interpolating them into a continuous elevation grid.": "Esta herramienta genera un MDT de terreno desnudo filtrando los puntos clasificados como suelo a partir de datos LiDAR e interpolándolos en una cuadrícula de elevación continua.",
+  "Extracts ground-classified points (code 2).": "Extrae los puntos clasificados como suelo (código 2).",
+  "Interpolates points into a raster DEM using either TIN or grid-based methods.": "Interpola los puntos en un MDT ráster utilizando métodos TIN o basados en cuadrícula.",
+  "Optionally generates a hillshade raster for visualization.": "Opcionalmente genera un ráster de sombreado (hillshade) para la visualización.",
+  "The output raster represents the underlying terrain surface without vegetation or buildings.": "El ráster resultante representa la superficie del terreno sin vegetación ni edificaciones.",
+  "No ground points found in the file": "No se han encontrado puntos de suelo en el archivo",
+  "DEM successfully generated from ground points. Output saved at": "MDE generado correctamente a partir de puntos de suelo. Salida guardada en",
+  "Hillshade saved at": "Sombreado guardado en",
+  "Bare Earth DEM Generated": "MDE del Terreno Base Generado",
+  "DEM generation failed": "La generación del MDE falló",
+  "Error whilst generating Bare Earth DEM": "Error al generar el MDE del terreno base",
+  "Save Bare Earth DEM": "Guardar MDE del terreno base",
+  "Generating DEM from": "Generando MDE desde",
+  "Generating DEM in the background": "Generando MED en segundo plano",
+  "Save Hillshade Raster": "Guardar mapa de sombras del terreno",
 
 
 
@@ -76,20 +130,6 @@
   "Select one or more output formats (TXT, Markdown, PDF).": "Seleccione uno o más formatos de salida (TXT, Markdown, PDF).",
   "Optionally generate a dockable report panel in QGIS.": "Opcionalmente, genere un panel de informe acoplable en QGIS.",
   "Use this tool to quickly inspect, summarize, or document LiDAR dataset properties.": "Utilice esta herramienta para inspeccionar, resumir o documentar rápidamente las propiedades de un conjunto de datos LiDAR.",
-
-
-
-  "Vegetation Classification": "Clasificación de vegetación",
-  "This tool classifies vegetation points in a LiDAR dataset into low, medium, and high vegetation categories based on their height above ground.": "Esta herramienta clasifica los puntos de vegetación en un conjunto de datos LiDAR en categorías de vegetación baja, media y alta, basándose en su altura sobre el suelo.",
-  "Detects ground and high vegetation points in the dataset.": "Detecta los puntos de suelo y vegetación alta en el conjunto de datos.",
-  "Estimates local ground elevation using nearest neighbors.": "Estima la elevación del terreno local utilizando los vecinos más cercanos.",
-  "Calculates point height above ground and classifies accordingly:": "Calcula la altura de los puntos sobre el suelo y los clasifica en consecuencia:",
-  "Low vegetation: height < low threshold": "Vegetación baja: altura < umbral bajo",
-  "Medium vegetation: between thresholds": "Vegetación media: entre los umbrales",
-  "High vegetation: height > high threshold": "Vegetación alta: altura > umbral alto",
-  "The classified LiDAR file will contain new classification codes corresponding to the vegetation height detected by the thresholds: 3 (low) and 4 (medium).": "El archivo LiDAR clasificado contendrá nuevos códigos de clasificación correspondientes a la altura de la vegetación detectada por los umbrales: 3 (baja) y 4 (media).",
-
-
 
   "Report created at": "Informe creado en",
   "Report generation failed": "La generación del informe falló",
@@ -167,76 +207,6 @@
   "Return Number Counts": "Recuento de números de retorno",
   "Return": "Retorno",
 
-
-
-  "Overlap Removal Complete": "Borrado de solapamiento completado",
-  "Overlap points removed": "Puntos solapados eliminados",
-  "Filtered file saved to": "Archivo filtrado guardado en",
-  "Save Non-Overlap LiDAR File": "Guardar archivo LiDAR sin solapamiento",
-  "Removing overlap from": "Eliminando solapamiento de",
-  "Removing overlapping points in the background": "Eliminando puntos solapados en segundo plano",
-
-
-
-  "All points were classified as outliers. No data would remain": "Todos los puntos fueron clasificados como atípicos. No quedarán datos",
-  "Outlier Removal Complete": "Eliminación de puntos atípicos completada",
-  "Removed outlier points": "Puntos atípicos eliminados",
-  "Error Removing Outliers": "Error al eliminar puntos atípicos",
-  "An error occurred during outlier removal": "Se produjo un error durante la eliminación de puntos atípicos",
-  "Outlier removal was canceled by the user": "La eliminación de puntos atípicos fue cancelada por el usuario",
-  "Save Cleaned LiDAR File": "Guardar archivo LiDAR limpio",
-  "Removing outliers from": "Eliminando puntos atípicos de",
-  "Removing outliers in the background": "Eliminando puntos atípicos en segundo plano",
-  "Search radius:": "Radio de búsqueda:",
-  "Minimum neighbors:": "Vecinos mínimos:",
-
-
-
-  "No Buildings Found": "No se encontraron edificios",
-  "No buildings were found in this file": "No se encontraron edificios en este archivo",
-  "Building Detection Complete": "Detección de edificios completada",
-  "Building points detected": "Puntos de edificios detectados",
-  "Approximate number of buildings detected": "Número aproximado de edificios detectados",
-  "Building detection failed": "La detección de edificios falló",
-  "Error Detecting Buildings": "Error en la detección de edificios",
-  "Output saved, but style not saved": "Salida guardada, pero estilo no guardado",
-  "Error saving output file": "Error al guardar el archivo de salida",
-  "Counting buildings in": "Contando edificios en",
-  "Detecting buildings in the background": "Detectando edificios en segundo plano",
-  "Min samples:": "Número mínimo de muestras:",
-  "Use Z-axis (3D clustering)": "Usar eje Z (agrupamiento 3D)",
-  "Select Output File": "Seleccionar archivo de salida",
-
-
-
-  "No ground points found in the file": "No se han encontrado puntos de suelo en el archivo",
-  "DEM successfully generated from ground points. Output saved at": "MDE generado correctamente a partir de puntos de suelo. Salida guardada en",
-  "Hillshade saved at": "Sombreado guardado en",
-  "Bare Earth DEM Generated": "MDE del Terreno Base Generado",
-  "DEM generation failed": "La generación del MDE falló",
-  "Error whilst generating Bare Earth DEM": "Error al generar el MDE del terreno base",
-  "Save Bare Earth DEM": "Guardar MDE del terreno base",
-  "Generating DEM from": "Generando MDE desde",
-  "Generating DEM in the background": "Generando MED en segundo plano",
-  "Save Hillshade Raster": "Guardar mapa de sombras del terreno",
-
-
-
-  "No ground points (class 2) found in the file": "No se encontraron puntos de suelo (clase 2) en el archivo",
-  "No high vegetation points (class 5) found in the file": "No se encontraron puntos de vegetación alta (clase 5) en el archivo",
-  "Vegetation Reclassification Complete": "Reclasificación de vegetación completada",
-  "Original high veg points": "Puntos de vegetación alta originales",
-  "Low vegetation": "Vegetación baja",
-  "Medium vegetation": "Vegetación media",
-  "High vegetation": "Vegetación alta",
-  "Updated file saved to": "Archivo actualizado guardado en",
-  "Vegetation classification failed": "La clasificación de vegetación falló",
-  "Error During Classification": "Error durante la clasificación",
-  "Classifying vegetation in": "Clasificando vegetación en",
-  "Classifying vegetation in the background": "Clasificando vegetaciónen segundo plano",
-
-
-
   "LiDAR Statistics": "Estadísticas LiDAR",
   "View": "Ver",
   "Area": "Área",
@@ -280,6 +250,14 @@
 
 
 
+  "LiDAR layer or file:": "Capa o archivo LiDAR:",
+  "Output file:":"Archivo de salida:",
+  "Output vector file (optional):": "Archivo vectorial de salida (opcional):",
+  "Output report file:": "Archivo de informe de salida:",
+  "Select output file path...": "Seleccione la ruta del archivo de salida...",
+  "Select output file path (optional)...": "Seleccione la ruta del archivo de salida (opcional)...",
+  "Select output raster path (.tif)...": "Seleccione la ruta del ráster de salida (.tif)...",
+  "Select output report file path...": "Seleccione la ruta del archivo de informe de salida...",
   "LiDAR Files (*.las *.laz)": "Archivos LiDAR (*.las *.laz)",
   "Layer Load Warning": "Advertencia al cargar la capa",
   "The LiDAR file was saved but could not be loaded into QGIS": "El archivo LiDAR se guardó pero no pudo cargarse en QGIS",
