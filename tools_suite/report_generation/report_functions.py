@@ -571,3 +571,152 @@ def generate_pdf_report(self, path, data: ReportData, tr):
 
     draw_page_number()
     canvas.save()
+
+# ----------------------------------
+# --- LaTeX Report Generation ---
+# ----------------------------------
+
+def generate_latex_report(self, path, data: ReportData, tr):
+    def tex_escape(s):
+        """Escape special LaTeX characters."""
+        if s is None:
+            return ""
+        return (
+            str(s)
+            .replace("\\", "\\textbackslash{}")
+            .replace("&", "\\&")
+            .replace("%", "\\%")
+            .replace("$", "\\$")
+            .replace("#", "\\#")
+            .replace("_", "\\_")
+            .replace("{", "\\{")
+            .replace("}", "\\}")
+            .replace("~", "\\textasciitilde{}")
+            .replace("^", "\\textasciicircum{}")
+        )
+
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("\\documentclass{article}\n")
+        f.write("\\usepackage{graphicx}\n")
+        f.write("\\usepackage[margin=1in]{geometry}\n")
+        f.write("\\usepackage{longtable}\n")
+        f.write("\\usepackage{booktabs}\n")
+        f.write("\\title{%s}\n" % tex_escape(tr("LiDAR File Report")))
+        f.write("\\author{}\n")
+        current_time = datetime.now()
+        f.write("\\date{%s: %s}\n" % (tex_escape(tr("Report date")), tex_escape(current_time)))
+        f.write("\\begin{document}\n")
+        f.write("\\maketitle\n")
+
+        if data.file_name:
+            f.write("\\textbf{%s}: \\texttt{%s}\n" % (tex_escape(tr("File")), tex_escape(data.file_name)))
+
+        # -- File Metadata --
+        if (data.file_source or data.global_encoding or data.system_id or
+            data.gen_software or data.version or data.point_format or data.creation_date):
+            f.write("\\section*{%s}\n" % tex_escape(tr("File Metadata")))
+            if data.file_source:
+                f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("File Source ID")), tex_escape(data.file_source)))
+
+            if data.global_encoding:
+                f.write("\\textbf{%s}:\n" % tex_escape(tr("Global Encoding")))
+                lines = str(data.global_encoding).splitlines()
+                items = [line.strip(" -") for line in lines if line.strip()]
+                if items:
+                    f.write("\\begin{enumerate}\n")
+                    for item in items:
+                        f.write("\\item %s\n" % tex_escape(item))
+                    f.write("\\end{enumerate}\n")
+                else:
+                    f.write("\\texttt{%s}\\\\\n" % tex_escape(data.global_encoding))
+
+            if data.system_id:
+                f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("System ID")), tex_escape(data.system_id)))
+            if data.gen_software:
+                f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("Generating Software")), tex_escape(data.gen_software)))
+            if data.version:
+                f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("Version")), tex_escape(data.version)))
+
+            if data.point_format:
+                # f.write("\\textbf{%s}:\\\\\\texttt{%s}\\\\\n" % (tex_escape(tr("Point Format")), tex_escape(data.point_format)))
+                f.write("\\textbf{%s}:\n" % tex_escape(tr("Point Format")))
+                lines = str(data.point_format).splitlines()
+                items = [line.strip(" -") for line in lines if line.strip()]
+                if items:
+                    f.write("\\begin{enumerate}\n")
+                    for item in items:
+                        f.write("\\item %s\n" % tex_escape(item))
+                    f.write("\\end{enumerate}\n")
+                else:
+                    f.write("\\texttt{%s}\\\\\n" % tex_escape(data.point_format))
+
+            if data.creation_date:
+                f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("Creation Date")), tex_escape(data.creation_date)))
+            f.write("\n")
+
+        # -- Intensity --
+        if data.min_intensity or data.max_intensity:
+            f.write("\\section*{%s}\n" % tex_escape(tr("Intensity")))
+            if data.min_intensity:
+                f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("Min Intensity")), data.min_intensity))
+            if data.max_intensity:
+                f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("Max Intensity")), data.max_intensity))
+            if data.mean_intensity:
+                f.write("\\textbf{%s}: \\texttt{%.2f}\\\\\n" % (tex_escape(tr("Mean Intensity")), data.mean_intensity))
+            if data.sd_intensity:
+                f.write("\\textbf{%s}: \\texttt{%.2f}\\\\\n" % (tex_escape(tr("Standard deviation")), data.sd_intensity))
+            f.write("\n")
+
+        # -- Spatial Measures --
+        if (data.num_points or data.area or data.density or
+            data.bounds or data.x_axis_bounds or data.y_axis_bounds):
+            f.write("\\section*{%s}\n" % tex_escape(tr("Spatial Measures")))
+            if data.num_points:
+                f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("Number of Points")), data.num_points))
+            if data.area:
+                f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("Area")), data.area))
+            if data.density:
+                f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("Density")), data.density))
+            if data.bounds:
+                f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("Bounds Min")), data.bounds[0]))
+                f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("Bounds Max")), data.bounds[1]))
+            if data.x_axis_bounds:
+                f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("X-Axis Bounds")), data.x_axis_bounds))
+            if data.y_axis_bounds:
+                f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("Y-Axis Bounds")), data.y_axis_bounds))
+            if data.z_axis_bounds:
+                f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("Z-Axis Bounds")), data.z_axis_bounds))
+            f.write("\n")
+
+        # -- GPS Time --
+        if data.min_time or data.max_time:
+            f.write("\\section*{%s}\n" % tex_escape(tr("GPS Time")))
+            if data.min_time:
+                f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("Min GPS Time")), data.min_time))
+            if data.max_time:
+                f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("Max GPS Time")), data.max_time))
+            f.write("\n")
+
+        # -- Classifications --
+        if data.unique_classes is not None and data.class_counts is not None:
+            from .report_functions import CLASS_INFO
+            f.write("\\section*{%s}\n" % tex_escape(tr("Classification Counts")))
+            f.write("\\begin{longtable}{ll}\n\\toprule\n")
+            f.write(f"{tex_escape(tr('Class ID'))} & {tex_escape(tr('Count'))} \\\\\n\\midrule\n")
+            for cls, count in zip(data.unique_classes, data.class_counts):
+                class_name_raw = CLASS_INFO.get(cls, ("Unknown", "#000000"))[0]
+                class_name = tr(class_name_raw)
+                f.write(f"{cls} ({tex_escape(class_name)}) & {count} \\\\\n")
+            f.write("\\bottomrule\n\\end{longtable}\n\n")
+
+        # -- Returns --
+        if data.unique_returns is not None and data.return_counts is not None:
+            f.write("\\section*{%s}\n" % tex_escape(tr("Return Number Counts")))
+            f.write("\\begin{longtable}{ll}\n\\toprule\n")
+            f.write(f"{tex_escape(tr('Return'))} & {tex_escape(tr('Count'))} \\\\\n\\midrule\n")
+            for ret, count in zip(data.unique_returns, data.return_counts):
+                f.write(f"{ret} & {count} \\\\\n")
+            f.write("\\bottomrule\n\\end{longtable}\n\n")
+
+        # --- End of Document ---
+        f.write("\\end{document}\n")

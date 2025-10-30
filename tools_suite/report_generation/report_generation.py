@@ -18,15 +18,15 @@ from .report_generation_dock import ReportDock
 
 # --- Utility & Report Generation Functions ---
 from ..utils import format_global_encoding, format_point_format, gps_time_to_datetime, generate_pie_chart_from_counts, generate_return_bar_chart, generate_density_heatmap
-from .report_functions import generate_txt_report, generate_markdown_report, generate_pdf_report, generate_dock_content
+from .report_functions import generate_txt_report, generate_markdown_report, generate_pdf_report, generate_latex_report, generate_dock_content
 
 # -------------------------
 # --- Report Generation ---
 # -----------------------------------------------------------------------------------------------
 # Description:
 # This function generates a report based on the LiDAR file's metadata and statistics, allowing
-# the user to choose the report format (text, markdown, or PDF) and which metadata to include, as
-# well as optionally generating a dock in QGIS with visualizations.
+# the user to choose the report format (text, markdown, PDF or TeX) and which metadata to
+# include, as well as optionally generating a dock in QGIS with visualizations.
 # -----------------------------------------------------------------------------------------------
 
 # ---------------------------------------------
@@ -168,6 +168,8 @@ class ReportGenerationTask(QgsTask):
                     generate_markdown_report(self.parent, self.report_path, data, self.tr)
                 elif self.report_format == "txt":
                     generate_txt_report(self.parent, self.report_path, data, self.tr)
+                elif self.report_format == "tex":
+                    generate_latex_report(self.parent, self.report_path, data, self.tr)
 
             self.setProgress(100)
             return True
@@ -250,7 +252,7 @@ def generate_report(self):
         )
         return
 
-    # Step 2: Retrieve all selected formats (list like ['txt', 'md', 'pdf'])
+    # Step 2: Retrieve all selected formats (list like ['txt', 'md', 'pdf', 'tex'])
     selected_formats = dialog.selected_formats()
     generate_dock = dialog.generate_dock()
     if not selected_formats and not generate_dock:
@@ -314,7 +316,7 @@ def generate_report(self):
         return
 
     # Step 5: Handle file report generation
-    format_extensions = {"txt": ".txt", "md": ".md", "pdf": ".pdf"}
+    format_extensions = {"txt": ".txt", "md": ".md", "pdf": ".pdf", "tex": ".tex"}
 
     # --- Multiple format selection ---
     if len(selected_formats) > 1:

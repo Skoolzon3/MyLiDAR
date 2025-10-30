@@ -50,7 +50,7 @@ class ReportGenerationDialog(QDialog):
         output_layout.addWidget(self.output_edit)
 
         self.output_button = QPushButton("...")
-        self.output_button.setToolTip(tr("Select output file (.txt / .md / .pdf)"))
+        self.output_button.setToolTip(tr("Select output file (.txt / .md / .pdf /.tex)"))
         self.output_button.setFixedWidth(28)
         self.output_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         output_layout.addWidget(self.output_button)
@@ -137,6 +137,7 @@ class ReportGenerationDialog(QDialog):
         self.checkTxt = self.add_check(self.groupOutputFormat, "Plain Text (.txt)")
         self.checkMarkdown = self.add_check(self.groupOutputFormat, "Markdown (.md)")
         self.checkPdf = self.add_check(self.groupOutputFormat, "PDF (.pdf)")
+        self.checkTeX = self.add_check(self.groupOutputFormat, "TeX (.tex)")
         self.checkGenerateDock = self.add_check(self.groupOutputFormat, "Generate Dock Panel in QGIS")
 
         self.labelWarningOutputFormat = QLabel(self.tr("No output format selected"))
@@ -190,7 +191,7 @@ class ReportGenerationDialog(QDialog):
         workflow = self.tr("Workflow:")
         step1 = self.tr("Select a LiDAR layer or file (.las / .laz).")
         step2 = self.tr("Choose which attributes and metrics to include in the report.")
-        step3 = self.tr("Select one or more output formats (TXT, Markdown, PDF).")
+        step3 = self.tr("Select one or more output formats (TXT, Markdown, PDF, TeX).")
         step4 = self.tr("Optionally generate a dockable report panel in QGIS.")
         note = self.tr("Use this tool to quickly inspect, summarize, or document LiDAR dataset properties.")
 
@@ -241,10 +242,10 @@ class ReportGenerationDialog(QDialog):
             self.checkClassCounts, self.checkReturnCounts
         ]
 
-        for cb in self.checkboxes + [self.checkTxt, self.checkMarkdown, self.checkPdf, self.checkGenerateDock]:
+        for cb in self.checkboxes + [self.checkTxt, self.checkMarkdown, self.checkPdf, self.checkTeX, self.checkGenerateDock]:
             cb.stateChanged.connect(self.validate_state)
 
-        for cb in [self.checkTxt, self.checkMarkdown, self.checkPdf]:
+        for cb in [self.checkTxt, self.checkMarkdown, self.checkPdf, self.checkTeX]:
             cb.stateChanged.connect(self.on_format_changed)
 
         self.validate_state()
@@ -332,7 +333,7 @@ class ReportGenerationDialog(QDialog):
             self,
             self.tr("Save LiDAR Report File"),
             self.output_edit.text() or "",
-            self.tr("Report Files (*.txt *.md *.pdf)")
+            self.tr("Report Files (*.txt *.md *.pdf *.tex)")
         )
         if filename:
             self.output_edit.setText(filename)
@@ -411,7 +412,7 @@ class ReportGenerationDialog(QDialog):
 
     def validate_state(self):
         any_info = any(cb.isChecked() for cb in self.checkboxes)
-        any_format = any(cb.isChecked() for cb in [self.checkTxt, self.checkMarkdown, self.checkPdf, self.checkGenerateDock])
+        any_format = any(cb.isChecked() for cb in [self.checkTxt, self.checkMarkdown, self.checkPdf, self.checkTeX, self.checkGenerateDock])
         self.labelWarning.setVisible(not any_info)
         self.labelWarningOutputFormat.setVisible(not any_format)
         self.ok_button.setEnabled(any_info and any_format)
@@ -425,6 +426,8 @@ class ReportGenerationDialog(QDialog):
             fmt.append("md")
         if self.checkPdf.isChecked():
             fmt.append("pdf")
+        if self.checkTeX.isChecked():
+            fmt.append("tex")
         return fmt
 
     def generate_dock(self):
