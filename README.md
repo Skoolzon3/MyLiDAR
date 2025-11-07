@@ -48,14 +48,15 @@ These functions are compatible with LiDAR `.las` and `.laz` files, and their exe
 This plugin requires the following Python libraries:
 - **laspy** for reading and writing LAS/LAZ files.
 - **GDAL** and **OSR** for geospatial data manipulation.
-- **numpy** for numerical calculations and statistical queries.
+- **numpy** for numerical calculations and statistical queries. ()
 - **scikit-learn** for point clustering.
 - **scipy** for scientific data processing and analysis.
 - **matplotlib** for generating graphs and visualisations.
 - **reportlab** for generating PDF reports.
 
-**Note**: the numpy dependency used in the project is integrated into laspy, so there is no need to install it later on once the latter is installed.
+**Note**: The numpy dependency used in the project is integrated into laspy, so there is no need to install it later on once the latter is installed.
 
+Currently, dependencies are installed automatically when importing the plugin as a ZIP file. However, in case of failure, it is possible to install them manually:
 #### Install dependencies (Windows - QGIS installed alongside OSGeo4W)
   1. Open OSGeo4W Shell
   2. Paste and run the following command:
@@ -137,6 +138,7 @@ Este complemento requiere las siguientes bibliotecas de Python:
 
 **Nota**: la dependencia numpy utilizada en el proyecto está integrada en laspy, por lo que no es necesario instalarla posteriormente una vez que se haya instalado esta última.
 
+Actualmente, las dependencias se instalan de manera automática en la importación del plugin como ZIP. En caso de fallo, sin embargo, es posible instalarlas manualmente:
 #### Instalar dependencias (Windows - QGIS instalado junto con OSGeo4W)
   1. Abra OSGeo4W Shell.
   2. Pegue y ejecute el siguiente comando:
