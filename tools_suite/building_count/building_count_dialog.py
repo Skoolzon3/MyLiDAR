@@ -13,7 +13,7 @@ class BuildingCountDialog(QDialog):
         self.user_edited_output = False
 
         # --- Window ---
-        self.setWindowTitle(tr("Building Count (DBSCAN Clustering)"))
+        self.setWindowTitle(tr("Count Buildings"))
         self.resize(900, 370)
         self.setMinimumWidth(820)
 
@@ -62,13 +62,13 @@ class BuildingCountDialog(QDialog):
         param_layout.setLabelAlignment(Qt.AlignLeft)
         param_layout.setFormAlignment(Qt.AlignTop)
 
-        # Epsilon
+        # Radio de búsqueda
         self.eps_spin = QDoubleSpinBox()
         self.eps_spin.setRange(0.1, 100.0)
         self.eps_spin.setSingleStep(0.1)
         self.eps_spin.setValue(2.0)
         self.eps_spin.setSuffix(" m")
-        param_layout.addRow(tr("Epsilon:"), self.eps_spin)
+        param_layout.addRow(tr("Search radius:"), self.eps_spin)
 
         # Min samples
         self.min_samples_spin = QSpinBox()

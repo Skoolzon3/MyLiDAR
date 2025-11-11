@@ -13,7 +13,7 @@ class DemGenerationDialog(QDialog):
         self.user_edited_output = False
 
         # --- Window ---
-        self.setWindowTitle(self.tr("Bare Earth DEM Generation"))
+        self.setWindowTitle(self.tr("Generate Bare Earth DEM"))
         self.resize(900, 440)
         self.setMinimumWidth(820)
 

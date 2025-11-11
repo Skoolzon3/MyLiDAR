@@ -64,10 +64,10 @@ class MyLiDARPlugin:
             menubar.addMenu(self.menu)
 
         actions = [
-            ("cleanup.png", self.tr("Remove outlier points"), self.outlier_removal),
-            ("overlap.png", self.tr("Remove overlapping points"), self.overlap_removal),
-            ("vegetation.png", self.tr("Classify vegetation"), self.vegetation_classification),
-            ("building.png", self.tr("Count buildings"), self.building_count),
+            ("cleanup.png", self.tr("Remove Outlier Points"), self.outlier_removal),
+            ("overlap.png", self.tr("Remove Overlapping Points"), self.overlap_removal),
+            ("vegetation.png", self.tr("Classify Vegetation"), self.vegetation_classification),
+            ("building.png", self.tr("Count Buildings"), self.building_count),
             ("dem.png", self.tr("Generate Bare Earth DEM"), self.bare_earth_dem_generation),
             ("report.png", self.tr("Generate LiDAR File Report"), self.report_generation),
         ]

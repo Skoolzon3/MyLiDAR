@@ -15,7 +15,7 @@ class VegetationClassificationDialog(QDialog):
         self.user_edited_output = False
 
         # --- Window ---
-        self.setWindowTitle(self.tr("Vegetation Classification"))
+        self.setWindowTitle(self.tr("Classify Vegetation"))
         self.resize(850, 500)
         self.setMinimumWidth(800)
 

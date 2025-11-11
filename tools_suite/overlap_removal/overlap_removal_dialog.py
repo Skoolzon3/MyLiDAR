@@ -13,7 +13,7 @@ class OverlapRemovalDialog(QDialog):
         self.user_edited_output = False
 
         # --- Window ---
-        self.setWindowTitle(tr("Remove Overlap Points"))
+        self.setWindowTitle(tr("Remove Overlapping Points"))
         self.resize(850, 400)
         self.setMinimumWidth(800)
 

@@ -1,8 +1,8 @@
 {
-  "Remove outlier points": "Remove outlier points",
-  "Remove overlapping points": "Remove overlapping points",
-  "Classify vegetation": "Classify vegetation",
-  "Count buildings": "Count buildings",
+  "Remove Outlier Points": "Remove Outlier Points",
+  "Remove Overlapping Points": "Remove Overlapping Points",
+  "Classify Vegetation": "Classify Vegetation",
+  "Count Buildings": "Count Buildings",
   "Generate Bare Earth DEM": "Generate Bare Earth DEM",
   "Generate LiDAR File Report": "Generate LiDAR File Report",
 
@@ -73,7 +73,6 @@
 
   "Building Count (DBSCAN)":  "Building Count (DBSCAN)",
   "DBSCAN Parameters": "DBSCAN Parameters",
-  "Epsilon:": "Epsilon:",
   "This tool estimates the number of buildings in a LiDAR dataset by clustering points classified as buildings (code 6).": "This tool estimates the number of buildings in a LiDAR dataset by clustering points classified as buildings (code 6).",
   "Workflow:": "Workflow:",
   "Filters building-classified points (code 6).": "Filters building-classified points (code 6).",

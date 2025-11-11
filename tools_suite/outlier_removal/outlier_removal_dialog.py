@@ -15,7 +15,7 @@ class OutlierRemovalDialog(QDialog):
         self.user_edited_output = False
 
         # --- Window ---
-        self.setWindowTitle(self.tr("Remove LiDAR Outliers"))
+        self.setWindowTitle(self.tr("Remove Outlier Points"))
         self.resize(850, 440)
         self.setMinimumWidth(800)
 

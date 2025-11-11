@@ -14,7 +14,7 @@ class ReportGenerationDialog(QDialog):
         self.user_edited_output = False
 
         # --- Window ---
-        self.setWindowTitle(tr("Generate LiDAR Report"))
+        self.setWindowTitle(tr("Generate LiDAR File Report"))
         self.resize(900, 500)
         self.setMinimumWidth(885)
 
