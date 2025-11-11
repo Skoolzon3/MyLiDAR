@@ -151,9 +151,11 @@
   "System ID": "System ID",
   "Identifier of the system that created the file": "Identifier of the system that created the file",
   "Generating Software": "Generating Software",
+  "Software that generated the LAS file": "Software that generated the LAS file",
   "LAS Version": "LAS Version",
   "LAS file format version (e.g., 1.2, 1.4)": "LAS file format version (e.g., 1.2, 1.4)",
   "Point Format": "Point Format",
+  "Point data record format and byte size": "Point data record format and byte size",
   "Creation Date": "Creation Date",
   "Date the LAS file was created": "Date the LAS file was created",
 

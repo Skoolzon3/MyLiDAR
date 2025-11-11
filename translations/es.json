@@ -151,9 +151,11 @@
   "System ID": "ID del sistema",
   "Identifier of the system that created the file": "Identificador del sistema que creó el archivo",
   "Generating Software": "Software generador",
+  "Software that generated the LAS file": "Software que generó el archivo LAS",
   "LAS Version": "Versión LAS",
   "LAS file format version (e.g., 1.2, 1.4)": "Versión del formato de archivo LAS (p. ej., 1.2, 1.4)",
   "Point Format": "Formato de puntos",
+  "Point data record format and byte size": "Formato de registro de datos de puntos y tamaño en bytes",
   "Creation Date": "Fecha de creación",
   "Date the LAS file was created": "Fecha en que se creó el archivo LAS",
 
