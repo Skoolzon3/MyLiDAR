@@ -44,7 +44,7 @@ These functions are compatible with LiDAR `.las` and `.laz` files, and their exe
 
   3. Manually activate the plugin from ``Plugins → Manage and Install Plugins``.-->
 
-#### Dependencies
+### Dependencies
 This plugin requires the following Python libraries:
 - **laspy** for reading and writing LAS/LAZ files.
 - **GDAL** and **OSR** for geospatial data manipulation.
@@ -57,7 +57,10 @@ This plugin requires the following Python libraries:
 **Note**: The numpy dependency used in the project is integrated into laspy, so there is no need to install it later on once the latter is installed.
 
 Currently, dependencies are installed automatically when importing the plugin as a ZIP file. However, in case of failure, it is possible to install them manually:
-#### Install dependencies (Windows - QGIS installed alongside OSGeo4W)
+
+### Install dependencies
+
+#### Windows - QGIS installed alongside OSGeo4W
   1. Open OSGeo4W Shell
   2. Paste and run the following command:
   ```bash
@@ -70,6 +73,24 @@ Currently, dependencies are installed automatically when importing the plugin as
 C:\PROGRA~1\QGIS34~1.3>
 ```
 
+#### macOS
+ 1. Open the macOS terminal
+ 2. Navigate to the following path:
+    ```bash
+    /Applications/"Your_QGIS_Version".app/Contents/MacOS/bin/
+    ```
+ 3. Paste and execute the following command:
+    ```bash
+    pip install laspy[lazrs,laszip] scipy GDAL OSR matplotlib reportlab scikit-learn
+    ```
+ 4. Update the sip and PyQt5-sip modules to ensure compatibility between PyQt and QGIS.
+    ```bash
+    pip install sip --upgrade
+    ```	  
+    ```bash
+    pip install PyQt5-sip --upgrade
+    ```
+
 <!-- #### Linux
   Open a terminal and run:
   ```bash
@@ -79,7 +100,7 @@ C:\PROGRA~1\QGIS34~1.3>
 ### Availability
 We recommend using the latest stable version of QGIS to take full advantage of its functionality. Not compatible with versions prior to QGIS 3.18.
 
-### Credits
+### Acknowledgements
 Plugin developed in collaboration with the Media Engineering Group (GIM) of the Polytechnic School of Cáceres.
 
 ---
@@ -107,13 +128,13 @@ Estas funciones son compatibles con archivos LiDAR `.las` y `.laz`, y su ejecuci
 
 2. En QGIS, seleccione ``Complementos → Administrar e instalar complementos → Instalar desde ZIP``.
 
-3. Arrastra y suelta el archivo ZIP en el único campo del formulario del menú.
+3. Arrastre y suelte el archivo ZIP en el único campo del formulario del menú.
 
-4. Instala las dependencias necesarias (consulta [dependencias](#dependencias)).
+4. Instale las dependencias necesarias (consulta [dependencias](#dependencias)).
 
-5. Reinicia QGIS.
+5. Reinicie QGIS.
 
-6. Activa manualmente el complemento desde ``Complementos → Administrar e instalar complementos → Instalados``.
+6. Active manualmente el complemento desde ``Complementos → Administrar e instalar complementos → Instalados``.
 
 <!-- Instalación manual -->
 
@@ -126,7 +147,7 @@ Estas funciones son compatibles con archivos LiDAR `.las` y `.laz`, y su ejecuci
 2. Reinicie QGIS.
 3. Active manualmente el complemento desde **Complementos > Administrar e instalar complementos**. -->
 
-#### Dependencias
+### Dependencias
 Este complemento requiere las siguientes bibliotecas de Python:
 - **laspy** para leer y escribir archivos LAS/LAZ.
 - **GDAL** y **OSR** para la manipulación de datos geoespaciales.
@@ -136,10 +157,13 @@ Este complemento requiere las siguientes bibliotecas de Python:
 - **matplotlib** para la generación de gráficos y visualizaciones.
 - **reportlab** para la generación de informes en PDF.
 
-**Nota**: la dependencia numpy utilizada en el proyecto está integrada en laspy, por lo que no es necesario instalarla posteriormente una vez que se haya instalado esta última.
+**Nota**: la dependencia numpy utilizada en el proyecto está integrada en laspy, por lo que no es necesario instalarla posteriormente una vez instalada esta última.
 
 Actualmente, las dependencias se instalan de manera automática en la importación del plugin como ZIP. En caso de fallo, sin embargo, es posible instalarlas manualmente:
-#### Instalar dependencias (Windows - QGIS instalado junto con OSGeo4W)
+
+### Instalar dependencias 
+
+#### Windows - QGIS instalado junto con OSGeo4W
   1. Abra OSGeo4W Shell.
   2. Pegue y ejecute el siguiente comando:
   ```bash
@@ -152,6 +176,24 @@ Actualmente, las dependencias se instalan de manera automática en la importaci�
 C:\PROGRA~1\QGIS34~1.3>
 ```
 
+#### macOS
+ 1. Abra el terminal de macOS
+ 2. Desplácese a la siguiente ruta:
+    ```bash
+    /Applications/«Tu_versión_de_QGIS».app/Contents/MacOS/bin/
+    ```
+ 3. Pegue y ejecute el siguiente comando:
+    ```bash
+    pip install laspy[lazrs,laszip] scipy GDAL OSR matplotlib reportlab scikit-learn
+    ```
+ 4. Actualice los módulos sip y PyQt5-sip para asegurar la compatibilidad entre PyQt y QGIS
+    ```bash
+    pip install sip --upgrade
+    ```	  
+    ```bash
+    pip install PyQt5-sip --upgrade
+    ```
+
 <!-- - **Linux**:
   Abra un terminal y ejecute:
   ```bash
@@ -160,5 +202,5 @@ C:\PROGRA~1\QGIS34~1.3>
 ### Disponibilidad
 Se recomienda utilizar la última versión estable de QGIS para aprovechar su funcionalidad al máximo. No compatible con versiones anteriores a QGIS 3.18.
 
-### Créditos
+### Agradecimientos
 Complemento desarrollado en colaboración con el Grupo de Ingeniería de Medios (GIM) de la Escuela Politécnica de Cáceres.
