@@ -1,6 +1,6 @@
 import os
 from qgis.core import QgsProject, QgsPointCloudLayer
-from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QGroupBox, QCheckBox, QPushButton, QDialogButtonBox, QScrollArea, QWidget, QSpacerItem, QSizePolicy, QLineEdit, QTextBrowser, QFileDialog, QComboBox
+from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QGroupBox, QCheckBox, QPushButton, QDialogButtonBox, QScrollArea, QWidget, QSpacerItem, QSizePolicy, QLineEdit, QTextBrowser, QFileDialog, QComboBox, QGridLayout
 from qgis.PyQt.QtCore import Qt
 
 class ReportGenerationDialog(QDialog):
@@ -69,11 +69,10 @@ class ReportGenerationDialog(QDialog):
         header_layout = QHBoxLayout()
         header_layout.setAlignment(Qt.AlignLeft)
 
-        self.label = QLabel(self.tr("Select the information to include in the report:"))
-        self.label.setStyleSheet("font-weight: 600; font-size: 10.5pt;")
+        self.label = QLabel(self.tr("Report Attributes"))
+        self.label.setStyleSheet("font-weight: 600; font-size: 9pt;")
         header_layout.addWidget(self.label)
 
-        # Add some stretch between the label and button so they don't stick together
         header_layout.addStretch()
 
         self.btnSelectAll = QPushButton(self.tr("Select All Attributes"))
@@ -87,11 +86,26 @@ class ReportGenerationDialog(QDialog):
         scroll_layout.addWidget(self.labelWarning)
 
         # --- Report Groups ---
-        self.groupFileMetadata = self.create_group(self.tr("File Metadata"), scroll_layout)
-        self.groupSpatial = self.create_group(self.tr("Spatial"), scroll_layout)
-        self.groupIntensity = self.create_group(self.tr("Intensity"), scroll_layout)
-        self.groupTime = self.create_group(self.tr("Time"), scroll_layout)
-        self.groupClassification = self.create_group(self.tr("Classification"), scroll_layout)
+        groups_container = QWidget()
+        groups_layout = QGridLayout(groups_container)
+        groups_layout.setColumnStretch(0, 1)
+        groups_layout.setColumnStretch(1, 1)
+        groups_layout.setHorizontalSpacing(15)
+        groups_layout.setVerticalSpacing(10)
+
+        self.groupFileMetadata = self.create_group(self.tr("File Metadata"), groups_layout)
+        self.groupSpatial = self.create_group(self.tr("Spatial"), groups_layout)
+        self.groupIntensity = self.create_group(self.tr("Intensity"), groups_layout)
+        self.groupTime = self.create_group(self.tr("Time"), groups_layout)
+        self.groupClassification = self.create_group(self.tr("Classification"), groups_layout)
+
+        groups_layout.addWidget(self.groupFileMetadata, 0, 0)
+        groups_layout.addWidget(self.groupSpatial, 0, 1)
+        groups_layout.addWidget(self.groupIntensity, 1, 0)
+        groups_layout.addWidget(self.groupTime, 1, 1)
+        groups_layout.addWidget(self.groupClassification, 2, 0, 1, 2)  # full width if desired
+
+        scroll_layout.addWidget(groups_container)
 
         # --- Output Format ---
         self.groupOutputFormat = QGroupBox(self.tr("Output Format"))

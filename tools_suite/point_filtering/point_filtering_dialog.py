@@ -307,14 +307,11 @@ class PointFilteringDialog(QDialog):
             color_label.setStyleSheet(f"background-color: {color}; border: 1px solid #555; border-radius: 2px;")
 
             if class_code in class_colors:
-                hex_code = class_colors[class_code]
-                label_text = f"{class_code} - {name} - {count} pts - {hex_code}"
+                label_text = f"{class_code} - {name} - {count}"
             else:
-                hex_code = color
-                label_text = f"{class_code} - {name} - {count} pts - {hex_code}"
+                label_text = f"{class_code} - {name} - {count}"
 
             cb = QCheckBox(label_text)
-            cb.setToolTip(f"Class {class_code}: {name} (color: {hex_code})")
 
             if class_code in default_checked:
                 cb.setChecked(True)
