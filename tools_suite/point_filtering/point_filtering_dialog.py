@@ -242,7 +242,7 @@ class PointFilteringDialog(QDialog):
             return list(zip(classes.tolist(), counts.tolist()))
         except Exception as e:
             QgsMessageLog.logMessage(
-                f"Error reading classifications from {filepath}: {e}",
+                f"{self.tr('Error reading classifications from')} {filepath}: {e}",
                 "PointFilter",
                 Qgis.Warning
             )
@@ -296,10 +296,10 @@ class PointFilteringDialog(QDialog):
         self.class_checkboxes = {}
         for idx, (class_code, count) in enumerate(sorted(present_classes, key=lambda x: x[0])):
             if class_code in class_colors:
-                name = f"Class {class_code}"
+                name = f"{self.tr('Class')} {class_code}"
                 color = class_colors[class_code]
             else:
-                name, color = fallback_colors.get(class_code, (f"Unknown ({class_code})", "#CCCCCC"))
+                name, color = fallback_colors.get(class_code, (f"{self.tr('Unknown')} ({class_code})", "#CCCCCC"))
 
             row, col = divmod(idx, 2)
             color_label = QLabel()
@@ -336,7 +336,7 @@ class PointFilteringDialog(QDialog):
         try:
             if not isinstance(layer, QgsPointCloudLayer):
                 QgsMessageLog.logMessage(
-                    "Provided object is not a point cloud layer.",
+                    self.tr("Provided object is not a point cloud layer."),
                     "PointFilter", Qgis.Warning
                 )
                 return {}
@@ -344,7 +344,7 @@ class PointFilteringDialog(QDialog):
             renderer = layer.renderer()
             if not renderer:
                 QgsMessageLog.logMessage(
-                    "Layer has no renderer.",
+                    self.tr("Layer has no renderer."),
                     "PointFilter", Qgis.Warning
                 )
                 return {}
@@ -358,7 +358,7 @@ class PointFilteringDialog(QDialog):
 
             if not shader or not isinstance(shader, QgsColorRampShader):
                 QgsMessageLog.logMessage(
-                    "No valid color ramp shader found in renderer.",
+                    self.tr("No valid color ramp shader found in renderer."),
                     "PointFilter", Qgis.Info
                 )
                 return {}
@@ -374,14 +374,14 @@ class PointFilteringDialog(QDialog):
                 color_dict[code] = hex_color
 
             QgsMessageLog.logMessage(
-                f"Extracted {len(color_dict)} class colors from QGIS renderer.",
+                f"{self.tr('Extracted class colors from QGIS renderer')}: {len(color_dict)} ",
                 "PointFilter", Qgis.Info
             )
             return color_dict
 
         except Exception as e:
             QgsMessageLog.logMessage(
-                f"Error reading class colors from layer: {e}",
+                f"{self.tr('Error reading class colors from layer')}: {e}",
                 "PointFilter", Qgis.Warning
             )
             return {}

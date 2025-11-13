@@ -31,7 +31,7 @@ class FilterPointsTask(QgsTask):
         super().__init__(description, QgsTask.CanCancel)
         self.input_filename = input_filename
         self.output_filename = output_filename
-        self.selected_classes = selected_classes  # list of ints
+        self.selected_classes = selected_classes
         self.parent = parent
         self.tr = translator
         self.exception = None

@@ -1,6 +1,6 @@
 {
   "Remove Outlier Points": "Remove Outlier Points",
-  "Remove Overlapping Points": "Remove Overlapping Points",
+  "Filter Points by Classification": "Filter Points by Classification",
   "Classify Vegetation": "Classify Vegetation",
   "Count Buildings": "Count Buildings",
   "Generate Bare Earth DEM": "Generate Bare Earth DEM",
@@ -29,23 +29,8 @@
 
 
 
-  "Overlap Removal": "Overlap Removal",
-  "This tool removes overlap points from a LiDAR file based on classification codes. Points classified as overlap are filtered out, and the remaining points are saved as a new point cloud.": "This tool removes overlap points from a LiDAR file based on classification codes. Points classified as overlap are filtered out, and the remaining points are saved as a new point cloud.",
-  "Reads the input .las or .laz file.": "Reads the input .las or .laz file.",
-  "Filters out points with overlap classification codes (12, 17).": "Filters out points with overlap classification codes (12, 17).",
-  "Writes the cleaned point cloud to a new file.": "Writes the cleaned point cloud to a new file.",
-  "The resulting dataset contains only non-overlapping LiDAR points.": "The resulting dataset contains only non-overlapping LiDAR points.",
-  "Overlap Removal Complete": "Overlap Removal Complete",
-  "Overlap points removed": "Overlap points removed",
-  "Filtered file saved to": "Filtered file saved to",
-  "Save Non-Overlap LiDAR File": "Save Non-Overlap LiDAR File",
-  "Removing overlap from": "Removing overlap from",
-  "Removing overlapping points in the background": "Removing overlapping points in the background",
-
-
-
-  "Filter Points by Classification": "Filter Points by Classification",
   "Point Filtering": "Point Filtering",
+  "Filtered file saved to": "Filtered file saved to",
   "This tool filters LiDAR points based on their classification codes. Users can select one or more classification classes to remove from the dataset.": "This tool filters LiDAR points based on their classification codes. Users can select one or more classification classes to remove from the dataset.",
   "Reads the input LAS/LAZ file and extracts point classification values.": "Reads the input LAS/LAZ file and extracts point classification values.",
   "Applies the user-defined filtering rule to remove the selected classes.": "Applies the user-defined filtering rule to remove the selected classes.",
@@ -56,6 +41,14 @@
   "Filtering points in the background": "Filtering points in the background",
   "Point Filtering Complete": "Point Filtering Complete",
   "Filtered points": "Filtered points",
+  "No points remain after filtering. No data would remain": "No points remain after filtering. No data would remain",
+  "Error reading classifications from": "Error reading classifications from",
+  "(No classification data found)": "(No classification data found)",
+  "Provided object is not a point cloud layer.": "Provided object is not a point cloud layer.",
+  "Layer has no renderer.": "Layer has no renderer.",
+  "No valid color ramp shader found in renderer.": "No valid color ramp shader found in renderer.",
+  "Extracted class colors from QGIS renderer": "Extracted class colors from QGIS renderer",
+  "Error reading class colors from layer": "Error reading class colors from layer",
 
 
 
@@ -246,6 +239,7 @@
   "Wire-structure Connector": "Wire-structure Connector",
   "Bridge Deck": "Bridge Deck",
   "High Noise": "High Noise",
+  "Unknown": "Unknown",
   "Class": "Class",
   "Classification Distribution": "Classification Distribution",
   "Return Number Distribution": "Return Number Distribution",
@@ -282,5 +276,13 @@
   "Original points": "Original points",
   "Remaining points": "Remaining points",
   "Task Started": "Task Started",
-  "Task was canceled": "Task was canceled"
+  "Task was canceled": "Task was canceled",
+  "No Input Selected": "No Input Selected",
+  "Please select a LiDAR layer or file.": "Please select a LiDAR layer or file.",
+  "No Output Selected": "No Output Selected",
+  "Please specify an output file path.": "Please specify an output file path.",
+  "Please select at least one output format or enable dock generation.": "Please select at least one output format or enable dock generation.",
+  "Please specify an output DEM file path.": "Please specify an output DEM file path.",
+  "No Classes Selected": "No Classes Selected",
+  "Please choose at least one classification code.": "Please choose at least one classification code."
 }

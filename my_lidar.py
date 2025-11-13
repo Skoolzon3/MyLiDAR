@@ -9,7 +9,6 @@ from qgis.PyQt.QtWidgets import QAction, QMessageBox, QMenu
 
 # --- Method-specific imports ---
 from .tools_suite.outlier_removal.outlier_removal import remove_outliers
-# from .tools_suite.overlap_removal.overlap_removal import remove_overlap
 from .tools_suite.point_filtering.point_filtering import filter_points
 from .tools_suite.vegetation_classification.vegetation_classification import classify_vegetation
 from .tools_suite.building_count.building_count import count_buildings
@@ -68,7 +67,6 @@ class MyLiDARPlugin:
         actions = [
             ("cleanup.png", self.tr("Remove Outlier Points"), self.outlier_removal),
             ("overlap.png", self.tr("Filter Points by Classification"), self.point_filtering),
-            # ("overlap.png", self.tr("Remove Overlapping Points"), self.overlap_removal),
             ("vegetation.png", self.tr("Classify Vegetation"), self.vegetation_classification),
             ("building.png", self.tr("Count Buildings"), self.building_count),
             ("dem.png", self.tr("Generate Bare Earth DEM"), self.bare_earth_dem_generation),
@@ -96,10 +94,6 @@ class MyLiDARPlugin:
     # --- Point Filtering ---
     def point_filtering(self):
         filter_points(self)
-
-    # # --- Overlap Removal ---
-    # def overlap_removal(self):
-    #     remove_overlap(self)
 
     # --- Builing Count ---
     def building_count(self):

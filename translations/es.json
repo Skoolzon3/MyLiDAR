@@ -1,6 +1,6 @@
 {
   "Remove Outlier Points": "Eliminar puntos atípicos",
-  "Remove Overlapping Points": "Eliminar solapamiento",
+  "Filter Points by Classification": "Filtrar puntos por clasificación",
   "Classify Vegetation": "Clasificar vegetación",
   "Count Buildings": "Contar edificios",
   "Generate Bare Earth DEM": "Generar MDE de terreno base",
@@ -29,23 +29,8 @@
 
 
 
-  "Overlap Removal": "Borrado de solapamiento",
-  "This tool removes overlap points from a LiDAR file based on classification codes. Points classified as overlap are filtered out, and the remaining points are saved as a new point cloud.": "Esta herramienta elimina los puntos superpuestos de un archivo LiDAR basándose en los códigos de clasificación. Los puntos clasificados como solapados se filtran y los puntos restantes se guardan como una nueva nube de puntos.",
-  "Reads the input .las or .laz file.": "Lee el archivo de entrada .las o .laz.",
-  "Filters out points with overlap classification codes (12, 17).": "Filtra los puntos con códigos de clasificación de solapamiento (12, 17).",
-  "Writes the cleaned point cloud to a new file.": "Escribe la nube de puntos depurada en un nuevo archivo.",
-  "The resulting dataset contains only non-overlapping LiDAR points.": "El conjunto de datos resultante contiene únicamente puntos LiDAR no solapados.",
-  "Overlap Removal Complete": "Borrado de solapamiento completado",
-  "Overlap points removed": "Puntos solapados eliminados",
-  "Filtered file saved to": "Archivo filtrado guardado en",
-  "Save Non-Overlap LiDAR File": "Guardar archivo LiDAR sin solapamiento",
-  "Removing overlap from": "Eliminando solapamiento de",
-  "Removing overlapping points in the background": "Eliminando puntos solapados en segundo plano",
-
-
-
-  "Filter Points by Classification": "Filtrar puntos por clasificación",
   "Point Filtering": "Filtrado de puntos",
+  "Filtered file saved to": "Archivo filtrado guardado en",
   "This tool filters LiDAR points based on their classification codes. Users can select one or more classification classes to remove from the dataset.": "Esta herramienta filtra los puntos LiDAR basándose en sus códigos de clasificación. Los usuarios pueden seleccionar una o más clases de clasificación para eliminar del conjunto de datos.",
   "Reads the input LAS/LAZ file and extracts point classification values.": "Lee el archivo LAS/LAZ de entrada y extrae los valores de clasificación de puntos.",
   "Applies the user-defined filtering rule to remove the selected classes.": "Aplica la regla de filtrado definida por el usuario para eliminar las clases seleccionadas.",
@@ -56,6 +41,14 @@
   "Filtering points in the background": "Filtrando puntos en segundo plano",
   "Point Filtering Complete": "Filtrado de puntos completado",
   "Filtered points": "Puntos filtrados",
+  "No points remain after filtering. No data would remain": "No quedan puntos después del filtrado. No quedaría ningún dato",
+  "Error reading classifications from": "Error al leer las clasificaciones de",
+  "(No classification data found)": "(No se han encontrado datos de clasificación)",
+  "Provided object is not a point cloud layer.": "El objeto proporcionado no es una capa de nube de puntos.",
+  "Layer has no renderer.": "La capa no tiene renderizador",
+  "No valid color ramp shader found in renderer.": "No se ha encontrado ningún sombreador de rampa de color válido en el renderizador",
+  "Extracted class colors from QGIS renderer": "Colores de clase extraídos del renderizador QGIS",
+  "Error reading class colors from layer": "Error al leer los colores de clase de la capa",
 
 
 
@@ -246,6 +239,7 @@
   "Wire-structure Connector": "Conector de estructura de cable",
   "Bridge Deck": "Tablero de puente",
   "High Noise": "Ruido alto",
+  "Unknown": "Desconocido",
   "Class": "Clase",
   "Classification Distribution": "Distribución de clasificación",
   "Return Number Distribution": "Distribución de número de retornos",
@@ -282,5 +276,13 @@
   "Original points": "Puntos originales",
   "Remaining points": "Puntos restantes",
   "Task Started": "Tarea iniciada",
-  "Task was canceled": "La tarea fue cancelada"
+  "Task was canceled": "La tarea fue cancelada",
+  "No Input Selected": "No se ha seleccionado ninguna entrada",
+  "Please select a LiDAR layer or file.": "Seleccione una capa o archivo LiDAR.",
+  "No Output Selected": "No se ha seleccionado ninguna salida",
+  "Please specify an output file path.": "Especifique una ruta de archivo de salida.",
+  "Please select at least one output format or enable dock generation.": "Seleccione al menos un formato de salida o habilite la generación de paneles.",
+  "Please specify an output DEM file path.": "Especifique una ruta de archivo DEM de salida.",
+  "No Classes Selected": "No se ha seleccionado ninguna clase",
+  "Please choose at least one classification code.": "Seleccione al menos un código de clasificación."
 }
