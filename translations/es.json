@@ -44,6 +44,21 @@
 
 
 
+  "Filter Points by Classification": "Filtrar puntos por clasificación",
+  "Point Filtering": "Filtrado de puntos",
+  "This tool filters LiDAR points based on their classification codes. Users can select one or more classification classes to remove from the dataset.": "Esta herramienta filtra los puntos LiDAR basándose en sus códigos de clasificación. Los usuarios pueden seleccionar una o más clases de clasificación para eliminar del conjunto de datos.",
+  "Reads the input LAS/LAZ file and extracts point classification values.": "Lee el archivo LAS/LAZ de entrada y extrae los valores de clasificación de puntos.",
+  "Applies the user-defined filtering rule to remove the selected classes.": "Aplica la regla de filtrado definida por el usuario para eliminar las clases seleccionadas.",
+  "Creates a new LAS/LAZ file containing only the filtered points.": "Crea un nuevo archivo LAS/LAZ que contiene solo los puntos filtrados.",
+  "The resulting LiDAR file will include only the desired classification codes, allowing users to isolate specific features (e.g., ground or vegetation) or remove unwanted data.": "El archivo LiDAR resultante incluirá solo los códigos de clasificación deseados, lo que permitirá a los usuarios aislar características específicas (por ejemplo, suelo o vegetación) o eliminar datos no deseados.",
+  "Save Filtered LiDAR File": "Guardar archivo LiDAR filtrado",
+  "Filtering points from": "Filtrando puntos de",
+  "Filtering points in the background": "Filtrando puntos en segundo plano",
+  "Point Filtering Complete": "Filtrado de puntos completado",
+  "Filtered points": "Puntos filtrados",
+
+
+
   "Vegetation Classification": "Clasificación de vegetación",
   "Vegetation Height Thresholds": "Umbrales de altura de la vegetación",
   "Low vegetation threshold:": "Umbral de vegetación baja:",

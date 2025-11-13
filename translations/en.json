@@ -44,6 +44,21 @@
 
 
 
+  "Filter Points by Classification": "Filter Points by Classification",
+  "Point Filtering": "Point Filtering",
+  "This tool filters LiDAR points based on their classification codes. Users can select one or more classification classes to remove from the dataset.": "This tool filters LiDAR points based on their classification codes. Users can select one or more classification classes to remove from the dataset.",
+  "Reads the input LAS/LAZ file and extracts point classification values.": "Reads the input LAS/LAZ file and extracts point classification values.",
+  "Applies the user-defined filtering rule to remove the selected classes.": "Applies the user-defined filtering rule to remove the selected classes.",
+  "Creates a new LAS/LAZ file containing only the filtered points.": "Creates a new LAS/LAZ file containing only the filtered points.",
+  "The resulting LiDAR file will include only the desired classification codes, allowing users to isolate specific features (e.g., ground or vegetation) or remove unwanted data.": "The resulting LiDAR file will include only the desired classification codes, allowing users to isolate specific features (e.g., ground or vegetation) or remove unwanted data.",
+  "Save Filtered LiDAR File": "Save Filtered LiDAR File",
+  "Filtering points from": "Filtering points from",
+  "Filtering points in the background": "Filtering points in the background",
+  "Point Filtering Complete": "Point Filtering Complete",
+  "Filtered points": "Filtered points",
+
+
+
   "Vegetation Classification": "Vegetation Classification",
   "Vegetation Height Thresholds": "Vegetation Height Thresholds",
   "Low vegetation threshold:": "Low vegetation threshold:",

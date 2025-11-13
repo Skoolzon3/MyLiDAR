@@ -9,7 +9,8 @@ from qgis.PyQt.QtWidgets import QAction, QMessageBox, QMenu
 
 # --- Method-specific imports ---
 from .tools_suite.outlier_removal.outlier_removal import remove_outliers
-from .tools_suite.overlap_removal.overlap_removal import remove_overlap
+# from .tools_suite.overlap_removal.overlap_removal import remove_overlap
+from .tools_suite.point_filtering.point_filtering import filter_points
 from .tools_suite.vegetation_classification.vegetation_classification import classify_vegetation
 from .tools_suite.building_count.building_count import count_buildings
 from .tools_suite.dem_generation.dem_generation import generate_bare_earth_dem
@@ -35,6 +36,7 @@ class MyLiDARPlugin:
         self.count_action = None
         self.dem_action = None
         self.report_action = None
+        self.filter_action = None
 
     def load_language(self, lang_code: str):
         lang_file = os.path.join(self.plugin_dir, "translations", f"{lang_code}.json")
@@ -65,11 +67,12 @@ class MyLiDARPlugin:
 
         actions = [
             ("cleanup.png", self.tr("Remove Outlier Points"), self.outlier_removal),
-            ("overlap.png", self.tr("Remove Overlapping Points"), self.overlap_removal),
+            ("overlap.png", self.tr("Filter Points by Classification"), self.point_filtering),
+            # ("overlap.png", self.tr("Remove Overlapping Points"), self.overlap_removal),
             ("vegetation.png", self.tr("Classify Vegetation"), self.vegetation_classification),
             ("building.png", self.tr("Count Buildings"), self.building_count),
             ("dem.png", self.tr("Generate Bare Earth DEM"), self.bare_earth_dem_generation),
-            ("report.png", self.tr("Generate LiDAR File Report"), self.report_generation),
+            ("report.png", self.tr("Generate LiDAR File Report"), self.report_generation)
         ]
 
         self.actions = []
@@ -90,9 +93,13 @@ class MyLiDARPlugin:
     def outlier_removal(self):
         remove_outliers(self)
 
-    # --- Overlap Removal ---
-    def overlap_removal(self):
-        remove_overlap(self)
+    # --- Point Filtering ---
+    def point_filtering(self):
+        filter_points(self)
+
+    # # --- Overlap Removal ---
+    # def overlap_removal(self):
+    #     remove_overlap(self)
 
     # --- Builing Count ---
     def building_count(self):
