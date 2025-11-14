@@ -1,12 +1,10 @@
+from qgis.core import QgsProject, QgsPointCloudLayer, QgsMessageLog, Qgis, QgsColorRampShader, QgsPointCloudClassifiedRenderer
 from qgis.PyQt.QtCore import Qt
-from qgis.core import QgsProject, QgsPointCloudLayer, QgsMessageLog, Qgis
+from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton,QDialogButtonBox, QFileDialog, QLineEdit, QSizePolicy, QTextBrowser, QWidget, QGroupBox, QGridLayout, QCheckBox
 import laspy
 import numpy as np
 import os
-
-from qgis.core import QgsColorRampShader, QgsPointCloudLayer
-from qgis.PyQt.QtGui import QColor
 
 class PointFilteringDialog(QDialog):
     """Dialog window for point filtering settings."""
@@ -330,13 +328,18 @@ class PointFilteringDialog(QDialog):
             self.param_layout.addWidget(container, row, col)
 
     def get_class_colors_from_layer(self, layer):
-        """ Return the color palette currently used by QGIS to display classification classes """
+        """Return a dict {class_code: #RRGGBB} from the layer's renderer when possible."""
         color_dict = {}
+
+        QgsMessageLog.logMessage(
+            self.tr("Reading classification colors from layer..."),
+            "PointFilter", Qgis.Info
+        )
 
         try:
             if not isinstance(layer, QgsPointCloudLayer):
                 QgsMessageLog.logMessage(
-                    self.tr("Provided object is not a point cloud layer."),
+                    self.tr("Layer is not a QgsPointCloudLayer."),
                     "PointFilter", Qgis.Warning
                 )
                 return {}
@@ -344,39 +347,64 @@ class PointFilteringDialog(QDialog):
             renderer = layer.renderer()
             if not renderer:
                 QgsMessageLog.logMessage(
-                    self.tr("Layer has no renderer."),
+                    self.tr("Renderer is missing on the layer."),
                     "PointFilter", Qgis.Warning
                 )
                 return {}
 
-            # --- Try to get the shader ---
-            shader = None
-            if hasattr(renderer, "shader"):
-                shader = renderer.shader()
-            elif hasattr(renderer, "rampShader"):
-                shader = renderer.rampShader()
-
-            if not shader or not isinstance(shader, QgsColorRampShader):
-                QgsMessageLog.logMessage(
-                    self.tr("No valid color ramp shader found in renderer."),
-                    "PointFilter", Qgis.Info
-                )
-                return {}
-
-            # --- Extract color ramp items ---
-            for item in shader.colorRampItemList():
-                try:
-                    code = int(item.value)
-                except Exception:
-                    continue
-                qcolor = item.color
-                hex_color = qcolor.name(QColor.HexRgb).upper()
-                color_dict[code] = hex_color
-
             QgsMessageLog.logMessage(
-                f"{self.tr('Extracted class colors from QGIS renderer')}: {len(color_dict)} ",
+                f"{self.tr('Renderer detected')}: {renderer.__class__.__name__}",
                 "PointFilter", Qgis.Info
             )
+
+            # --- Handle classified renderer ---
+            if isinstance(renderer, QgsPointCloudClassifiedRenderer):
+                QgsMessageLog.logMessage(
+                    self.tr("Using QgsPointCloudClassifiedRenderer"),
+                    "PointFilter", Qgis.Info
+                )
+                categories = renderer.categories()
+                QgsMessageLog.logMessage(
+                    f"{self.tr('Category count')}: {len(categories)}",
+                    "PointFilter", Qgis.Info
+                )
+                for cat in categories:
+                    try:
+                        code = int(cat.value())
+                    except Exception:
+                        continue
+
+                    qcolor = cat.color()
+                    hex_color = qcolor.name(QColor.HexRgb).upper()
+                    color_dict[code] = hex_color
+                    QgsMessageLog.logMessage(
+                        f"{self.tr('Class color extracted')}: {code} → {hex_color}",
+                        "PointFilter", Qgis.Info
+                    )
+
+                if color_dict:
+                    return color_dict
+
+            # --- Fallback: Shader (classification uses color ramp rules) ---
+            if hasattr(renderer, "shader"):
+                shader = renderer.shader()
+                if shader:
+                    QgsMessageLog.logMessage(
+                        self.tr("Trying fallback: shader color ramp"),
+                        "PointFilter", Qgis.Info
+                    )
+                    for item in shader.colorRampItemList():
+                        try:
+                            code = int(item.value)
+                        except Exception:
+                            continue
+                        hex_color = item.color.name(QColor.HexRgb).upper()
+                        color_dict[code] = hex_color
+                        QgsMessageLog.logMessage(
+                            f"{self.tr('Shader color assigned')}: {code} -> {hex_color}",
+                            "PointFilter", Qgis.Info
+                        )
+
             return color_dict
 
         except Exception as e:
