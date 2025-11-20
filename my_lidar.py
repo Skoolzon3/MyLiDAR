@@ -30,7 +30,6 @@ class MyLiDARPlugin:
         self.load_language(self.current_lang)
 
         self.outliers_action = None
-        self.overlap_action = None
         self.vegetation_action = None
         self.count_action = None
         self.dem_action = None
@@ -66,7 +65,7 @@ class MyLiDARPlugin:
 
         actions = [
             ("cleanup.png", self.tr("Remove Outlier Points"), self.outlier_removal),
-            ("overlap.png", self.tr("Filter Points by Classification"), self.point_filtering),
+            ("filter.png", self.tr("Filter Points by Classification"), self.point_filtering),
             ("vegetation.png", self.tr("Classify Vegetation"), self.vegetation_classification),
             ("building.png", self.tr("Count Buildings"), self.building_count),
             ("dem.png", self.tr("Generate Bare Earth DEM"), self.bare_earth_dem_generation),
