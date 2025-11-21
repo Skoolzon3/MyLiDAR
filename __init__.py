@@ -11,7 +11,8 @@ def ensure_dependencies():
         "osgeo.osr": "gdal",
         "matplotlib": "matplotlib",
         "reportlab": "reportlab",
-        "sklearn": "scikit-learn"
+        "sklearn": "scikit-learn",
+        "shapely": "shapely"
     }
 
     python_exe = sys.executable

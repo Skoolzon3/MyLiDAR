@@ -190,7 +190,7 @@ class DemGenerationTask(QgsTask):
 
                 msg = f"{self.tr('DEM successfully generated from ground points. Output saved at')}:{self.output_path}"
                 if self.hillshade_path:
-                    msg += f"\n\n{self.tr("Hillshade saved at")}:\n{self.hillshade_path}"
+                    msg += f"\n\n{self.tr('Hillshade saved at')}:\n{self.hillshade_path}"
 
                 QMessageBox.information(
                     self.parent.iface.mainWindow(),

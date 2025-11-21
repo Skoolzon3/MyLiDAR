@@ -15,17 +15,17 @@ def gps_time_to_datetime(gps_time: float) -> datetime:
 
 def format_global_encoding(ge, tr):
     return (
-        f"  - {tr("GPS Time Type")}: {ge.gps_time_type}\n"
-        f"  - {tr("Waveform Internal")}: {ge.waveform_data_packets_internal}\n"
-        f"  - {tr("Waveform External")}: {ge.waveform_data_packets_external}\n"
-        f"  - {tr("Synthetic Returns")}: {ge.synthetic_return_numbers}\n"
-        f"  - {tr("WKT")}: {ge.wkt}\n"
+        f"  - {tr('GPS Time Type')}: {ge.gps_time_type}\n"
+        f"  - {tr('Waveform Internal')}: {ge.waveform_data_packets_internal}\n"
+        f"  - {tr('Waveform External')}: {ge.waveform_data_packets_external}\n"
+        f"  - {tr('Synthetic Returns')}: {ge.synthetic_return_numbers}\n"
+        f"  - {tr('WKT')}: {ge.wkt}\n"
     )
 
 def format_point_format(pf, tr):
     return (
-        f"  - {tr("Point Format ID")}: {pf.id}\n"
-        f"  - {tr("Size")}: {pf.size} {tr("bytes")}\n"
+        f"  - {tr('Point Format ID')}: {pf.id}\n"
+        f"  - {tr('Size')}: {pf.size} {tr('bytes')}\n"
     )
 
 # -------------------------------------------------
