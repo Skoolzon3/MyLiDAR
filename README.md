@@ -64,7 +64,7 @@ Currently, dependencies are installed automatically when importing the plugin as
   1. Open OSGeo4W Shell
   2. Paste and run the following command:
   ```bash
-  python -m pip install laspy[lazrs,laszip] scipy GDAL OSR matplotlib reportlab scikit-learn
+  python -m pip install laspy[lazrs,laszip] scipy GDAL OSR matplotlib reportlab scikit-learn shapely
   ```
 
 **Note**: make sure the command is executed inside the QGIS path. It should look something like this:
@@ -81,7 +81,7 @@ C:\PROGRA~1\QGIS34~1.3>
     ```
  3. Paste and execute the following command:
     ```bash
-    pip install laspy[lazrs,laszip] scipy GDAL OSR matplotlib reportlab scikit-learn
+    pip install laspy[lazrs,laszip] scipy GDAL OSR matplotlib reportlab scikit-learn shapely
     ```
  4. Update the sip and PyQt5-sip modules to ensure compatibility between PyQt and QGIS.
     ```bash
@@ -91,11 +91,12 @@ C:\PROGRA~1\QGIS34~1.3>
     pip install PyQt5-sip --upgrade
     ```
 
-<!-- #### Linux
-  Open a terminal and run:
-  ```bash
-  pip install laspy scipy gdal matplotlib reportlab scikit-learn
-  ``` -->
+#### Linux (Ubuntu/Debian)
+ 1. Open the Linux terminal
+ 2. Paste and execute the following command:
+    ```bash
+    pip install laspy[lazrs,laszip] scipy GDAL OSR matplotlib reportlab scikit-learn shapely
+    ```
 
 ### Availability
 We recommend using the latest stable version of QGIS to take full advantage of its functionality. Not compatible with versions prior to QGIS 3.18.
@@ -167,7 +168,7 @@ Actualmente, las dependencias se instalan de manera automática en la importaci�
   1. Abra OSGeo4W Shell.
   2. Pegue y ejecute el siguiente comando:
   ```bash
-  python -m pip install laspy[lazrs,laszip] scipy GDAL OSR matplotlib reportlab scikit-learn
+  python -m pip install laspy[lazrs,laszip] scipy GDAL OSR matplotlib reportlab scikit-learn shapely
   ```
 
 **Nota**: asegúrese de que el comando se ejecuta dentro de la ruta de QGIS. Esta debería tener un aspecto similar al siguiente:
@@ -184,7 +185,7 @@ C:\PROGRA~1\QGIS34~1.3>
     ```
  3. Pegue y ejecute el siguiente comando:
     ```bash
-    pip install laspy[lazrs,laszip] scipy GDAL OSR matplotlib reportlab scikit-learn
+    pip install laspy[lazrs,laszip] scipy GDAL OSR matplotlib reportlab scikit-learn shapely
     ```
  4. Actualice los módulos sip y PyQt5-sip para asegurar la compatibilidad entre PyQt y QGIS
     ```bash
@@ -194,10 +195,12 @@ C:\PROGRA~1\QGIS34~1.3>
     pip install PyQt5-sip --upgrade
     ```
 
-<!-- - **Linux**:
-  Abra un terminal y ejecute:
-  ```bash
-  pip install laspy scipy gdal matplotlib reportlab scikit-learn -->
+#### Linux (Ubuntu/Debian)
+ 1. Abra el terminal de Linux
+ 2. Pegue y ejecute el siguiente comando:
+    ```bash
+    pip install laspy[lazrs,laszip] scipy GDAL OSR matplotlib reportlab scikit-learn shapely
+    ```
 
 ### Disponibilidad
 Se recomienda utilizar la última versión estable de QGIS para aprovechar su funcionalidad al máximo. No compatible con versiones anteriores a QGIS 3.18.
