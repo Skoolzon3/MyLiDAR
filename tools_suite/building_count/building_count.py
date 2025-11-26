@@ -124,7 +124,9 @@ class BuildingCountTask(QgsTask):
                 )
             else:
                 # --- Build QGIS layer ---
-                layer_name = "Detected_Buildings_(3D_Clustering)" if self.use_z else "Detected_Buildings_(2D_Clustering)"
+                base_name = os.path.splitext(os.path.basename(self.filename))[0]
+                cluster_suffix = "3D_clustering" if self.use_z else "2D_clustering"
+                layer_name = f"{base_name}_{cluster_suffix}"
                 vl = QgsVectorLayer(f"Polygon?crs=EPSG:{self.crs}", layer_name, "memory")
                 pr = vl.dataProvider()
                 pr.addAttributes([
@@ -133,6 +135,8 @@ class BuildingCountTask(QgsTask):
                     QgsField("area_m2", QVariant.Double)
                 ])
                 vl.updateFields()
+                vl.updateExtents()
+                vl.commitChanges()
 
                 for cluster_id, n_points, area, wkt in self.clusters:
                     feat = QgsFeature()
@@ -140,7 +144,6 @@ class BuildingCountTask(QgsTask):
                     feat.setAttributes([cluster_id, n_points, area])
                     pr.addFeature(feat)
 
-                # Apply symbology
                 symbol = QgsFillSymbol.createSimple({
                     "color": "0,0,255,50",          # Blue with ~20% opacity
                     "outline_color": "0,0,0,100",
@@ -148,7 +151,6 @@ class BuildingCountTask(QgsTask):
                 })
                 vl.renderer().setSymbol(symbol)
 
-                # Tooltip expression
                 expr = "concat('ID: ', cluster_id, '\nArea: ', round(area_m2,1), ' m²')"
                 vl.setDisplayExpression(expr)
 
@@ -166,18 +168,9 @@ class BuildingCountTask(QgsTask):
                     )
 
                     if error == QgsVectorFileWriter.NoError:
-                        vl = QgsVectorLayer(self.output_path, layer_name, "ogr")
-
+                        vl.setName(layer_name)
                         if self.output_path.lower().endswith(".gpkg"):
-                            vl.saveStyleToDatabase("default", "Detected building style", True, "")
-
-                        else:
-                            QgsMessageLog.logMessage(
-                                self.tr("Output saved, but style not saved"),
-                                "MyLiDAR",
-                                Qgis.Warning
-                            )
-
+                            vl.saveStyleToDatabase("default", "Detected building style", True,"")
                     else:
                         QgsMessageLog.logMessage(
                             f"{self.tr('Error saving output file')}: ({error})",

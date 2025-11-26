@@ -331,11 +331,6 @@ class PointFilteringDialog(QDialog):
         """Return a dict {class_code: #RRGGBB} from the layer's renderer when possible."""
         color_dict = {}
 
-        QgsMessageLog.logMessage(
-            self.tr("Reading classification colors from layer..."),
-            "PointFilter", Qgis.Info
-        )
-
         try:
             if not isinstance(layer, QgsPointCloudLayer):
                 QgsMessageLog.logMessage(
@@ -377,10 +372,6 @@ class PointFilteringDialog(QDialog):
                     qcolor = cat.color()
                     hex_color = qcolor.name(QColor.HexRgb).upper()
                     color_dict[code] = hex_color
-                    QgsMessageLog.logMessage(
-                        f"{self.tr('Class color extracted')}: {code} → {hex_color}",
-                        "PointFilter", Qgis.Info
-                    )
 
                 if color_dict:
                     return color_dict

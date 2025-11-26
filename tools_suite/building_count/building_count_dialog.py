@@ -1,7 +1,10 @@
+# --- General imports ---
+import os
+
+# --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton,QDialogButtonBox, QFileDialog, QLineEdit, QSizePolicy, QTextBrowser, QWidget, QSpacerItem, QGroupBox, QFormLayout, QDoubleSpinBox, QSpinBox, QCheckBox
 from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsProject, QgsPointCloudLayer
-import os
 
 class BuildingCountDialog(QDialog):
     def __init__(self, parent=None, tr=lambda s: s):
@@ -79,6 +82,7 @@ class BuildingCountDialog(QDialog):
         # Z-axis (3D clustering)
         self.use_z_check = QCheckBox(tr("Use Z-axis (3D clustering)"))
         self.use_z_check.setChecked(True)
+        self.use_z_check.toggled.connect(self.on_clustering_mode_changed)
         param_layout.addRow("", self.use_z_check)
 
         left_layout.addWidget(param_group)
@@ -167,13 +171,14 @@ class BuildingCountDialog(QDialog):
             self.update_default_output()
 
     def update_default_output(self):
-        """Propose a default output name."""
+        """Propose a default output name based on clustering mode."""
         if not self.selected_input:
             return
         base_name = os.path.splitext(os.path.basename(self.selected_input))[0]
+        suffix = "3D_clustering.gpkg" if self.use_z_check.isChecked() else "2D_clustering.gpkg"
         default_output = os.path.join(
             os.path.dirname(self.selected_input),
-            base_name + "_detected_buildings.gpkg"
+            f"{base_name}_{suffix}"
         )
         self.output_edit.setText(default_output)
         self.selected_output = default_output
@@ -200,6 +205,10 @@ class BuildingCountDialog(QDialog):
             self.output_edit.setText(filename)
             self.selected_output = filename
             self.user_edited_output = True
+
+    def on_clustering_mode_changed(self):
+        if not self.user_edited_output:
+            self.update_default_output()
 
     # --- Accessors ---
     def get_params(self):
