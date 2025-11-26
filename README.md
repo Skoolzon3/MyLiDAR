@@ -11,7 +11,7 @@ In addition to generating detailed reports from LAS/LAZ files, the plugin offers
 ### Features
 - **Generation of LiDAR file reports** with metadata, spatial properties, intensity, classifications, returns, and GPS time.
 - **Deletion of outliers** to clean up noise in the datasets.
-- **Deletion of overlapping** or redundant points.
+- **Point filtering** of selected classification classes.
 - **Counting of buildings** detected in the dataset.
 - **Classification of vegetation** based on its relative height.
 - **Generation of digital elevation models (DEM) of bare terrain** from LiDAR files, as well as their corresponding relief shadow maps.
@@ -116,7 +116,7 @@ Además de generar informes detallados a partir de archivos LAS/LAZ, el compleme
 ### Características
 - **Generación de informes de archivos LiDAR** con metadatos, propiedades espaciales, intensidad, clasificaciones, retornos y hora GPS.
 - **Borrado de puntos atípicos** para limpiar el ruido de los conjuntos de datos.
-- **Borrado de puntos superpuestos** o redundantes.
+- **Filtrado por puntos** de clases de clasificación seleccionadas.
 - **Recuento de edificios** detectados en el conjunto de datos.
 - **Clasificación de la vegetación** en función de su altura relativa.
 - **Generación de modelos digitales de elevación (DEM) del terreno desnudo**, junto con sus correspondientes mapas de sombras del relieve.
