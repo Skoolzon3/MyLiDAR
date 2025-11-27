@@ -141,46 +141,45 @@ class BuildingCountTask(QgsTask):
 
     def finished(self, result):
         if result:
+
             if self.num_points == 0:
                 QMessageBox.information(
                     self.parent.iface.mainWindow(),
                     self.tr("No Buildings Found"),
                     self.tr("No buildings were found in this file")
                 )
+                return
+
             else:
                 # --- Build QGIS layer ---
                 base_name = os.path.splitext(os.path.basename(self.input_filename))[0]
                 cluster_suffix = "3D_clustering" if self.use_z else "2D_clustering"
                 layer_name = f"{base_name}_{cluster_suffix}"
+
                 vl = QgsVectorLayer("Polygon", layer_name, "memory")
                 pr = vl.dataProvider()
-
                 if self.output_crs and self.output_crs.isValid():
                     vl.setCrs(self.output_crs)
                 else:
                     vl.setCrs(QgsCoordinateReferenceSystem.fromEpsgId(4326))
-
-                # pr.addAttributes([
-                #     QgsField("cluster_id", QVariant.Int),
-                #     QgsField("num_points", QVariant.Int),
-                #     QgsField("area_m2", QVariant.Double)
-                # ])
 
                 pr.addAttributes([
                     QgsField("cluster_id",  QMetaType.Int,    "integer", 10),
                     QgsField("num_points",  QMetaType.Int,    "integer", 10),
                     QgsField("area_m2",     QMetaType.Double, "double", 20, 6)
                 ])
-
                 vl.updateFields()
-                vl.updateExtents()
-                vl.commitChanges()
 
+                feats = []
                 for cluster_id, n_points, area, wkt in self.clusters:
                     feat = QgsFeature()
                     feat.setGeometry(QgsGeometry.fromWkt(wkt))
                     feat.setAttributes([cluster_id, n_points, area])
-                    pr.addFeature(feat)
+                    feats.append(feat)
+                pr.addFeatures(feats)
+
+                vl.updateExtents()
+                vl.commitChanges()
 
                 symbol = QgsFillSymbol.createSimple({
                     "color": "0,0,255,50",          # Blue w/ ~20% opacity
@@ -198,20 +197,20 @@ class BuildingCountTask(QgsTask):
                         os.path.splitext(self.output_path)[1].lstrip(".")
                     )
 
-                    error = QgsVectorFileWriter.writeAsVectorFormatV3(
+                    error_code, _, _, errorMessage = QgsVectorFileWriter.writeAsVectorFormatV3(
                         vl,
                         self.output_path,
                         QgsCoordinateTransformContext(),
                         options
                     )
 
-                    if error == QgsVectorFileWriter.NoError:
+                    if error_code == QgsVectorFileWriter.NoError:
                         vl.setName(layer_name)
                         if self.output_path.lower().endswith(".gpkg"):
                             vl.saveStyleToDatabase("default", "Detected building style", True,"")
                     else:
                         QgsMessageLog.logMessage(
-                            f"{self.tr('Error saving output file')}: ({error})",
+                            f"{self.tr('Error saving output file')}: {errorMessage}",
                             "MyLiDAR",
                             Qgis.Critical
                         )
@@ -224,6 +223,15 @@ class BuildingCountTask(QgsTask):
                     f"{self.tr('Building points detected')}: {self.num_points:,}\n"
                     f"{self.tr('Approximate number of buildings detected')}: {self.num_buildings:,}"
                 )
+
+        else:
+            msg = f"{self.tr('An error occurred')}: {self.exception}" if self.exception else self.tr("Building detection failed")
+            QgsMessageLog.logMessage(msg, "MyLiDAR", Qgis.Critical)
+            QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error Detecting Buildings"), msg)
+
+        if self in self.parent.running_tasks:
+            self.parent.running_tasks.remove(self)
+
         else:
             msg = f"{self.tr('An error occurred')}: {self.exception}" if self.exception else self.tr("Building detection failed")
             QgsMessageLog.logMessage(msg, "MyLiDAR", Qgis.Critical)
