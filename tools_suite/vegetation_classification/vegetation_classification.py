@@ -51,7 +51,7 @@ class VegetationClassificationTask(QgsTask):
                 self.output_crs = QgsCoordinateReferenceSystem(pycrs.to_wkt())
             else:
                 QgsMessageLog.logMessage(
-                    "No CRS found in file header — checking input layer loaded in QGIS",
+                    "No CRS found in file header. Checking input layer loaded in QGIS",
                     "MyLiDAR", Qgis.Warning
                 )
 
@@ -70,12 +70,12 @@ class VegetationClassificationTask(QgsTask):
                         )
                     else:
                         QgsMessageLog.logMessage(
-                            "Matched layer CRS is invalid — no CRS will be assigned",
+                            "Matched layer CRS is invalid, no CRS will be assigned",
                             "MyLiDAR", Qgis.Warning
                         )
                 else:
                     QgsMessageLog.logMessage(
-                        "Input file not found among loaded layers — cannot import CRS from QGIS",
+                        "Input file not found among loaded layers. Cannot import CRS from QGIS",
                         "MyLiDAR", Qgis.Warning
                     )
 

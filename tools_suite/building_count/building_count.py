@@ -6,7 +6,7 @@ import numpy as np
 
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QMessageBox
-from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsField, QgsProject, QgsFillSymbol, QgsTask, QgsApplication, Qgis, QgsMessageLog, QgsVectorFileWriter, QgsCoordinateTransformContext
+from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsField, QgsProject, QgsFillSymbol, QgsTask, QgsApplication, Qgis, QgsMessageLog, QgsVectorFileWriter, QgsCoordinateTransformContext, QgsCoordinateReferenceSystem, QgsPointCloudLayer
 from qgis.PyQt.QtCore import QVariant
 
 # --- Method-specific imports ---
@@ -32,9 +32,9 @@ from .building_count_dialog import BuildingCountDialog
 class BuildingCountTask(QgsTask):
     """Background task for counting buildings using DBSCAN on LiDAR data"""
 
-    def __init__(self, description, filename, eps, min_samples, use_z, parent, translator, output_path=None):
+    def __init__(self, description, input_filename, eps, min_samples, use_z, parent, translator, output_path=None):
         super().__init__(description, QgsTask.CanCancel)
-        self.filename = filename
+        self.input_filename = input_filename
         self.eps = eps
         self.min_samples = min_samples
         self.use_z = use_z
@@ -45,13 +45,45 @@ class BuildingCountTask(QgsTask):
         self.tr = translator
         self.num_buildings = 0
         self.num_points = 0
-        self.crs = 4326
+        self.output_crs = None
         self.clusters = []  # list of (cluster_id, coords, area, wkt)
 
     def run(self):
         try:
             # Step 1: Read input file
-            las = laspy.read(self.filename, laz_backend=LazBackend.Lazrs)
+            las = laspy.read(self.input_filename, laz_backend=LazBackend.Lazrs)
+            pycrs = las.header.parse_crs(prefer_wkt=True)
+            if pycrs:
+                self.output_crs = QgsCoordinateReferenceSystem(pycrs.to_wkt())
+            else:
+                QgsMessageLog.logMessage(
+                    "No CRS found in file header. Checking input layer loaded in QGIS",
+                    "MyLiDAR", Qgis.Warning
+                )
+
+                matched_layer = None
+                for lyr in QgsProject.instance().mapLayers().values():
+                    if isinstance(lyr, QgsPointCloudLayer) and lyr.source() == self.input_filename:
+                        matched_layer = lyr
+                        break
+
+                if matched_layer:
+                    if matched_layer.crs().isValid():
+                        self.output_crs = matched_layer.crs()
+                        QgsMessageLog.logMessage(
+                            f"Using CRS assigned in QGIS: {self.output_crs.authid()}",
+                            "MyLiDAR", Qgis.Info
+                        )
+                    else:
+                        QgsMessageLog.logMessage(
+                            "Matched layer CRS is invalid, no CRS will be assigned",
+                            "MyLiDAR", Qgis.Warning
+                        )
+                else:
+                    QgsMessageLog.logMessage(
+                        "Input file not found among loaded layers. Cannot import CRS from QGIS",
+                        "MyLiDAR", Qgis.Warning
+                    )
             self.setProgress(10)
 
             # Step 2: Filter building-classified points
@@ -78,14 +110,7 @@ class BuildingCountTask(QgsTask):
             self.num_buildings = len(set(labels)) - (1 if -1 in labels else 0)
             self.setProgress(70)
 
-            # Step 5: CRS extraction
-            try:
-                self.crs = las.header.parse_crs().to_epsg()
-            except Exception:
-                self.crs = 4326
-            self.setProgress(80)
-
-            # Step 6: Convex hulls for clusters
+            # Step 5: Convex hulls for clusters
             unique_clusters = [cid for cid in set(labels) if cid != -1]
             total_clusters = len(unique_clusters)
 
@@ -124,11 +149,16 @@ class BuildingCountTask(QgsTask):
                 )
             else:
                 # --- Build QGIS layer ---
-                base_name = os.path.splitext(os.path.basename(self.filename))[0]
+                base_name = os.path.splitext(os.path.basename(self.input_filename))[0]
                 cluster_suffix = "3D_clustering" if self.use_z else "2D_clustering"
                 layer_name = f"{base_name}_{cluster_suffix}"
-                vl = QgsVectorLayer(f"Polygon?crs=EPSG:{self.crs}", layer_name, "memory")
+                vl = QgsVectorLayer("Polygon", layer_name, "memory")
                 pr = vl.dataProvider()
+
+                if self.output_crs and self.output_crs.isValid():
+                    vl.setCrs(self.output_crs)
+                else:
+                    vl.setCrs(QgsCoordinateReferenceSystem.fromEpsgId(4326))
                 pr.addAttributes([
                     QgsField("cluster_id", QVariant.Int),
                     QgsField("num_points", QVariant.Int),
