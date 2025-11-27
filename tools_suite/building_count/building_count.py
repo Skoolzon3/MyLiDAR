@@ -7,7 +7,7 @@ import numpy as np
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsField, QgsProject, QgsFillSymbol, QgsTask, QgsApplication, Qgis, QgsMessageLog, QgsVectorFileWriter, QgsCoordinateTransformContext, QgsCoordinateReferenceSystem, QgsPointCloudLayer
-from qgis.PyQt.QtCore import QVariant
+from qgis.PyQt.QtCore import QMetaType
 
 # --- Method-specific imports ---
 from sklearn.cluster import DBSCAN
@@ -94,7 +94,7 @@ class BuildingCountTask(QgsTask):
             self.num_points = int(np.sum(is_building))
             if self.num_points == 0:
                 self.setProgress(100)
-                return True  # handled later in finished()
+                return True
             self.setProgress(20)
 
             # Step 3: Extract coordinates for clustering
@@ -159,11 +159,19 @@ class BuildingCountTask(QgsTask):
                     vl.setCrs(self.output_crs)
                 else:
                     vl.setCrs(QgsCoordinateReferenceSystem.fromEpsgId(4326))
+
+                # pr.addAttributes([
+                #     QgsField("cluster_id", QVariant.Int),
+                #     QgsField("num_points", QVariant.Int),
+                #     QgsField("area_m2", QVariant.Double)
+                # ])
+
                 pr.addAttributes([
-                    QgsField("cluster_id", QVariant.Int),
-                    QgsField("num_points", QVariant.Int),
-                    QgsField("area_m2", QVariant.Double)
+                    QgsField("cluster_id",  QMetaType.Int,    "integer", 10),
+                    QgsField("num_points",  QMetaType.Int,    "integer", 10),
+                    QgsField("area_m2",     QMetaType.Double, "double", 20, 6)
                 ])
+
                 vl.updateFields()
                 vl.updateExtents()
                 vl.commitChanges()
@@ -175,7 +183,7 @@ class BuildingCountTask(QgsTask):
                     pr.addFeature(feat)
 
                 symbol = QgsFillSymbol.createSimple({
-                    "color": "0,0,255,50",          # Blue with ~20% opacity
+                    "color": "0,0,255,50",          # Blue w/ ~20% opacity
                     "outline_color": "0,0,0,100",
                     "outline_width": "0.4"
                 })
