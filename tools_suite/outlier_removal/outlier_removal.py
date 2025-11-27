@@ -6,7 +6,7 @@ import numpy as np
 
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QMessageBox, QDialog
-from qgis.core import QgsApplication, QgsPointCloudLayer, QgsProject, QgsTask, Qgis, QgsMessageLog
+from qgis.core import QgsApplication, QgsPointCloudLayer, QgsProject, QgsTask, Qgis, QgsMessageLog, QgsCoordinateReferenceSystem
 
 # --- Method-specific imports ---
 from scipy.spatial import cKDTree
@@ -41,11 +41,44 @@ class RemoveOutliersTask(QgsTask):
         self.tr = translator
         self.num_removed = 0
         self.num_remaining = 0
+        self.output_crs = None
 
     def run(self):
         try:
             # Step 1: Read input file
             las = laspy.read(self.input_filename, laz_backend=LazBackend.Lazrs)
+            pycrs = las.header.parse_crs(prefer_wkt=True)
+            if pycrs:
+                self.output_crs = QgsCoordinateReferenceSystem(pycrs.to_wkt())
+            else:
+                QgsMessageLog.logMessage(
+                    "No CRS found in file header — checking input layer loaded in QGIS",
+                    "MyLiDAR", Qgis.Warning
+                )
+
+                matched_layer = None
+                for lyr in QgsProject.instance().mapLayers().values():
+                    if isinstance(lyr, QgsPointCloudLayer) and lyr.source() == self.input_filename:
+                        matched_layer = lyr
+                        break
+
+                if matched_layer:
+                    if matched_layer.crs().isValid():
+                        self.output_crs = matched_layer.crs()
+                        QgsMessageLog.logMessage(
+                            f"Using CRS assigned in QGIS: {self.output_crs.authid()}",
+                            "MyLiDAR", Qgis.Info
+                        )
+                    else:
+                        QgsMessageLog.logMessage(
+                            "Matched layer CRS is invalid — no CRS will be assigned",
+                            "MyLiDAR", Qgis.Warning
+                        )
+                else:
+                    QgsMessageLog.logMessage(
+                        "Input file not found among loaded layers — cannot import CRS from QGIS",
+                        "MyLiDAR", Qgis.Warning
+                    )
             self.setProgress(10)
 
             # Step 2: Build KD-tree
@@ -109,6 +142,19 @@ class RemoveOutliersTask(QgsTask):
                 layer_name = os.path.splitext(os.path.basename(self.output_filename))[0]
                 pc_layer = QgsPointCloudLayer(self.output_filename, layer_name, "pdal")
                 if pc_layer.isValid():
+                    if self.output_crs and self.output_crs.isValid():
+                        pc_layer.setCrs(self.output_crs)
+                        QgsMessageLog.logMessage(
+                            f"Output layer CRS applied: {self.output_crs.authid()}",
+                            "MyLiDAR",
+                            Qgis.Info
+                        )
+                    else:
+                        QgsMessageLog.logMessage(
+                            "No valid CRS available to assign to the output layer",
+                            "MyLiDAR",
+                            Qgis.Warning
+                        )
                     QgsProject.instance().addMapLayer(pc_layer)
                 else:
                     QMessageBox.warning(

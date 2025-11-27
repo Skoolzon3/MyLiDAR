@@ -48,7 +48,6 @@
   "Layer is not a QgsPointCloudLayer.": "Layer is not a QgsPointCloudLayer.",
   "Renderer is missing on the layer.": "Renderer is missing on the layer.",
   "Renderer detected": "Renderer detected",
-  "Using QgsPointCloudClassifiedRenderer": "Using QgsPointCloudClassifiedRenderer",
   "Category count": "Category count",
   "Class color extracted": "Class color extracted",
   "Trying fallback: shader color ramp": "Trying fallback: shader color ramp",

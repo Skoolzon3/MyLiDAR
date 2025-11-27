@@ -354,10 +354,6 @@ class PointFilteringDialog(QDialog):
 
             # --- Handle classified renderer ---
             if isinstance(renderer, QgsPointCloudClassifiedRenderer):
-                QgsMessageLog.logMessage(
-                    self.tr("Using QgsPointCloudClassifiedRenderer"),
-                    "PointFilter", Qgis.Info
-                )
                 categories = renderer.categories()
                 QgsMessageLog.logMessage(
                     f"{self.tr('Category count')}: {len(categories)}",

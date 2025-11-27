@@ -48,7 +48,6 @@
   "Layer is not a QgsPointCloudLayer.": "La capa no es una QgsPointCloudLayer.",
   "Renderer is missing on the layer.": "Falta el renderizador en la capa.",
   "Renderer detected": "Renderizador detectado",
-  "Using QgsPointCloudClassifiedRenderer": "Utilizando QgsPointCloudClassifiedRenderer",
   "Category count": "Recuento de categorías",
   "Class color extracted": "Color de clase extraído",
   "Trying fallback: shader color ramp": "Probando alternativa: rampa de color del shader",

@@ -6,7 +6,7 @@ import numpy as np
 
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QMessageBox, QDialog
-from qgis.core import QgsPointCloudLayer, QgsProject, QgsTask, QgsApplication, Qgis, QgsMessageLog
+from qgis.core import QgsPointCloudLayer, QgsProject, QgsTask, QgsApplication, Qgis, QgsMessageLog, QgsCoordinateReferenceSystem
 
 # --- Method-specific imports ---
 from scipy.spatial import cKDTree
@@ -29,9 +29,9 @@ from .vegetation_classification_dialog import VegetationClassificationDialog
 class VegetationClassificationTask(QgsTask):
     """Background task for classifying LiDAR vegetation points"""
 
-    def __init__(self, description, filename, output_path, low_thresh, high_thresh, parent, translator):
+    def __init__(self, description, input_filename, output_path, low_thresh, high_thresh, parent, translator):
         super().__init__(description, QgsTask.CanCancel)
-        self.filename = filename
+        self.input_filename = input_filename
         self.output_path = output_path
         self.low_thresh = low_thresh
         self.high_thresh = high_thresh
@@ -40,11 +40,44 @@ class VegetationClassificationTask(QgsTask):
         self.exception = None
         self.tr = translator
         self.stats = None
+        self.output_crs = None
 
     def run(self):
         try:
             # Step 1: Read input file
-            las = laspy.read(self.filename, laz_backend=LazBackend.Lazrs)
+            las = laspy.read(self.input_filename, laz_backend=LazBackend.Lazrs)
+            pycrs = las.header.parse_crs(prefer_wkt=True)
+            if pycrs:
+                self.output_crs = QgsCoordinateReferenceSystem(pycrs.to_wkt())
+            else:
+                QgsMessageLog.logMessage(
+                    "No CRS found in file header — checking input layer loaded in QGIS",
+                    "MyLiDAR", Qgis.Warning
+                )
+
+                matched_layer = None
+                for lyr in QgsProject.instance().mapLayers().values():
+                    if isinstance(lyr, QgsPointCloudLayer) and lyr.source() == self.input_filename:
+                        matched_layer = lyr
+                        break
+
+                if matched_layer:
+                    if matched_layer.crs().isValid():
+                        self.output_crs = matched_layer.crs()
+                        QgsMessageLog.logMessage(
+                            f"Using CRS assigned in QGIS: {self.output_crs.authid()}",
+                            "MyLiDAR", Qgis.Info
+                        )
+                    else:
+                        QgsMessageLog.logMessage(
+                            "Matched layer CRS is invalid — no CRS will be assigned",
+                            "MyLiDAR", Qgis.Warning
+                        )
+                else:
+                    QgsMessageLog.logMessage(
+                        "Input file not found among loaded layers — cannot import CRS from QGIS",
+                        "MyLiDAR", Qgis.Warning
+                    )
 
             # Step 2: Data preparation
             ground_class = 2
@@ -124,6 +157,19 @@ class VegetationClassificationTask(QgsTask):
                 layer_name = os.path.splitext(os.path.basename(self.output_path))[0]
                 pc_layer = QgsPointCloudLayer(self.output_path, layer_name, "pdal")
                 if pc_layer.isValid():
+                    if self.output_crs and self.output_crs.isValid():
+                        pc_layer.setCrs(self.output_crs)
+                        QgsMessageLog.logMessage(
+                            f"Output layer CRS applied: {self.output_crs.authid()}",
+                            "MyLiDAR",
+                            Qgis.Info
+                        )
+                    else:
+                        QgsMessageLog.logMessage(
+                            "No valid CRS available to assign to the output layer",
+                            "MyLiDAR",
+                            Qgis.Warning
+                        )
                     QgsProject.instance().addMapLayer(pc_layer)
                 else:
                     QMessageBox.warning(
