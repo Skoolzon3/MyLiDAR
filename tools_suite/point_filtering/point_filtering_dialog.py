@@ -241,7 +241,7 @@ class PointFilteringDialog(QDialog):
         except Exception as e:
             QgsMessageLog.logMessage(
                 f"{self.tr('Error reading classifications from')} {filepath}: {e}",
-                "PointFilter",
+                "MyLiDAR",
                 Qgis.Warning
             )
             return []
@@ -335,7 +335,7 @@ class PointFilteringDialog(QDialog):
             if not isinstance(layer, QgsPointCloudLayer):
                 QgsMessageLog.logMessage(
                     self.tr("Layer is not a QgsPointCloudLayer."),
-                    "PointFilter", Qgis.Warning
+                    "MyLiDAR", Qgis.Warning
                 )
                 return {}
 
@@ -343,13 +343,13 @@ class PointFilteringDialog(QDialog):
             if not renderer:
                 QgsMessageLog.logMessage(
                     self.tr("Renderer is missing on the layer."),
-                    "PointFilter", Qgis.Warning
+                    "MyLiDAR", Qgis.Warning
                 )
                 return {}
 
             QgsMessageLog.logMessage(
                 f"{self.tr('Renderer detected')}: {renderer.__class__.__name__}",
-                "PointFilter", Qgis.Info
+                "MyLiDAR", Qgis.Info
             )
 
             # --- Handle classified renderer ---
@@ -357,7 +357,7 @@ class PointFilteringDialog(QDialog):
                 categories = renderer.categories()
                 QgsMessageLog.logMessage(
                     f"{self.tr('Category count')}: {len(categories)}",
-                    "PointFilter", Qgis.Info
+                    "MyLiDAR", Qgis.Info
                 )
                 for cat in categories:
                     try:
@@ -378,7 +378,7 @@ class PointFilteringDialog(QDialog):
                 if shader:
                     QgsMessageLog.logMessage(
                         self.tr("Trying fallback: shader color ramp"),
-                        "PointFilter", Qgis.Info
+                        "MyLiDAR", Qgis.Info
                     )
                     for item in shader.colorRampItemList():
                         try:
@@ -389,7 +389,7 @@ class PointFilteringDialog(QDialog):
                         color_dict[code] = hex_color
                         QgsMessageLog.logMessage(
                             f"{self.tr('Shader color assigned')}: {code} -> {hex_color}",
-                            "PointFilter", Qgis.Info
+                            "MyLiDAR", Qgis.Info
                         )
 
             return color_dict
@@ -397,6 +397,6 @@ class PointFilteringDialog(QDialog):
         except Exception as e:
             QgsMessageLog.logMessage(
                 f"{self.tr('Error reading class colors from layer')}: {e}",
-                "PointFilter", Qgis.Warning
+                "MyLiDAR", Qgis.Warning
             )
             return {}

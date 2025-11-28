@@ -197,6 +197,9 @@ class BuildingCountTask(QgsTask):
                         os.path.splitext(self.output_path)[1].lstrip(".")
                     )
 
+                    options.includeFields = True
+                    options.symbologyExport = QgsVectorFileWriter.SymbologyExport.SymbolLayerSymbology
+
                     error_code, _, _, errorMessage = QgsVectorFileWriter.writeAsVectorFormatV3(
                         vl,
                         self.output_path,
@@ -206,14 +209,40 @@ class BuildingCountTask(QgsTask):
 
                     if error_code == QgsVectorFileWriter.NoError:
                         vl.setName(layer_name)
+
                         if self.output_path.lower().endswith(".gpkg"):
-                            vl.saveStyleToDatabase("default", "Detected building style", True,"")
+                            gpkg_layer = QgsVectorLayer(self.output_path, layer_name, "ogr")
+
+                            if not gpkg_layer.isValid():
+                                QgsMessageLog.logMessage(
+                                    "Failed to reload GPKG layer for validation",
+                                    "MyLiDAR",
+                                    Qgis.Critical
+                                )
+                            else:
+                                field_names = [field.name() for field in gpkg_layer.fields()]
+                                expected_fields = ["cluster_id", "num_points", "area_m2"]
+
+                                missing = [f for f in expected_fields if f not in field_names]
+                                present = [f for f in expected_fields if f in field_names]
+
+                                QgsMessageLog.logMessage(
+                                    f"GPKG attribute check — Present: {present}, Missing: {missing}",
+                                    "MyLiDAR",
+                                    Qgis.Info
+                                )
+
+                            gpkg_layer.saveStyleToDatabaseV2(
+                                "default", "Detected building style", True, ""
+                            )
+
                     else:
                         QgsMessageLog.logMessage(
                             f"{self.tr('Error saving output file')}: {errorMessage}",
                             "MyLiDAR",
                             Qgis.Critical
                         )
+
 
                 QgsProject.instance().addMapLayer(vl)
 

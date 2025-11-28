@@ -6,7 +6,7 @@ import numpy as np
 
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox, QDialog
-from qgis.core import QgsProject, QgsRasterLayer, QgsProcessingException, QgsTask, QgsApplication, QgsMessageLog, Qgis
+from qgis.core import QgsProject, QgsRasterLayer, QgsProcessingException, QgsTask, QgsApplication, QgsMessageLog, Qgis, QgsCoordinateReferenceSystem, QgsPointCloudLayer
 import processing
 
 # --- Method-specific imports ---
@@ -32,9 +32,9 @@ from .dem_generation_dialog import DemGenerationDialog
 class DemGenerationTask(QgsTask):
     """Generate DEM from a LiDAR file in a background thread"""
 
-    def __init__(self, description, filename, output_path, cell_size, use_triangulation, parent, hillshade_requested, translator, hillshade_output_path=None):
+    def __init__(self, description, input_filename, output_path, cell_size, use_triangulation, parent, hillshade_requested, translator, hillshade_output_path=None):
         super().__init__(description, QgsTask.CanCancel)
-        self.filename = filename
+        self.input_filename = input_filename
         self.output_path = output_path
         self.cell_size = cell_size
         self.use_triangulation = use_triangulation
@@ -45,11 +45,44 @@ class DemGenerationTask(QgsTask):
         self.exception = None
         self.tr = translator
         self.hillshade_path = None
+        self.output_crs = None
 
     def run(self):
         try:
             # Step 1: Read input file
-            las = laspy.read(self.filename, laz_backend=LazBackend.Lazrs)
+            las = laspy.read(self.input_filename, laz_backend=LazBackend.Lazrs)
+            pycrs = las.header.parse_crs(prefer_wkt=True)
+            if pycrs:
+                self.output_crs = QgsCoordinateReferenceSystem(pycrs.to_wkt())
+            else:
+                QgsMessageLog.logMessage(
+                    "No CRS found in file header. Checking input layer loaded in QGIS",
+                    "MyLiDAR", Qgis.Warning
+                )
+
+                matched_layer = None
+                for lyr in QgsProject.instance().mapLayers().values():
+                    if isinstance(lyr, QgsPointCloudLayer) and lyr.source() == self.input_filename:
+                        matched_layer = lyr
+                        break
+
+                if matched_layer:
+                    if matched_layer.crs().isValid():
+                        self.output_crs = matched_layer.crs()
+                        QgsMessageLog.logMessage(
+                            f"Using CRS assigned in QGIS: {self.output_crs.authid()}",
+                            "MyLiDAR", Qgis.Info
+                        )
+                    else:
+                        QgsMessageLog.logMessage(
+                            "Matched layer CRS is invalid, no CRS will be assigned",
+                            "MyLiDAR", Qgis.Warning
+                        )
+                else:
+                    QgsMessageLog.logMessage(
+                        "Input file not found among loaded layers. Cannot import CRS from QGIS",
+                        "MyLiDAR", Qgis.Warning
+                    )
             self.setProgress(10)
 
             # Step 2: Filter ground points
@@ -179,13 +212,29 @@ class DemGenerationTask(QgsTask):
             if result:
                 dem_layer_name = os.path.splitext(os.path.basename(self.output_path))[0]
                 dem_layer = QgsRasterLayer(self.output_path, dem_layer_name)
+
                 if dem_layer.isValid():
+                    if self.output_crs and self.output_crs.isValid():
+                        dem_layer.setCrs(self.output_crs)
+                        QgsMessageLog.logMessage(
+                            f"DEM CRS set to: {self.output_crs.authid()}",
+                            "MyLiDAR",
+                            Qgis.Info
+                        )
                     QgsProject.instance().addMapLayer(dem_layer)
 
                 if self.hillshade_path:
                     hillshade_layer_name = os.path.splitext(os.path.basename(self.hillshade_path))[0]
                     hillshade_layer = QgsRasterLayer(self.hillshade_path, hillshade_layer_name)
+
                     if hillshade_layer.isValid():
+                        if self.output_crs and self.output_crs.isValid():
+                            hillshade_layer.setCrs(self.output_crs)
+                            QgsMessageLog.logMessage(
+                                f"Hillshade CRS set to: {self.output_crs.authid()}",
+                                "MyLiDAR",
+                                Qgis.Info
+                            )
                         QgsProject.instance().addMapLayer(hillshade_layer)
 
                 msg = f"{self.tr('DEM successfully generated from ground points. Output saved at')}:{self.output_path}"
