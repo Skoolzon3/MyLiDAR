@@ -288,5 +288,16 @@
   "Please select at least one output format or enable dock generation.": "Please select at least one output format or enable dock generation.",
   "Please specify an output DEM file path.": "Please specify an output DEM file path.",
   "No Classes Selected": "No Classes Selected",
-  "Please choose at least one classification code.": "Please choose at least one classification code."
+  "Please choose at least one classification code.": "Please choose at least one classification code.",
+
+  "Coordinate Reference System": "Coordinate Reference System",
+  "Coordinate Reference System (CRS)": "Coordinate Reference System (CRS)",
+  "Coordinate Reference System Description": "Coordinate Reference System Description",
+  "CRS information of the dataset": "CRS information of the dataset",
+  "No CRS found in file header. Checking input layer loaded in QGIS": "No CRS found in file header. Checking input layer loaded in QGIS",
+  "Using CRS assigned in QGIS": "Using CRS assigned in QGIS",
+  "Matched layer CRS is invalid, no CRS will be assigned": "Matched layer CRS is invalid, no CRS will be assigned",
+  "Input file not found among loaded layers. Cannot import CRS from QGIS": "Input file not found among loaded layers. Cannot import CRS from QGIS",
+  "DEM CRS set to": "DEM CRS set to",
+  "Hillshade CRS set to": "Hillshade CRS set to"
 }

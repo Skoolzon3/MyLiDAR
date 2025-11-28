@@ -48,7 +48,7 @@ class FilterPointsTask(QgsTask):
                 self.output_crs = QgsCoordinateReferenceSystem(pycrs.to_wkt())
             else:
                 QgsMessageLog.logMessage(
-                    "No CRS found in file header. Checking input layer loaded in QGIS",
+                    self.tr("No CRS found in file header. Checking input layer loaded in QGIS"),
                     "MyLiDAR", Qgis.Warning
                 )
 
@@ -62,17 +62,17 @@ class FilterPointsTask(QgsTask):
                     if matched_layer.crs().isValid():
                         self.output_crs = matched_layer.crs()
                         QgsMessageLog.logMessage(
-                            f"Using CRS assigned in QGIS: {self.output_crs.authid()}",
+                            f"{self.tr('Using CRS assigned in QGIS')}: {self.output_crs.authid()}",
                             "MyLiDAR", Qgis.Info
                         )
                     else:
                         QgsMessageLog.logMessage(
-                            "Matched layer CRS is invalid, no CRS will be assigned",
+                            self.tr("Matched layer CRS is invalid, no CRS will be assigned"),
                             "MyLiDAR", Qgis.Warning
                         )
                 else:
                     QgsMessageLog.logMessage(
-                        "Input file not found among loaded layers. Cannot import CRS from QGIS",
+                        self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"),
                         "MyLiDAR", Qgis.Warning
                     )
 
@@ -114,18 +114,17 @@ class FilterPointsTask(QgsTask):
 
                 layer_name = os.path.splitext(os.path.basename(self.output_filename))[0]
                 pc_layer = QgsPointCloudLayer(self.output_filename, layer_name, "pdal")
-
                 if pc_layer.isValid():
                     if self.output_crs and self.output_crs.isValid():
                         pc_layer.setCrs(self.output_crs)
                         QgsMessageLog.logMessage(
-                            f"Output layer CRS applied: {self.output_crs.authid()}",
+                            f"{self.tr('Output layer CRS applied')}: {self.output_crs.authid()}",
                             "MyLiDAR",
                             Qgis.Info
                         )
                     else:
                         QgsMessageLog.logMessage(
-                            "No valid CRS available to assign to the output layer",
+                            self.tr("No valid CRS available to assign to the output layer"),
                             "MyLiDAR",
                             Qgis.Warning
                         )

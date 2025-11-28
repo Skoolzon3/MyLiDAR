@@ -8,7 +8,7 @@ import zipfile
 
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QMessageBox, QDialog
-from qgis.core import QgsApplication, QgsTask, Qgis, QgsMessageLog
+from qgis.core import QgsApplication, QgsTask, Qgis, QgsMessageLog, QgsCoordinateReferenceSystem, QgsProject, QgsPointCloudLayer
 from qgis.PyQt.QtCore import Qt
 
 # --- Dialogs and Data Classes imports ---
@@ -36,9 +36,9 @@ from .report_functions import generate_txt_report, generate_markdown_report, gen
 class ReportGenerationTask(QgsTask):
     """Background task for generating LiDAR information reports + dock"""
 
-    def __init__(self, description, filename, report_path, report_format, selected_fields, parent, translator, show_dock=False, is_zip_task=False, zip_output_path=None, temp_dir=None, is_primary_task=True):
+    def __init__(self, description, input_filename, report_path, report_format, selected_fields, parent, translator, show_dock=False, is_zip_task=False, zip_output_path=None, temp_dir=None, is_primary_task=True):
         super().__init__(description, QgsTask.CanCancel)
-        self.filename = filename
+        self.input_filename = input_filename
         self.report_path = report_path
         self.report_format = report_format
         self.selected_fields = selected_fields
@@ -56,7 +56,39 @@ class ReportGenerationTask(QgsTask):
     def run(self):
         try:
             # Step 1: Read input file
-            las = laspy.read(self.filename, laz_backend=LazBackend.Lazrs)
+            las = laspy.read(self.input_filename, laz_backend=LazBackend.Lazrs)
+            pycrs = las.header.parse_crs(prefer_wkt=True)
+            if pycrs:
+                self.output_crs = QgsCoordinateReferenceSystem(pycrs.to_wkt())
+            else:
+                QgsMessageLog.logMessage(
+                    self.tr("No CRS found in file header. Checking input layer loaded in QGIS"),
+                    "MyLiDAR", Qgis.Warning
+                )
+
+                matched_layer = None
+                for lyr in QgsProject.instance().mapLayers().values():
+                    if isinstance(lyr, QgsPointCloudLayer) and lyr.source() == self.input_filename:
+                        matched_layer = lyr
+                        break
+
+                if matched_layer:
+                    if matched_layer.crs().isValid():
+                        self.output_crs = matched_layer.crs()
+                        QgsMessageLog.logMessage(
+                            f"{self.tr('Using CRS assigned in QGIS')}: {self.output_crs.authid()}",
+                            "MyLiDAR", Qgis.Info
+                        )
+                    else:
+                        QgsMessageLog.logMessage(
+                            self.tr("Matched layer CRS is invalid, no CRS will be assigned"),
+                            "MyLiDAR", Qgis.Warning
+                        )
+                else:
+                    QgsMessageLog.logMessage(
+                        self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"),
+                        "MyLiDAR", Qgis.Warning
+                    )
             self.setProgress(25)
 
             # Step 2: Extract statistics
@@ -73,7 +105,7 @@ class ReportGenerationTask(QgsTask):
 
             # Step 3: Build ReportData
             data = ReportData(
-                file_name=os.path.basename(self.filename) if self.selected_fields["file_name"] else None,
+                file_name=os.path.basename(self.input_filename) if self.selected_fields["file_name"] else None,
                 file_source=las.header.file_source_id if self.selected_fields["file_source"] else None,
                 global_encoding=format_global_encoding(las.header.global_encoding, self.tr) if self.selected_fields["global_encoding"] else None,
                 system_id=las.header.system_identifier if self.selected_fields["system_id"] else None,
@@ -81,6 +113,7 @@ class ReportGenerationTask(QgsTask):
                 version=las.header.version if self.selected_fields["version"] else None,
                 point_format=format_point_format(las.header.point_format, self.tr) if self.selected_fields["point_format"] else None,
                 creation_date=str(las.header.creation_date) if self.selected_fields["creation_date"] else None,
+                crs=self.output_crs if hasattr(self, "output_crs") else None,
 
                 min_intensity=las.intensity.min() if self.selected_fields["min_intensity"] else None,
                 max_intensity=las.intensity.max() if self.selected_fields["max_intensity"] else None,

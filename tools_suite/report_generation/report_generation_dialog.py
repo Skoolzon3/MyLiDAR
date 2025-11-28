@@ -123,6 +123,7 @@ class ReportGenerationDialog(QDialog):
         self.checkVersion = self.add_check(self.groupFileMetadata, "LAS Version", "LAS file format version (e.g., 1.2, 1.4)")
         self.checkPointFormat = self.add_check(self.groupFileMetadata, "Point Format", "Point data record format and byte size")
         self.checkCreationDate = self.add_check(self.groupFileMetadata, "Creation Date", "Date the LAS file was created")
+        self.checkCRS = self.add_check(self.groupFileMetadata, "Coordinate Reference System (CRS)", "CRS information of the dataset")
 
         # === Spatial ===
         self.checkNumPoints = self.add_check(self.groupSpatial, "Number of Points", "Total number of points")
@@ -248,7 +249,7 @@ class ReportGenerationDialog(QDialog):
         # Checkbox tracking
         self.checkboxes = [
             self.checkFileName, self.checkFileSource, self.checkGlobalEncoding, self.checkSystemId,
-            self.checkGenSoftware, self.checkVersion, self.checkPointFormat, self.checkCreationDate,
+            self.checkGenSoftware, self.checkVersion, self.checkPointFormat, self.checkCreationDate, self.checkCRS,
             self.checkNumPoints, self.checkArea, self.checkDensity, self.checkBounds,
             self.checkXAxisBounds, self.checkYAxisBounds, self.checkZAxisBounds,
             self.checkMinIntensity, self.checkMaxIntensity, self.checkIntensityMean, self.checkIntensitySD,
@@ -379,7 +380,7 @@ class ReportGenerationDialog(QDialog):
 
     def on_group_file_metadata_toggled(self, checked):
         for cb in [self.checkFileName, self.checkFileSource, self.checkGlobalEncoding, self.checkSystemId,
-                   self.checkGenSoftware, self.checkVersion, self.checkPointFormat, self.checkCreationDate]:
+                   self.checkGenSoftware, self.checkVersion, self.checkPointFormat, self.checkCreationDate, self.checkCRS]:
             cb.setEnabled(checked)
             cb.setChecked(checked)
         self.validate_state()

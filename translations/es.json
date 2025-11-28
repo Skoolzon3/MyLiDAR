@@ -288,5 +288,16 @@
   "Please select at least one output format or enable dock generation.": "Seleccione al menos un formato de salida o habilite la generación de paneles.",
   "Please specify an output DEM file path.": "Especifique una ruta de archivo DEM de salida.",
   "No Classes Selected": "No se ha seleccionado ninguna clase",
-  "Please choose at least one classification code.": "Seleccione al menos un código de clasificación."
+  "Please choose at least one classification code.": "Seleccione al menos un código de clasificación.",
+
+  "Coordinate Reference System": "Sistema de referencia de coordenadas",
+  "Coordinate Reference System (CRS)": "Sistema de referencia de coordenadas (SRC)",
+  "Coordinate Reference System Description": "Descripción del sistema de referencia de coordenadas",
+  "CRS information of the dataset": "Información del SRC del conjunto de datos",
+  "No CRS found in file header. Checking input layer loaded in QGIS": "No se encontró ningún SRC en la cabecera del archivo. Comprobando la capa de entrada cargada en QGIS",
+  "Using CRS assigned in QGIS": "Usando el SRC asignado en QGIS",
+  "Matched layer CRS is invalid, no CRS will be assigned": "El SRC de la capa coincidente no es válido, no se asignará ningún SRC",
+  "Input file not found among loaded layers. Cannot import CRS from QGIS": "Archivo de entrada no encontrado entre las capas cargadas. No se puede importar el SRC desde QGIS",
+  "DEM CRS set to": "SRC del MDE establecido en",
+  "Hillshade CRS set to": "SRC del mapa de sombras establecido en"
 }
