@@ -293,11 +293,16 @@ class PointFilteringDialog(QDialog):
 
         self.class_checkboxes = {}
         for idx, (class_code, count) in enumerate(sorted(present_classes, key=lambda x: x[0])):
+            name = fallback_colors.get(
+                class_code,
+                (f"{self.tr('Unknown')} ({class_code})", None)
+            )[0]
+
             if class_code in class_colors:
-                name = f"{self.tr('Class')} {class_code}"
                 color = class_colors[class_code]
             else:
-                name, color = fallback_colors.get(class_code, (f"{self.tr('Unknown')} ({class_code})", "#CCCCCC"))
+                color = fallback_colors.get(class_code, ("", "#CCCCCC"))[1]
+
 
             row, col = divmod(idx, 2)
             color_label = QLabel()
