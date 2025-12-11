@@ -1,10 +1,17 @@
-from qgis.core import QgsProject, QgsPointCloudLayer, QgsMessageLog, Qgis, QgsColorRampShader, QgsPointCloudClassifiedRenderer
+# --- General imports ---
+import os
+import laspy
+import numpy as np
+
+# --- QGIS and PyQt imports ---
+from qgis.core import QgsProject, QgsPointCloudLayer, QgsMessageLog, Qgis, QgsPointCloudClassifiedRenderer
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton,QDialogButtonBox, QFileDialog, QLineEdit, QSizePolicy, QTextBrowser, QWidget, QGroupBox, QGridLayout, QCheckBox
-import laspy
-import numpy as np
-import os
+
+# ------------------------------------
+# --- Point Filtering Dialog Class ---
+# ------------------------------------
 
 class PointFilteringDialog(QDialog):
     """Dialog window for point filtering settings."""

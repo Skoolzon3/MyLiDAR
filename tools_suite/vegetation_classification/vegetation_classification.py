@@ -119,7 +119,7 @@ class VegetationClassificationTask(QgsTask):
                 _, nearest_ground_idx = tree.query(veg_xy[i:j], k=1)
                 local_ground_z[i:j] = ground_z[nearest_ground_idx]
 
-                # Update progress proportionally (40–80%)
+                # Update progress proportionally (40-80%)
                 progress = 40 + (40 * j / n_points)
                 self.setProgress(progress)
 

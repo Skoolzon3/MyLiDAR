@@ -6,6 +6,10 @@ from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComb
 from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsProject, QgsPointCloudLayer
 
+# -----------------------------------
+# --- Building Count Dialog Class ---
+# -----------------------------------
+
 class BuildingCountDialog(QDialog):
     def __init__(self, parent=None, tr=lambda s: s):
         super().__init__(parent)

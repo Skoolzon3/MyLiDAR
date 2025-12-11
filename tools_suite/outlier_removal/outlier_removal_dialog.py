@@ -1,7 +1,14 @@
+# --- General imports ---
+import os
+
+# --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton,QDialogButtonBox, QFileDialog, QLineEdit, QSizePolicy, QTextBrowser, QWidget, QSpacerItem, QGroupBox, QFormLayout, QDoubleSpinBox, QSpinBox
 from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsProject, QgsPointCloudLayer
-import os
+
+# ------------------------------------
+# --- Outlier Removal Dialog Class ---
+# ------------------------------------
 
 class OutlierRemovalDialog(QDialog):
     """Dialog window for outlier removal settings."""

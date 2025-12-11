@@ -1,7 +1,14 @@
+# --- General imports ---
 import os
+
+# --- QGIS and PyQt imports ---
 from qgis.core import QgsProject, QgsPointCloudLayer
 from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QGroupBox, QCheckBox, QPushButton, QDialogButtonBox, QScrollArea, QWidget, QSpacerItem, QSizePolicy, QLineEdit, QTextBrowser, QFileDialog, QComboBox, QGridLayout
 from qgis.PyQt.QtCore import Qt
+
+# --------------------------------------
+# --- Report Generation Dialog Class ---
+# --------------------------------------
 
 class ReportGenerationDialog(QDialog):
     """Dialog window for selecting LiDAR report contents and output."""
