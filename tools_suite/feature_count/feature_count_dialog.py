@@ -1,10 +1,13 @@
 # --- General imports ---
 import os
+import numpy as np
+import laspy
 
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton,QDialogButtonBox, QFileDialog, QLineEdit, QSizePolicy, QTextBrowser, QWidget, QSpacerItem, QGroupBox, QFormLayout, QDoubleSpinBox, QSpinBox, QCheckBox
 from qgis.PyQt.QtCore import Qt
-from qgis.core import QgsProject, QgsPointCloudLayer
+from qgis.PyQt.QtGui import QColor
+from qgis.core import QgsProject, QgsPointCloudLayer, QgsPointCloudClassifiedRenderer, QgsMessageLog, Qgis
 
 # -----------------------------------
 # --- Feature Count Dialog Class ---
@@ -191,23 +194,9 @@ class FeatureCountDialog(QDialog):
         if not self.user_edited_output:
             self.update_default_output()
 
-    # def update_default_output(self):
-    #     """Propose a default output name based on clustering mode."""
-    #     if not self.selected_input:
-    #         return
-    #     base_name = os.path.splitext(os.path.basename(self.selected_input))[0]
-    #     suffix = "3D_clustering.gpkg" if self.use_z_check.isChecked() else "2D_clustering.gpkg"
-    #     default_output = os.path.join(
-    #         os.path.dirname(self.selected_input),
-    #         f"{base_name}_{suffix}"
-    #     )
-    #     self.output_edit.setText(default_output)
-    #     self.selected_output = default_output
-
     def update_default_output(self):
         if not self.selected_input:
             return
-
         base_name = os.path.splitext(os.path.basename(self.selected_input))[0]
         # Feature type suffix
         if self.building_check.isChecked() and self.tree_check.isChecked():
@@ -265,10 +254,12 @@ class FeatureCountDialog(QDialog):
 
     def get_feature_types(self):
         """Return which features the user wants to count."""
-        return {
-            "buildings": self.building_check.isChecked(),
-            "trees": self.tree_check.isChecked()
-        }
+        if self.building_check.isChecked() and self.tree_check.isChecked():
+            return ["buildings", "trees"]
+        elif self.tree_check.isChecked():
+            return ["trees"]
+        else:
+            return ["buildings"]
 
     def get_input_output(self):
         """Return (input_path, output_path)."""

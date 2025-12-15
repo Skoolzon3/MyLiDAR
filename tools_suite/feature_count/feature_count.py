@@ -16,14 +16,14 @@ from shapely.geometry import MultiPoint
 # --- Dialog imports ---
 from .feature_count_dialog import FeatureCountDialog
 
-# ----------------------
+# ---------------------
 # --- Feature Count ---
-# ------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------
 # Description:
-# This function counts features in LiDAR point clouds through DBSCAN clustering
-# on building and vegetation-classified points, providing an approximate count of features based on its results.
+# This function counts features in LiDAR point clouds through DBSCAN clustering on building and
+# vegetation-classified points, providing an approximate count of features based on its results.
 # Users can specify parameters for clustering (eps and min_samples).
-# ------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------
 
 # ------------------------------------------
 # --- Background Task for Feature Count ---
@@ -50,13 +50,20 @@ class FeatureCountTask(QgsTask):
         self.num_points = 0
         self.total_points = 0
         self.output_crs = None
-        self.results = {}   # {"buildings": { ... }, "trees": { ... }}
-        self.clusters = []  # list of (cluster_id, coords, area, wkt)
+        self.results = {
+            "buildings": {
+                "clusters": [],
+                "num_points": 0,
+                "num_features": 0
+            },
+            "trees": {
+                "clusters": [],
+                "num_points": 0,
+                "num_features": 0
+            }
+        }
 
     def run(self):
-        BUILDING_CLASS = [6]
-        TREE_CLASSES = [5]
-
         try:
             # Step 1: Read input file
             las = laspy.read(self.input_filename, laz_backend=LazBackend.Lazrs)
@@ -94,27 +101,31 @@ class FeatureCountTask(QgsTask):
                     )
             self.setProgress(10)
 
-            # Step 2: Filter building-classified points
-
-            QgsMessageLog.logMessage(
-                self.tr("Features detected: ") + ", ".join(self.feature_types),
-                "DEBUG", Qgis.Info
-            )
-
-            feature_class_code = None
             for ftype in self.feature_types:
-                if ftype == "buildings":
-                    feature_class_code = 6
-                elif ftype == "trees":
-                    feature_class_code = 5
+                self.results[ftype] = {
+                    "clusters": [],
+                    "num_points": 0,
+                    "num_features": 0
+                }
 
+            # Step 2: Filter building-classified points
+            class_map = {
+                "buildings": [6],
+                "trees": [3, 4, 5]
+            }
+
+            for ftype in self.feature_types:
+                feature_class_codes = class_map.get(ftype)
+                if not feature_class_codes:
+                    continue
                 classifications = las.classification
-                is_feature = classifications == feature_class_code
+                is_feature = np.isin(classifications, feature_class_codes)
 
-                self.num_points = int(np.sum(is_feature))
-                if self.num_points == 0:
-                    self.setProgress(100)
-                    return True
+                num_points = int(np.sum(is_feature))
+                self.results[ftype]["num_points"] = num_points
+
+                if num_points == 0:
+                    continue
                 self.setProgress(20)
 
                 # Step 3: Extract coordinates for clustering
@@ -127,7 +138,8 @@ class FeatureCountTask(QgsTask):
                 # Step 4: DBSCAN clustering
                 db = DBSCAN(eps=self.eps, min_samples=self.min_samples).fit(coords)
                 labels = db.labels_
-                self.num_features = len(set(labels)) - (1 if -1 in labels else 0)
+                num_features = len(set(labels)) - (1 if -1 in labels else 0)
+                self.results[ftype]["num_features"] = num_features
                 self.setProgress(70)
 
                 # Step 5: Convex hulls for clusters
@@ -142,7 +154,8 @@ class FeatureCountTask(QgsTask):
                     if len(cluster_coords) < self.min_samples:
                         continue
                     poly = MultiPoint(cluster_coords).convex_hull
-                    self.clusters.append((
+
+                    self.results[ftype]["clusters"].append((
                         int(cluster_id),
                         len(cluster_coords),
                         poly.area,
@@ -162,54 +175,56 @@ class FeatureCountTask(QgsTask):
     def finished(self, result):
         if result:
 
-            if self.num_points == 0:
-                QMessageBox.information(
-                    self.parent.iface.mainWindow(),
-                    self.tr("No Features Found"),
-                    self.tr("No features were found in this file")
-                )
-                return
+            base_name = os.path.splitext(os.path.basename(self.input_filename))[0]
+            cluster_suffix = "3D_clustering" if self.use_z else "2D_clustering"
 
-            else:
-                # --- Build QGIS layer ---
-                base_name = os.path.splitext(os.path.basename(self.input_filename))[0]
-                cluster_suffix = "3D_clustering" if self.use_z else "2D_clustering"
-                layer_name = f"{base_name}_{cluster_suffix}"
+            for ftype, data in self.results.items():
+
+                if data["num_points"] == 0:
+                    continue
+
+                layer_name = f"{base_name}_{ftype}_{cluster_suffix}"
 
                 vl = QgsVectorLayer("Polygon", layer_name, "memory")
                 pr = vl.dataProvider()
+
                 if self.output_crs and self.output_crs.isValid():
                     vl.setCrs(self.output_crs)
                 else:
                     vl.setCrs(QgsCoordinateReferenceSystem.fromEpsgId(4326))
 
                 pr.addAttributes([
-                    QgsField("cluster_id",  QMetaType.Int,    "integer", 10),
-                    QgsField("num_points",  QMetaType.Int,    "integer", 10),
-                    QgsField("area_m2",     QMetaType.Double, "double", 20, 6)
+                    QgsField("cluster_id", QMetaType.Int),
+                    QgsField("num_points", QMetaType.Int),
+                    QgsField("area_m2", QMetaType.Double, "double", 20, 6)
                 ])
                 vl.updateFields()
 
                 feats = []
-                for cluster_id, n_points, area, wkt in self.clusters:
+                for cluster_id, n_points, area, wkt in data["clusters"]:
                     feat = QgsFeature()
                     feat.setGeometry(QgsGeometry.fromWkt(wkt))
                     feat.setAttributes([cluster_id, n_points, area])
                     feats.append(feat)
-                pr.addFeatures(feats)
 
+                pr.addFeatures(feats)
                 vl.updateExtents()
                 vl.commitChanges()
 
+                if ftype == "trees":
+                    fill_color = "0,255,0,50"   # green
+                else:
+                    fill_color = "0,0,255,50"   # blue
+
                 symbol = QgsFillSymbol.createSimple({
-                    "color": "0,0,255,50",          # Blue w/ ~20% opacity
+                    "color": fill_color,
                     "outline_color": "0,0,0,100",
                     "outline_width": "0.4"
                 })
+
                 vl.renderer().setSymbol(symbol)
 
-                expr = "concat('ID: ', cluster_id, '\nArea: ', round(area_m2,1), ' m²')"
-                vl.setDisplayExpression(expr)
+                vl.setDisplayExpression("concat('ID: ', cluster_id, '\nArea: ', round(area_m2,1), ' m²')")
 
                 if self.output_path:
                     options = QgsVectorFileWriter.SaveVectorOptions()
@@ -263,14 +278,14 @@ class FeatureCountTask(QgsTask):
                             Qgis.Critical
                         )
 
-
                 QgsProject.instance().addMapLayer(vl)
 
                 QMessageBox.information(
                     self.parent.iface.mainWindow(),
                     self.tr("Feature Detection Complete"),
-                    f"{self.tr('Building points detected')}: {self.num_points:,}\n"
-                    f"{self.tr('Approximate number of features detected')}: {self.num_features:,}"
+                    f"{ftype.capitalize()}:\n"
+                    f"{self.tr('Points detected')}: {data['num_points']:,}\n"
+                    f"{self.tr('Approximate number of features detected')}: {data['num_features']:,}"
                 )
 
         else:
