@@ -11,7 +11,7 @@ from qgis.PyQt.QtWidgets import QAction, QMessageBox, QMenu
 from .tools_suite.outlier_removal.outlier_removal import remove_outliers
 from .tools_suite.point_filtering.point_filtering import filter_points
 from .tools_suite.vegetation_classification.vegetation_classification import classify_vegetation
-from .tools_suite.building_count.building_count import count_buildings
+from .tools_suite.feature_count.feature_count import count_features
 from .tools_suite.dem_generation.dem_generation import generate_bare_earth_dem
 from .tools_suite.report_generation.report_generation import generate_report
 
@@ -28,13 +28,6 @@ class MyLiDARPlugin:
         system_lang = QLocale.system().name()[:2] # Detect system language ("en", "es")
         self.current_lang = system_lang if system_lang else "en"
         self.load_language(self.current_lang)
-
-        self.outliers_action = None
-        self.vegetation_action = None
-        self.count_action = None
-        self.dem_action = None
-        self.report_action = None
-        self.filter_action = None
 
     def load_language(self, lang_code: str):
         lang_file = os.path.join(self.plugin_dir, "translations", f"{lang_code}.json")
@@ -67,9 +60,9 @@ class MyLiDARPlugin:
             ("cleanup.png", self.tr("Remove Outlier Points"), self.outlier_removal),
             ("filter.png", self.tr("Filter Points by Classification"), self.point_filtering),
             ("vegetation.png", self.tr("Classify Vegetation"), self.vegetation_classification),
-            ("building.png", self.tr("Count Buildings"), self.building_count),
+            ("building.png", self.tr("Count Features"), self.feature_count),
             ("dem.png", self.tr("Generate Bare Earth DEM"), self.bare_earth_dem_generation),
-            ("report.png", self.tr("Generate LiDAR File Report"), self.report_generation)
+            ("report.png", self.tr("Generate LiDAR File Report"), self.report_generation),
         ]
 
         self.actions = []
@@ -94,9 +87,9 @@ class MyLiDARPlugin:
     def point_filtering(self):
         filter_points(self)
 
-    # --- Builing Count ---
-    def building_count(self):
-        count_buildings(self)
+    # --- Feature Count ---
+    def feature_count(self):
+        count_features(self)
 
     # --- Vegetation Classification ---
     def vegetation_classification(self):

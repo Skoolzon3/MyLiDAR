@@ -7,10 +7,10 @@ from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsProject, QgsPointCloudLayer
 
 # -----------------------------------
-# --- Building Count Dialog Class ---
+# --- Feature Count Dialog Class ---
 # -----------------------------------
 
-class BuildingCountDialog(QDialog):
+class FeatureCountDialog(QDialog):
     def __init__(self, parent=None, tr=lambda s: s):
         super().__init__(parent)
         self.tr = tr
@@ -20,7 +20,7 @@ class BuildingCountDialog(QDialog):
         self.user_edited_output = False
 
         # --- Window ---
-        self.setWindowTitle(tr("Count Buildings"))
+        self.setWindowTitle(tr("Count Features"))
         self.resize(900, 370)
         self.setMinimumWidth(820)
 
@@ -69,7 +69,24 @@ class BuildingCountDialog(QDialog):
         param_layout.setLabelAlignment(Qt.AlignLeft)
         param_layout.setFormAlignment(Qt.AlignTop)
 
-        # Radio de búsqueda
+        # --- Feature type selection ---
+        feature_group = QGroupBox(tr("Features to Count"))
+        feature_layout = QVBoxLayout(feature_group)
+
+        self.building_check = QCheckBox(tr("Buildings"))
+        self.building_check.setChecked(True)
+        self.tree_check = QCheckBox(tr("Trees (vegetation)"))
+        self.tree_check.setChecked(False)
+
+        self.building_check.toggled.connect(self.on_clustering_mode_changed)
+        self.tree_check.toggled.connect(self.on_clustering_mode_changed)
+
+        feature_layout.addWidget(self.building_check)
+        feature_layout.addWidget(self.tree_check)
+
+        left_layout.addWidget(feature_group)
+
+        # Search radius (eps)
         self.eps_spin = QDoubleSpinBox()
         self.eps_spin.setRange(0.1, 100.0)
         self.eps_spin.setSingleStep(0.1)
@@ -111,13 +128,13 @@ class BuildingCountDialog(QDialog):
             }
         """)
 
-        title = self.tr("Building Count (DBSCAN)")
-        intro = self.tr("This tool estimates the number of buildings in a LiDAR dataset by clustering points classified as buildings (code 6).")
+        title = self.tr("Feature Count")
+        intro = self.tr("This tool estimates the number of features in a LiDAR dataset by clustering points classified as buildings and/or vegetation.")
         workflow = self.tr("Workflow:")
-        step1 = self.tr("Filters building-classified points (code 6).")
-        step2 = self.tr("Applies DBSCAN clustering to group nearby building points.")
-        step3 = self.tr("Creates polygons representing each detected building cluster.")
-        note = self.tr("The number of detected clusters approximates the total number of buildings.")
+        step1 = self.tr("Filters building/vegetation classified points.")
+        step2 = self.tr("Applies DBSCAN clustering to group nearby filtered points.")
+        step3 = self.tr("Creates polygons representing each detected cluster.")
+        note = self.tr("The number of detected clusters approximates the total number of features.")
 
         desc_box.setHtml(f"""
             <div style="position: relative;">
@@ -174,16 +191,39 @@ class BuildingCountDialog(QDialog):
         if not self.user_edited_output:
             self.update_default_output()
 
+    # def update_default_output(self):
+    #     """Propose a default output name based on clustering mode."""
+    #     if not self.selected_input:
+    #         return
+    #     base_name = os.path.splitext(os.path.basename(self.selected_input))[0]
+    #     suffix = "3D_clustering.gpkg" if self.use_z_check.isChecked() else "2D_clustering.gpkg"
+    #     default_output = os.path.join(
+    #         os.path.dirname(self.selected_input),
+    #         f"{base_name}_{suffix}"
+    #     )
+    #     self.output_edit.setText(default_output)
+    #     self.selected_output = default_output
+
     def update_default_output(self):
-        """Propose a default output name based on clustering mode."""
         if not self.selected_input:
             return
+
         base_name = os.path.splitext(os.path.basename(self.selected_input))[0]
-        suffix = "3D_clustering.gpkg" if self.use_z_check.isChecked() else "2D_clustering.gpkg"
+        # Feature type suffix
+        if self.building_check.isChecked() and self.tree_check.isChecked():
+            type_suffix = "buildings_trees"
+        elif self.tree_check.isChecked():
+            type_suffix = "trees"
+        else:
+            type_suffix = "buildings"
+
+        cluster_mode = "3D" if self.use_z_check.isChecked() else "2D"
+        suffix = f"{type_suffix}_{cluster_mode}.gpkg"
         default_output = os.path.join(
             os.path.dirname(self.selected_input),
             f"{base_name}_{suffix}"
         )
+
         self.output_edit.setText(default_output)
         self.selected_output = default_output
 
@@ -222,6 +262,13 @@ class BuildingCountDialog(QDialog):
             self.min_samples_spin.value(),
             self.use_z_check.isChecked()
         )
+
+    def get_feature_types(self):
+        """Return which features the user wants to count."""
+        return {
+            "buildings": self.building_check.isChecked(),
+            "trees": self.tree_check.isChecked()
+        }
 
     def get_input_output(self):
         """Return (input_path, output_path)."""

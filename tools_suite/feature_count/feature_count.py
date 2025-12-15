@@ -14,41 +14,49 @@ from sklearn.cluster import DBSCAN
 from shapely.geometry import MultiPoint
 
 # --- Dialog imports ---
-from .building_count_dialog import BuildingCountDialog
+from .feature_count_dialog import FeatureCountDialog
 
 # ----------------------
-# --- Building Count ---
+# --- Feature Count ---
 # ------------------------------------------------------------------------------------------------
 # Description:
-# This function counts buildings in LiDAR point clouds through DBSCAN clustering
-# on building-classified points, providing an approximate count of buildings based on its results.
+# This function counts features in LiDAR point clouds through DBSCAN clustering
+# on building and vegetation-classified points, providing an approximate count of features based on its results.
 # Users can specify parameters for clustering (eps and min_samples).
 # ------------------------------------------------------------------------------------------------
 
 # ------------------------------------------
-# --- Background Task for Building Count ---
+# --- Background Task for Feature Count ---
 # ------------------------------------------
 
-class BuildingCountTask(QgsTask):
-    """Background task for counting buildings using DBSCAN on LiDAR data"""
+class FeatureCountTask(QgsTask):
+    """Background task for counting features using DBSCAN on LiDAR data"""
 
-    def __init__(self, description, input_filename, eps, min_samples, use_z, parent, translator, output_path=None):
+    def __init__(self, description, input_filename, eps, min_samples, use_z, parent, translator, feature_types, output_path=None):
         super().__init__(description, QgsTask.CanCancel)
+
         self.input_filename = input_filename
         self.eps = eps
         self.min_samples = min_samples
         self.use_z = use_z
         self.parent = parent
         self.output_path = output_path
+        self.feature_types = feature_types
 
-        self.exception = None
         self.tr = translator
-        self.num_buildings = 0
+        self.exception = None
+
+        self.num_features = 0
         self.num_points = 0
+        self.total_points = 0
         self.output_crs = None
+        self.results = {}   # {"buildings": { ... }, "trees": { ... }}
         self.clusters = []  # list of (cluster_id, coords, area, wkt)
 
     def run(self):
+        BUILDING_CLASS = [6]
+        TREE_CLASSES = [5]
+
         try:
             # Step 1: Read input file
             las = laspy.read(self.input_filename, laz_backend=LazBackend.Lazrs)
@@ -87,50 +95,62 @@ class BuildingCountTask(QgsTask):
             self.setProgress(10)
 
             # Step 2: Filter building-classified points
-            building_class_code = 6
-            classifications = las.classification
-            is_building = classifications == building_class_code
 
-            self.num_points = int(np.sum(is_building))
-            if self.num_points == 0:
-                self.setProgress(100)
-                return True
-            self.setProgress(20)
+            QgsMessageLog.logMessage(
+                self.tr("Features detected: ") + ", ".join(self.feature_types),
+                "DEBUG", Qgis.Info
+            )
 
-            # Step 3: Extract coordinates for clustering
-            if self.use_z:
-                coords = np.vstack((las.x[is_building], las.y[is_building], las.z[is_building])).T
-            else:
-                coords = np.vstack((las.x[is_building], las.y[is_building])).T
-            self.setProgress(30)
+            feature_class_code = None
+            for ftype in self.feature_types:
+                if ftype == "buildings":
+                    feature_class_code = 6
+                elif ftype == "trees":
+                    feature_class_code = 5
 
-            # Step 4: DBSCAN clustering
-            db = DBSCAN(eps=self.eps, min_samples=self.min_samples).fit(coords)
-            labels = db.labels_
-            self.num_buildings = len(set(labels)) - (1 if -1 in labels else 0)
-            self.setProgress(70)
+                classifications = las.classification
+                is_feature = classifications == feature_class_code
 
-            # Step 5: Convex hulls for clusters
-            unique_clusters = [cid for cid in set(labels) if cid != -1]
-            total_clusters = len(unique_clusters)
+                self.num_points = int(np.sum(is_feature))
+                if self.num_points == 0:
+                    self.setProgress(100)
+                    return True
+                self.setProgress(20)
 
-            for idx, cluster_id in enumerate(unique_clusters, start=1):
-                if self.isCanceled():
-                    return False
+                # Step 3: Extract coordinates for clustering
+                if self.use_z:
+                    coords = np.vstack((las.x[is_feature], las.y[is_feature], las.z[is_feature])).T
+                else:
+                    coords = np.vstack((las.x[is_feature], las.y[is_feature])).T
+                self.setProgress(30)
 
-                cluster_coords = coords[labels == cluster_id]
-                if len(cluster_coords) < self.min_samples:
-                    continue
-                poly = MultiPoint(cluster_coords).convex_hull
-                self.clusters.append((
-                    int(cluster_id),
-                    len(cluster_coords),
-                    poly.area,
-                    poly.wkt
-                ))
+                # Step 4: DBSCAN clustering
+                db = DBSCAN(eps=self.eps, min_samples=self.min_samples).fit(coords)
+                labels = db.labels_
+                self.num_features = len(set(labels)) - (1 if -1 in labels else 0)
+                self.setProgress(70)
 
-                progress = 80 + (20 * idx / total_clusters)
-                self.setProgress(progress)
+                # Step 5: Convex hulls for clusters
+                unique_clusters = [cid for cid in set(labels) if cid != -1]
+                total_clusters = len(unique_clusters)
+
+                for idx, cluster_id in enumerate(unique_clusters, start=1):
+                    if self.isCanceled():
+                        return False
+
+                    cluster_coords = coords[labels == cluster_id]
+                    if len(cluster_coords) < self.min_samples:
+                        continue
+                    poly = MultiPoint(cluster_coords).convex_hull
+                    self.clusters.append((
+                        int(cluster_id),
+                        len(cluster_coords),
+                        poly.area,
+                        poly.wkt
+                    ))
+
+                    progress = 80 + (20 * idx / total_clusters)
+                    self.setProgress(progress)
 
             self.setProgress(100)
             return True
@@ -145,8 +165,8 @@ class BuildingCountTask(QgsTask):
             if self.num_points == 0:
                 QMessageBox.information(
                     self.parent.iface.mainWindow(),
-                    self.tr("No Buildings Found"),
-                    self.tr("No buildings were found in this file")
+                    self.tr("No Features Found"),
+                    self.tr("No features were found in this file")
                 )
                 return
 
@@ -248,34 +268,34 @@ class BuildingCountTask(QgsTask):
 
                 QMessageBox.information(
                     self.parent.iface.mainWindow(),
-                    self.tr("Building Detection Complete"),
+                    self.tr("Feature Detection Complete"),
                     f"{self.tr('Building points detected')}: {self.num_points:,}\n"
-                    f"{self.tr('Approximate number of buildings detected')}: {self.num_buildings:,}"
+                    f"{self.tr('Approximate number of features detected')}: {self.num_features:,}"
                 )
 
         else:
-            msg = f"{self.tr('An error occurred')}: {self.exception}" if self.exception else self.tr("Building detection failed")
+            msg = f"{self.tr('An error occurred')}: {self.exception}" if self.exception else self.tr("Feature detection failed")
             QgsMessageLog.logMessage(msg, "MyLiDAR", Qgis.Critical)
-            QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error Detecting Buildings"), msg)
+            QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error Detecting Features"), msg)
 
         if self in self.parent.running_tasks:
             self.parent.running_tasks.remove(self)
 
         else:
-            msg = f"{self.tr('An error occurred')}: {self.exception}" if self.exception else self.tr("Building detection failed")
+            msg = f"{self.tr('An error occurred')}: {self.exception}" if self.exception else self.tr("Feature detection failed")
             QgsMessageLog.logMessage(msg, "MyLiDAR", Qgis.Critical)
-            QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error Detecting Buildings"), msg)
+            QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error Detecting Features"), msg)
 
         if self in self.parent.running_tasks:
             self.parent.running_tasks.remove(self)
 
 # ----------------------------------
-# --- Main Building Count Method ---
+# --- Main Feature Count Method ---
 # ----------------------------------
 
-def count_buildings(self):
+def count_features(self):
     # Stem 1: Select input/output and parameters
-    dialog = BuildingCountDialog(self.iface.mainWindow(), tr=self.tr)
+    dialog = FeatureCountDialog(self.iface.mainWindow(), tr=self.tr)
     if not dialog.exec_():
         return
 
@@ -289,21 +309,22 @@ def count_buildings(self):
         return
 
     eps, min_samples, use_z = dialog.get_params()
+    feature_types = dialog.get_feature_types()
 
     if not input_filename:
         QMessageBox.warning(self.iface.mainWindow(), self.tr("Missing Input"), self.tr("Please select a LiDAR input file or layer."))
         return
 
     # Step 2: Create and run the background task
-    task_desc = f"{self.tr('Counting buildings in')} {os.path.basename(input_filename)}"
-    task = BuildingCountTask(task_desc, input_filename, eps, min_samples, use_z, self, self.tr, output_filename)
+    task_desc = f"{self.tr('Counting features in')} {os.path.basename(input_filename)}"
+    task = FeatureCountTask(task_desc, input_filename, eps, min_samples, use_z, self, self.tr, feature_types, output_path=output_filename)
 
     self.running_tasks.append(task)
     QgsApplication.taskManager().addTask(task)
 
     self.iface.messageBar().pushMessage(
         self.tr("Task Started"),
-        self.tr("Detecting buildings in the background"),
+        self.tr("Detecting features in the background"),
         level=Qgis.Info,
         duration=-1
     )
