@@ -74,18 +74,22 @@ class FeatureCountDialog(QDialog):
 
         # --- Feature type selection ---
         feature_group = QGroupBox(tr("Features to Count"))
-        feature_layout = QVBoxLayout(feature_group)
+        feature_layout = QHBoxLayout(feature_group)
 
         self.building_check = QCheckBox(tr("Buildings"))
         self.building_check.setChecked(True)
         self.tree_check = QCheckBox(tr("Trees (vegetation)"))
         self.tree_check.setChecked(False)
+        self.bridge_check = QCheckBox(tr("Bridges"))
+        self.bridge_check.setChecked(False)
 
         self.building_check.toggled.connect(self.on_clustering_mode_changed)
         self.tree_check.toggled.connect(self.on_clustering_mode_changed)
+        self.bridge_check.toggled.connect(self.on_clustering_mode_changed)
 
         feature_layout.addWidget(self.building_check)
         feature_layout.addWidget(self.tree_check)
+        feature_layout.addWidget(self.bridge_check)
 
         left_layout.addWidget(feature_group)
 
@@ -254,12 +258,14 @@ class FeatureCountDialog(QDialog):
 
     def get_feature_types(self):
         """Return which features the user wants to count."""
-        if self.building_check.isChecked() and self.tree_check.isChecked():
-            return ["buildings", "trees"]
-        elif self.tree_check.isChecked():
-            return ["trees"]
-        else:
-            return ["buildings"]
+        features = []
+        if self.building_check.isChecked():
+            features.append("buildings")
+        if self.tree_check.isChecked():
+            features.append("trees")
+        if self.bridge_check.isChecked():
+            features.append("bridges")
+        return features
 
     def get_input_output(self):
         """Return (input_path, output_path)."""

@@ -60,6 +60,11 @@ class FeatureCountTask(QgsTask):
                 "clusters": [],
                 "num_points": 0,
                 "num_features": 0
+            },
+            "bridges": {
+                "clusters": [],
+                "num_points": 0,
+                "num_features": 0
             }
         }
 
@@ -111,7 +116,8 @@ class FeatureCountTask(QgsTask):
             # Step 2: Filter building-classified points
             class_map = {
                 "buildings": [6],
-                "trees": [3, 4, 5]
+                "trees": [3, 4, 5],
+                "bridges": [17]
             }
 
             for ftype in self.feature_types:
@@ -212,9 +218,11 @@ class FeatureCountTask(QgsTask):
                 vl.commitChanges()
 
                 if ftype == "trees":
-                    fill_color = "0,255,0,50"   # green
+                    fill_color = "0,255,0,50"
+                elif ftype == "buildings":
+                    fill_color = "0,0,255,50"
                 else:
-                    fill_color = "0,0,255,50"   # blue
+                    fill_color = "255,0,0,50"
 
                 symbol = QgsFillSymbol.createSimple({
                     "color": fill_color,
