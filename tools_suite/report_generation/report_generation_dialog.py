@@ -150,6 +150,7 @@ class ReportGenerationDialog(QDialog):
         # === Time ===
         self.checkMinTime = self.add_check(self.groupTime, "Min Time")
         self.checkMaxTime = self.add_check(self.groupTime, "Max Time")
+        self.checkTotalTime = self.add_check(self.groupTime, "Scan Duration")
 
         # === Classification ===
         self.checkClassCounts = self.add_check(self.groupClassification, "Class Counts")
@@ -260,7 +261,7 @@ class ReportGenerationDialog(QDialog):
             self.checkNumPoints, self.checkArea, self.checkDensity, self.checkBounds,
             self.checkXAxisBounds, self.checkYAxisBounds, self.checkZAxisBounds,
             self.checkMinIntensity, self.checkMaxIntensity, self.checkIntensityMean, self.checkIntensitySD,
-            self.checkMinTime, self.checkMaxTime,
+            self.checkMinTime, self.checkMaxTime, self.checkTotalTime,
             self.checkClassCounts, self.checkReturnCounts
         ]
 
@@ -367,7 +368,7 @@ class ReportGenerationDialog(QDialog):
 
     # --- Group Logic & Validation ---
     def on_group_time_toggled(self, checked):
-        for cb in [self.checkMinTime, self.checkMaxTime]:
+        for cb in [self.checkMinTime, self.checkMaxTime, self.checkTotalTime]:
             cb.setEnabled(checked)
             cb.setChecked(checked)
         self.validate_state()

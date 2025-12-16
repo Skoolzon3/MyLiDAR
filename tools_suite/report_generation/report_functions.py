@@ -117,6 +117,8 @@ def generate_txt_report(self, path, data: ReportData, tr):
                 f.write(f"{tr('Min GPS Time')}: {data.min_time}\n")
             if data.max_time:
                 f.write(f"{tr('Max GPS Time')}: {data.max_time}\n")
+            if data.total_time:
+                f.write(f"{tr('Scan Duration')}: {data.total_time}\n")
             f.write("\n")
 
         # -- Classifications --
@@ -217,6 +219,8 @@ def generate_dock_content(self, data: ReportData, tr) -> str:
             lines.append(f"{tr('Min GPS Time')}: {data.min_time}")
         if data.max_time:
             lines.append(f"{tr('Max GPS Time')}: {data.max_time}")
+        if data.total_time:
+            lines.append(f"{tr('Scan Duration')}: {data.total_time}")
         lines.append("")
 
     # -- Classifications --
@@ -316,6 +320,8 @@ def generate_markdown_report(self, path, data: ReportData, tr):
                 f.write(f"- **{tr('Min GPS Time')}:** `{data.min_time}`\n")
             if data.max_time:
                 f.write(f"- **{tr('Max GPS Time')}:** `{data.max_time}`\n")
+            if data.total_time:
+                f.write(f"- **{tr('Scan Duration')}:** `{data.total_time}`\n")
             f.write("\n")
 
         # -- Classifications --
@@ -506,6 +512,8 @@ def generate_pdf_report(self, path, data: ReportData, tr):
             write_item(tr("Min GPS Time"), data.min_time)
         if data.max_time:
             write_item(tr("Max GPS Time"), data.max_time)
+        if data.total_time:
+            write_item(tr("Scan Duration"), data.total_time)
 
     # -- Classifications --
     if data.unique_classes is not None and data.class_counts is not None:
@@ -705,6 +713,8 @@ def generate_latex_report(self, path, data: ReportData, tr):
                 f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("Min GPS Time")), data.min_time))
             if data.max_time:
                 f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("Max GPS Time")), data.max_time))
+            if data.total_time:
+                f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("Scan Duration")), data.total_time))
             f.write("\n")
 
         # -- Classifications --

@@ -187,6 +187,7 @@
   "Time": "Time",
   "Min Time": "Min Time",
   "Max Time": "Max Time",
+  "Scan Duration": "Scan Duration",
 
   "Classification": "Classification",
   "Class Counts": "Class Counts",
@@ -289,6 +290,7 @@
   "Please specify an output DEM file path.": "Please specify an output DEM file path.",
   "No Classes Selected": "No Classes Selected",
   "Please choose at least one classification code.": "Please choose at least one classification code.",
+  "No output format selected": "No output format selected",
 
   "Coordinate Reference System": "Coordinate Reference System",
   "Coordinate Reference System (CRS)": "Coordinate Reference System (CRS)",

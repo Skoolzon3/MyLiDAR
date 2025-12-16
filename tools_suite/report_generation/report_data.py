@@ -7,7 +7,7 @@ class ReportData:
         file_source=None, global_encoding=None, system_id=None, gen_software=None,
         creation_date=None, unique_classes=None, class_counts=None, unique_returns=None,
         return_counts=None, min_intensity=None, max_intensity=None, mean_intensity=None,
-        sd_intensity=None, min_time=None, max_time=None, area=None,
+        sd_intensity=None, min_time=None, max_time=None, total_time=None, area=None,
         density=None, x=None, y=None, crs=None
     ):
         # -- Metadata --
@@ -39,6 +39,7 @@ class ReportData:
         # -- GPS Time --
         self.min_time = min_time
         self.max_time = max_time
+        self.total_time = total_time
 
         # -- Classifications and Returns --
         self.unique_classes = unique_classes

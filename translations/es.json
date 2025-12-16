@@ -187,6 +187,7 @@
   "Time": "Tiempo",
   "Min Time": "Tiempo mínimo",
   "Max Time": "Tiempo máximo",
+  "Scan Duration": "Duración del escaneo",
 
   "Classification": "Clasificación",
   "Class Counts": "Conteo por clases",
@@ -289,6 +290,7 @@
   "Please specify an output DEM file path.": "Especifique una ruta de archivo DEM de salida.",
   "No Classes Selected": "No se ha seleccionado ninguna clase",
   "Please choose at least one classification code.": "Seleccione al menos un código de clasificación.",
+  "No output format selected": "No se ha seleccionado ningún formato de salida",
 
   "Coordinate Reference System": "Sistema de referencia de coordenadas",
   "Coordinate Reference System (CRS)": "Sistema de referencia de coordenadas (SRC)",

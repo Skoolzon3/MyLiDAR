@@ -5,6 +5,7 @@ from laspy import LazBackend
 import numpy as np
 import tempfile
 import zipfile
+from datetime import timedelta
 
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QMessageBox, QDialog
@@ -98,8 +99,9 @@ class ReportGenerationTask(QgsTask):
             if hasattr(las, "gps_time"):
                 dt_min = gps_time_to_datetime(las.gps_time.min()).isoformat()
                 dt_max = gps_time_to_datetime(las.gps_time.max()).isoformat()
+                total_time = str(timedelta(seconds=las.gps_time.max() - las.gps_time.min()))
             else:
-                dt_min = dt_max = None
+                dt_min = dt_max = total_time = None
 
             self.setProgress(50)
 
@@ -131,6 +133,7 @@ class ReportGenerationTask(QgsTask):
 
                 min_time=dt_min if self.selected_fields["min_time"] else None,
                 max_time=dt_max if self.selected_fields["max_time"] else None,
+                total_time=total_time if self.selected_fields["total_time"] else None,
 
                 unique_classes=unique_classes if self.selected_fields["class_counts"] else None,
                 class_counts=class_counts if self.selected_fields["class_counts"] else None,
@@ -319,6 +322,7 @@ def generate_report(self):
         "z_axis_bounds": dialog.checkZAxisBounds.isChecked(),
         "min_time": dialog.checkMinTime.isChecked(),
         "max_time": dialog.checkMaxTime.isChecked(),
+        "total_time": dialog.checkTotalTime.isChecked(),
         "class_counts": dialog.checkClassCounts.isChecked(),
         "return_counts": dialog.checkReturnCounts.isChecked(),
     }
