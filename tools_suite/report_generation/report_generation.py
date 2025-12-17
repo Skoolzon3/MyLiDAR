@@ -61,6 +61,7 @@ class ReportGenerationTask(QgsTask):
             pycrs = las.header.parse_crs(prefer_wkt=True)
             if pycrs:
                 self.output_crs = QgsCoordinateReferenceSystem(pycrs.to_wkt())
+                self.output_crs_source = self.tr("File Header")
             else:
                 QgsMessageLog.logMessage(
                     self.tr("No CRS found in file header. Checking input layer loaded in QGIS"),
@@ -76,6 +77,7 @@ class ReportGenerationTask(QgsTask):
                 if matched_layer:
                     if matched_layer.crs().isValid():
                         self.output_crs = matched_layer.crs()
+                        self.output_crs_source = self.tr("QGIS Layer")
                         QgsMessageLog.logMessage(
                             f"{self.tr('Using CRS assigned in QGIS')}: {self.output_crs.authid()}",
                             "MyLiDAR", Qgis.Info
@@ -116,6 +118,7 @@ class ReportGenerationTask(QgsTask):
                 point_format=format_point_format(las.header.point_format, self.tr) if self.selected_fields["point_format"] else None,
                 creation_date=str(las.header.creation_date) if self.selected_fields["creation_date"] else None,
                 crs=self.output_crs if hasattr(self, "output_crs") else None,
+                crs_source=self.output_crs_source if hasattr(self, "output_crs") else None,
 
                 min_intensity=las.intensity.min() if self.selected_fields["min_intensity"] else None,
                 max_intensity=las.intensity.max() if self.selected_fields["max_intensity"] else None,
@@ -309,6 +312,7 @@ def generate_report(self):
         "version": dialog.checkVersion.isChecked(),
         "point_format": dialog.checkPointFormat.isChecked(),
         "creation_date": dialog.checkCreationDate.isChecked(),
+        "output_crs": dialog.checkCRS.isChecked(),
         "min_intensity": dialog.checkMinIntensity.isChecked(),
         "max_intensity": dialog.checkMaxIntensity.isChecked(),
         "mean_intensity": dialog.checkIntensityMean.isChecked(),

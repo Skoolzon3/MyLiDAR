@@ -8,7 +8,7 @@ class ReportData:
         creation_date=None, unique_classes=None, class_counts=None, unique_returns=None,
         return_counts=None, min_intensity=None, max_intensity=None, mean_intensity=None,
         sd_intensity=None, min_time=None, max_time=None, total_time=None, area=None,
-        density=None, x=None, y=None, crs=None
+        density=None, x=None, y=None, crs=None, crs_source=None
     ):
         # -- Metadata --
         self.file_name = file_name
@@ -20,6 +20,7 @@ class ReportData:
         self.point_format = point_format
         self.creation_date = creation_date
         self.crs = crs
+        self.crs_source = crs_source
 
         # -- Intensity --
         self.min_intensity = min_intensity

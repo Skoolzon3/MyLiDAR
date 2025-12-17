@@ -73,7 +73,7 @@ def generate_txt_report(self, path, data: ReportData, tr):
             if data.creation_date:
                 f.write(f"{tr('Creation Date')}: {data.creation_date}\n")
             if data.crs:
-                f.write(f"{tr('Coordinate Reference System')}: {data.crs.authid()} - {data.crs.description()}\n")
+                f.write(f"{tr('Coordinate Reference System')}: {data.crs.authid()} - {data.crs.description()} ({data.crs_source})\n")
             f.write("\n")
 
         # -- Intensity --
@@ -175,7 +175,7 @@ def generate_dock_content(self, data: ReportData, tr) -> str:
         if data.creation_date:
             lines.append(f"{tr('Creation Date')}: {data.creation_date}")
         if data.crs:
-            lines.append(f"{tr('Coordinate Reference System')}: {data.crs.authid()} - {data.crs.description()}")
+            lines.append(f"{tr('Coordinate Reference System')}: {data.crs.authid()} - {data.crs.description()} ({data.crs_source})")
         lines.append("")
 
     # -- Intensity --
@@ -276,7 +276,7 @@ def generate_markdown_report(self, path, data: ReportData, tr):
             if data.creation_date:
                 f.write(f"- **{tr('Creation Date')}:** `{data.creation_date}`\n")
             if data.crs:
-                f.write(f"- **{tr('Coordinate Reference System')}:** `{data.crs.authid()} - {data.crs.description()}`\n")
+                f.write(f"- **{tr('Coordinate Reference System')}:** `{data.crs.authid()} - {data.crs.description()} ({data.crs_source})`\n")
             f.write("\n")
 
         # -- Intensity --
@@ -469,9 +469,9 @@ def generate_pdf_report(self, path, data: ReportData, tr):
 
         if data.creation_date:
             write_item(tr("Creation Date"), data.creation_date)
-        if data.creation_date:
-            write_item(tr('Coordinate Reference System'), data.crs.authid())
-            write_item(tr('Coordinate Reference System Description'), data.crs.description())
+        if data.crs:
+            write_item(tr('Coordinate Reference System'), data.crs.authid() + f" - {data.crs.description()}")
+            write_item(tr('CRS Source'), data.crs_source)
 
     # -- Intensity --
     if data.min_intensity or data.max_intensity or data.mean_intensity or data.sd_intensity:
@@ -669,7 +669,7 @@ def generate_latex_report(self, path, data: ReportData, tr):
             if data.creation_date:
                 f.write("\\textbf{%s}: \\texttt{%s}\\\\\n" % (tex_escape(tr("Creation Date")), tex_escape(data.creation_date)))
             if data.crs:
-                f.write("\\textbf{%s}: \\texttt{%s - %s}\\\\\n" % (tex_escape(tr("Coordinate Reference System")), tex_escape(data.crs.authid()), tex_escape(data.crs.description())))
+                f.write("\\textbf{%s}: \\texttt{%s - %s (%s)}\\\\\n" % (tex_escape(tr("Coordinate Reference System")), tex_escape(data.crs.authid()), tex_escape(data.crs.description()), tex_escape(data.crs_source)))
             f.write("\n")
 
         # -- Intensity --

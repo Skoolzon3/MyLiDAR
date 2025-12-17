@@ -118,7 +118,7 @@ class FilterPointsTask(QgsTask):
                     if self.output_crs and self.output_crs.isValid():
                         pc_layer.setCrs(self.output_crs)
                         QgsMessageLog.logMessage(
-                            f"{self.tr('Output layer CRS applied')}: {self.output_crs.authid()}",
+                            f"{self.tr('Output layer CRS applied')}: {self.output_crs.authid()} - {self.output_crs.description()}",
                             "MyLiDAR",
                             Qgis.Info
                         )
