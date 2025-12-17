@@ -18,7 +18,7 @@ from .report_generation_dialog import ReportGenerationDialog
 from .report_generation_dock import ReportDock
 
 # --- Utility & Report Generation Functions ---
-from ..utils import format_global_encoding, format_point_format, gps_time_to_datetime, generate_pie_chart_from_counts, generate_return_bar_chart, generate_density_heatmap
+from ..utils import format_global_encoding, format_point_format, gps_time_to_datetime, format_date, generate_pie_chart_from_counts, generate_return_bar_chart, generate_density_heatmap
 from .report_functions import generate_txt_report, generate_markdown_report, generate_pdf_report, generate_latex_report, generate_dock_content
 
 # -------------------------
@@ -97,8 +97,8 @@ class ReportGenerationTask(QgsTask):
             unique_returns, return_counts = np.unique(las.return_number, return_counts=True)
 
             if hasattr(las, "gps_time"):
-                dt_min = gps_time_to_datetime(las.gps_time.min()).isoformat()
-                dt_max = gps_time_to_datetime(las.gps_time.max()).isoformat()
+                dt_min = format_date(gps_time_to_datetime(las.gps_time.min()))
+                dt_max = format_date(gps_time_to_datetime(las.gps_time.max()))
                 total_time = str(timedelta(seconds=las.gps_time.max() - las.gps_time.min()))
             else:
                 dt_min = dt_max = total_time = None

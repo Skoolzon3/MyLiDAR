@@ -13,6 +13,10 @@ def gps_time_to_datetime(gps_time: float) -> datetime:
     gps_epoch = datetime(1980, 1, 6, tzinfo=timezone.utc)
     return gps_epoch + timedelta(seconds=gps_time)
 
+def format_date(raw_date):
+    formatted_date = raw_date.strftime('%d/%m/%Y | %H:%M:%S.%f (UTC +00:00)')
+    return formatted_date
+
 def format_global_encoding(ge, tr):
     return (
         f"  - {tr('GPS Time Type')}: {ge.gps_time_type}\n"
