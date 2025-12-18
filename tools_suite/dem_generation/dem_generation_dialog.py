@@ -21,7 +21,7 @@ class DemGenerationDialog(QDialog):
 
         # --- Window ---
         self.setWindowTitle(self.tr("Generate Bare Earth DEM"))
-        self.resize(900, 440)
+        self.resize(910, 440)
         self.setMinimumWidth(820)
 
         # --- Layout ---
@@ -67,6 +67,12 @@ class DemGenerationDialog(QDialog):
         param_group = QGroupBox(self.tr("DEM Generation Parameters"))
         param_layout = QFormLayout(param_group)
 
+        # Interpolation method
+        self.method_combo = QComboBox()
+        self.method_combo.addItem(self.tr("Grid-based (min Z per cell)"), False)
+        self.method_combo.addItem(self.tr("Triangulation-based (TIN)"), True)
+        param_layout.addRow(self.tr("Interpolation method:"), self.method_combo)
+
         # Cell size
         self.cell_size_spin = QDoubleSpinBox()
         self.cell_size_spin.setRange(0.1, 1000.0)
@@ -76,16 +82,28 @@ class DemGenerationDialog(QDialog):
         self.cell_size_spin.setSuffix(" m")
         param_layout.addRow(self.tr("Cell size:"), self.cell_size_spin)
 
-        # Interpolation method
-        self.method_combo = QComboBox()
-        self.method_combo.addItem(self.tr("Grid-based (min Z per cell)"), False)
-        self.method_combo.addItem(self.tr("Triangulation-based (TIN)"), True)
-        param_layout.addRow(self.tr("Interpolation method:"), self.method_combo)
-
         # Hillshade checkbox
         self.hillshade_check = QCheckBox(self.tr("Generate Hillshade"))
         self.hillshade_check.setChecked(True)
         param_layout.addRow("", self.hillshade_check)
+
+        # Hillshade output
+        self.hillshade_output_edit = QLineEdit()
+        self.hillshade_output_edit.setPlaceholderText(self.tr("Select hillshade output path (.tif)..."))
+        self.hillshade_output_button = QPushButton("...")
+        self.output_button.setToolTip(self.tr("Select hillshade file path (.tif)"))
+        self.hillshade_output_button.setFixedWidth(28)
+
+        hillshade_output_layout = QHBoxLayout()
+        hillshade_output_layout.addWidget(self.hillshade_output_edit)
+        hillshade_output_layout.addWidget(self.hillshade_output_button)
+
+        param_layout.addRow(self.tr("Hillshade output:"), hillshade_output_layout)
+
+        self.update_hillshade_output_state(self.hillshade_check.isChecked())
+        self.hillshade_check.toggled.connect(self.update_hillshade_output_state)
+        self.hillshade_output_button.clicked.connect(self.select_hillshade_output_file)
+
 
         left_layout.addWidget(param_group)
         left_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
@@ -174,16 +192,21 @@ class DemGenerationDialog(QDialog):
             self.update_default_output()
 
     def update_default_output(self):
-        """Suggest a default DEM output filename."""
+        """Suggest a default DEM and hillshade output filename."""
         if not self.selected_input:
             return
+
         base_name = os.path.splitext(os.path.basename(self.selected_input))[0]
-        default_output = os.path.join(
-            os.path.dirname(self.selected_input),
-            base_name + "_bare_earth_dem.tif"
-        )
-        self.output_edit.setText(default_output)
-        self.selected_output = default_output
+        base_dir = os.path.dirname(self.selected_input)
+
+        # DEM output
+        default_dem = os.path.join(os.path.dirname(self.selected_input), base_name + "_bare_earth_dem.tif")
+        self.output_edit.setText(default_dem)
+        self.selected_output = default_dem
+
+        # Hillshade output
+        default_hillshade = os.path.join(base_dir, base_name + "_bare_earth_hillshade.tif")
+        self.hillshade_output_edit.setText(default_hillshade)
 
     def select_input_file(self):
         filename, _ = QFileDialog.getOpenFileName(
@@ -214,8 +237,24 @@ class DemGenerationDialog(QDialog):
         cell_size = self.cell_size_spin.value()
         use_triangulation = self.method_combo.currentData()
         hillshade_requested = self.hillshade_check.isChecked()
-        return cell_size, use_triangulation, hillshade_requested
+        hillshade_output = self.hillshade_output_edit.text().strip() if hillshade_requested else ""
+        return cell_size, use_triangulation, hillshade_requested, hillshade_output
 
     def get_input_output(self):
         """Return (input_path, output_path)."""
         return self.selected_input, self.output_edit.text().strip()
+
+    def update_hillshade_output_state(self, checked):
+        self.hillshade_output_edit.setEnabled(checked)
+        self.hillshade_output_button.setEnabled(checked)
+
+    def select_hillshade_output_file(self):
+        filename, _ = QFileDialog.getSaveFileName(
+            self,
+            self.tr("Save Hillshade"),
+            self.hillshade_output_edit.text() or "",
+            self.tr("GeoTIFF (*.tif)")
+        )
+        if filename:
+            self.hillshade_output_edit.setText(filename)
+

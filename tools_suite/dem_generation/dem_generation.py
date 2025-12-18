@@ -137,7 +137,6 @@ class DemGenerationTask(QgsTask):
 
             else:
                 # Step 3.2: Cell-based minimum Z value (bare earth assumption)
-
                 dem = np.full((rows, cols), np.nan, dtype=np.float32)
 
                 col_idx = ((x - min_x) / self.cell_size).astype(int)
@@ -181,7 +180,8 @@ class DemGenerationTask(QgsTask):
 
             # Step 5: Generate hillshade (optional)
             if self.hillshade_requested:
-                suffix = "_hillshade_TIN" if self.use_triangulation else "_hillshade"
+                suffix = "_TIN" if self.use_triangulation else "_cell"
+                # self.hillshade_output_path = self.hillshade_output_path + suffix
 
                 self.hillshade_path = (
                     self.hillshade_output_path
@@ -264,7 +264,7 @@ def generate_bare_earth_dem(self):
         return
 
     input_path, output_path = dialog.get_input_output()
-    cell_size, use_triangulation, hillshade_requested = dialog.get_values()
+    cell_size, use_triangulation, hillshade_requested, hillshade_path = dialog.get_values()
 
     if not input_path:
         QMessageBox.warning(
@@ -282,21 +282,9 @@ def generate_bare_earth_dem(self):
         )
         return
 
-    hillshade_output_path = None
-    if hillshade_requested:
-        default_hillshade = os.path.splitext(output_path)[0] + "_hillshade.tif"
-        hillshade_output_path, _ = QFileDialog.getSaveFileName(
-            self.iface.mainWindow(),
-            self.tr("Save Hillshade Raster"),
-            default_hillshade,
-            "GeoTIFF (*.tif)"
-        )
-        if not hillshade_output_path:
-            hillshade_requested = False
-
     # Step 2: Create and run the background task
     task_desc = f"{self.tr('Generating DEM from')} {os.path.basename(input_path)}"
-    task = DemGenerationTask(task_desc, input_path, output_path, cell_size, use_triangulation, self, hillshade_requested, self.tr, hillshade_output_path)
+    task = DemGenerationTask(task_desc, input_path, output_path, cell_size, use_triangulation, self, hillshade_requested, self.tr, hillshade_path)
 
     self.running_tasks.append(task)
     QgsApplication.taskManager().addTask(task)
