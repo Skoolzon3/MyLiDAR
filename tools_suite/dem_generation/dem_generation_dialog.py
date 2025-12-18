@@ -21,7 +21,7 @@ class DemGenerationDialog(QDialog):
 
         # --- Window ---
         self.setWindowTitle(self.tr("Generate Bare Earth DEM"))
-        self.resize(910, 440)
+        self.resize(930, 440)
         self.setMinimumWidth(820)
 
         # --- Layout ---
@@ -74,13 +74,14 @@ class DemGenerationDialog(QDialog):
         param_layout.addRow(self.tr("Interpolation method:"), self.method_combo)
 
         # Cell size
+        self.cell_size_label = QLabel(self.tr("Cell size:"))
         self.cell_size_spin = QDoubleSpinBox()
         self.cell_size_spin.setRange(0.1, 1000.0)
         self.cell_size_spin.setSingleStep(0.1)
         self.cell_size_spin.setValue(1.0)
         self.cell_size_spin.setDecimals(2)
         self.cell_size_spin.setSuffix(" m")
-        param_layout.addRow(self.tr("Cell size:"), self.cell_size_spin)
+        param_layout.addRow(self.cell_size_label, self.cell_size_spin)
 
         # Hillshade checkbox
         self.hillshade_check = QCheckBox(self.tr("Generate Hillshade"))
@@ -104,9 +105,11 @@ class DemGenerationDialog(QDialog):
         self.hillshade_check.toggled.connect(self.update_hillshade_output_state)
         self.hillshade_output_button.clicked.connect(self.select_hillshade_output_file)
 
-
         left_layout.addWidget(param_group)
         left_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
+
+        self.method_combo.currentIndexChanged.connect(self.on_method_changed)
+        self.on_method_changed(self.method_combo.currentIndex())
 
         # --- OK / Cancel buttons ---
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -199,13 +202,17 @@ class DemGenerationDialog(QDialog):
         base_name = os.path.splitext(os.path.basename(self.selected_input))[0]
         base_dir = os.path.dirname(self.selected_input)
 
+        # Interpolation method
+        use_triangulation = self.method_combo.currentData()
+        method_suffix = "_TIN" if use_triangulation else "_cell"
+
         # DEM output
-        default_dem = os.path.join(os.path.dirname(self.selected_input), base_name + "_bare_earth_dem.tif")
+        default_dem = os.path.join(base_dir, f"{base_name}_bare_earth_dem{method_suffix}.tif")
         self.output_edit.setText(default_dem)
         self.selected_output = default_dem
 
         # Hillshade output
-        default_hillshade = os.path.join(base_dir, base_name + "_bare_earth_hillshade.tif")
+        default_hillshade = os.path.join(base_dir, f"{base_name}_bare_earth_hillshade{method_suffix}.tif")
         self.hillshade_output_edit.setText(default_hillshade)
 
     def select_input_file(self):
@@ -258,3 +265,12 @@ class DemGenerationDialog(QDialog):
         if filename:
             self.hillshade_output_edit.setText(filename)
 
+    def on_method_changed(self, index):
+        """Show/hide cell size and update default output names."""
+        use_triangulation = self.method_combo.itemData(index)
+        is_cell_based = not bool(use_triangulation)
+        self.cell_size_label.setVisible(is_cell_based)
+        self.cell_size_spin.setVisible(is_cell_based)
+
+        if not self.user_edited_output:
+            self.update_default_output()
