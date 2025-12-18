@@ -37,30 +37,23 @@ class DemGenerationDialog(QDialog):
         # --- Input selection ---
         left_layout.addWidget(QLabel(self.tr("LiDAR layer or file:")))
         input_layout = QHBoxLayout()
-
         self.input_combo = QComboBox()
         input_layout.addWidget(self.input_combo)
-
         self.input_button = QPushButton("...")
-        self.input_button.setToolTip(self.tr("Select LiDAR file (.las / .laz)"))
         self.input_button.setFixedWidth(28)
         input_layout.addWidget(self.input_button)
-
         left_layout.addLayout(input_layout)
 
         # --- Output selection ---
         left_layout.addWidget(QLabel(self.tr("Output DEM file:")))
         output_layout = QHBoxLayout()
-
         self.output_edit = QLineEdit()
         self.output_edit.setPlaceholderText(self.tr("Select output raster path (.tif)..."))
         output_layout.addWidget(self.output_edit)
-
         self.output_button = QPushButton("...")
         self.output_button.setToolTip(self.tr("Select output raster file (.tif)"))
         self.output_button.setFixedWidth(28)
         output_layout.addWidget(self.output_button)
-
         left_layout.addLayout(output_layout)
 
         # --- DEM parameters group ---
@@ -92,7 +85,7 @@ class DemGenerationDialog(QDialog):
         self.hillshade_output_edit = QLineEdit()
         self.hillshade_output_edit.setPlaceholderText(self.tr("Select hillshade output path (.tif)..."))
         self.hillshade_output_button = QPushButton("...")
-        self.output_button.setToolTip(self.tr("Select hillshade file path (.tif)"))
+        self.hillshade_output_button.setToolTip(self.tr("Select hillshade file path (.tif)"))
         self.hillshade_output_button.setFixedWidth(28)
 
         hillshade_output_layout = QHBoxLayout()
