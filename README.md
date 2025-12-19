@@ -12,7 +12,7 @@ In addition to generating detailed reports from LAS/LAZ files, the plugin offers
 - **Generation of LiDAR file reports** with metadata, spatial properties, intensity, classifications, returns, and GPS time.
 - **Deletion of outliers** to clean up noise in the datasets.
 - **Point filtering** of selected classification classes.
-- **Counting of buildings** detected in the dataset.
+- **Counting of features** detected in the dataset (buildings, vegetation & bridges).
 - **Classification of vegetation** based on its relative height.
 - **Generation of digital elevation models (DEM) of bare terrain** from LiDAR files, as well as their corresponding relief shadow maps.
 - **Visualisation of LAS/LAZ file statistics**, including density, ranges and classification counts.
@@ -86,7 +86,7 @@ C:\PROGRA~1\QGIS34~1.3>
  4. Update the sip and PyQt5-sip modules to ensure compatibility between PyQt and QGIS.
     ```bash
     pip install sip --upgrade
-    ```	  
+    ```
     ```bash
     pip install PyQt5-sip --upgrade
     ```
@@ -117,7 +117,7 @@ Además de generar informes detallados a partir de archivos LAS/LAZ, el compleme
 - **Generación de informes de archivos LiDAR** con metadatos, propiedades espaciales, intensidad, clasificaciones, retornos y hora GPS.
 - **Borrado de puntos atípicos** para limpiar el ruido de los conjuntos de datos.
 - **Filtrado por puntos** de clases de clasificación seleccionadas.
-- **Recuento de edificios** detectados en el conjunto de datos.
+- **Recuento de elementos** detectados en el conjunto de datos (edificios, vegetación y puentes).
 - **Clasificación de la vegetación** en función de su altura relativa.
 - **Generación de modelos digitales de elevación (DEM) del terreno desnudo**, junto con sus correspondientes mapas de sombras del relieve.
 - **Visualización de estadísticas de archivos LAS/LAZ**, incluyendo la densidad, los rangos y los recuentos de clasificación.
@@ -162,7 +162,7 @@ Este complemento requiere las siguientes bibliotecas de Python:
 
 Actualmente, las dependencias se instalan de manera automática en la importación del plugin como ZIP. En caso de fallo, sin embargo, es posible instalarlas manualmente:
 
-### Instalar dependencias 
+### Instalar dependencias
 
 #### Windows - QGIS instalado junto con OSGeo4W
   1. Abra OSGeo4W Shell.
@@ -190,7 +190,7 @@ C:\PROGRA~1\QGIS34~1.3>
  4. Actualice los módulos sip y PyQt5-sip para asegurar la compatibilidad entre PyQt y QGIS
     ```bash
     pip install sip --upgrade
-    ```	  
+    ```
     ```bash
     pip install PyQt5-sip --upgrade
     ```
