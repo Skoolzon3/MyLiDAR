@@ -32,7 +32,7 @@ from .feature_count_dialog import FeatureCountDialog
 class FeatureCountTask(QgsTask):
     """Background task for counting features using DBSCAN on LiDAR data"""
 
-    def __init__(self, description, input_filename, eps, min_samples, use_z, parent, translator, feature_types, output_path=None):
+    def __init__(self, description, input_filename, eps, min_samples, use_z, parent, translator, feature_types, output_paths=None):
         super().__init__(description, QgsTask.CanCancel)
 
         self.input_filename = input_filename
@@ -40,7 +40,7 @@ class FeatureCountTask(QgsTask):
         self.min_samples = min_samples
         self.use_z = use_z
         self.parent = parent
-        self.output_path = output_path
+        self.output_paths = output_paths or {}
         self.feature_types = feature_types
 
         self.tr = translator
@@ -51,21 +51,9 @@ class FeatureCountTask(QgsTask):
         self.total_points = 0
         self.output_crs = None
         self.results = {
-            "buildings": {
-                "clusters": [],
-                "num_points": 0,
-                "num_features": 0
-            },
-            "trees": {
-                "clusters": [],
-                "num_points": 0,
-                "num_features": 0
-            },
-            "bridges": {
-                "clusters": [],
-                "num_points": 0,
-                "num_features": 0
-            }
+            "buildings": {"clusters": [], "num_points": 0, "num_features": 0},
+            "trees": {"clusters": [], "num_points": 0, "num_features": 0},
+            "bridges": {"clusters": [], "num_points": 0, "num_features": 0}
         }
 
     def run(self):
@@ -234,18 +222,20 @@ class FeatureCountTask(QgsTask):
 
                 vl.setDisplayExpression("concat('ID: ', cluster_id, '\nArea: ', round(area_m2,1), ' m²')")
 
-                if self.output_path:
+                out_path = self.output_paths.get(ftype)
+                if out_path:
                     options = QgsVectorFileWriter.SaveVectorOptions()
                     options.driverName = QgsVectorFileWriter.driverForExtension(
-                        os.path.splitext(self.output_path)[1].lstrip(".")
+                        os.path.splitext(out_path)[1].lstrip(".")
                     )
 
                     options.includeFields = True
                     options.symbologyExport = QgsVectorFileWriter.SymbologyExport.SymbolLayerSymbology
+                    options.layerName = layer_name  # !
 
                     error_code, _, _, errorMessage = QgsVectorFileWriter.writeAsVectorFormatV3(
                         vl,
-                        self.output_path,
+                        out_path,
                         QgsCoordinateTransformContext(),
                         options
                     )
@@ -253,8 +243,8 @@ class FeatureCountTask(QgsTask):
                     if error_code == QgsVectorFileWriter.NoError:
                         vl.setName(layer_name)
 
-                        if self.output_path.lower().endswith(".gpkg"):
-                            gpkg_layer = QgsVectorLayer(self.output_path, layer_name, "ogr")
+                        if out_path.lower().endswith(".gpkg"):
+                            gpkg_layer = QgsVectorLayer(out_path, layer_name, "ogr")
 
                             if not gpkg_layer.isValid():
                                 QgsMessageLog.logMessage(
@@ -304,14 +294,6 @@ class FeatureCountTask(QgsTask):
         if self in self.parent.running_tasks:
             self.parent.running_tasks.remove(self)
 
-        else:
-            msg = f"{self.tr('An error occurred')}: {self.exception}" if self.exception else self.tr("Feature detection failed")
-            QgsMessageLog.logMessage(msg, "MyLiDAR", Qgis.Critical)
-            QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error Detecting Features"), msg)
-
-        if self in self.parent.running_tasks:
-            self.parent.running_tasks.remove(self)
-
 # ----------------------------------
 # --- Main Feature Count Method ---
 # ----------------------------------
@@ -322,7 +304,7 @@ def count_features(self):
     if not dialog.exec_():
         return
 
-    input_filename, output_filename = dialog.get_input_output()
+    input_filename, output_map  = dialog.get_input_output()
     if not input_filename:
         QMessageBox.warning(
             self.iface.mainWindow(),
@@ -340,7 +322,7 @@ def count_features(self):
 
     # Step 2: Create and run the background task
     task_desc = f"{self.tr('Counting features in')} {os.path.basename(input_filename)}"
-    task = FeatureCountTask(task_desc, input_filename, eps, min_samples, use_z, self, self.tr, feature_types, output_path=output_filename)
+    task = FeatureCountTask(task_desc, input_filename, eps, min_samples, use_z, self, self.tr, feature_types, output_paths=output_map)
 
     self.running_tasks.append(task)
     QgsApplication.taskManager().addTask(task)

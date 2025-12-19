@@ -1,13 +1,10 @@
 # --- General imports ---
 import os
-import numpy as np
-import laspy
 
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton,QDialogButtonBox, QFileDialog, QLineEdit, QSizePolicy, QTextBrowser, QWidget, QSpacerItem, QGroupBox, QFormLayout, QDoubleSpinBox, QSpinBox, QCheckBox
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtGui import QColor
-from qgis.core import QgsProject, QgsPointCloudLayer, QgsPointCloudClassifiedRenderer, QgsMessageLog, Qgis
+from qgis.core import QgsProject, QgsPointCloudLayer
 
 # -----------------------------------
 # --- Feature Count Dialog Class ---
@@ -16,15 +13,14 @@ from qgis.core import QgsProject, QgsPointCloudLayer, QgsPointCloudClassifiedRen
 class FeatureCountDialog(QDialog):
     def __init__(self, parent=None, tr=lambda s: s):
         super().__init__(parent)
+
         self.tr = tr
         self.selected_input = None
-        self.selected_output = None
         self.is_layer = False
-        self.user_edited_output = False
 
         # --- Window ---
         self.setWindowTitle(tr("Count Features"))
-        self.resize(900, 370)
+        self.resize(900, 410)
         self.setMinimumWidth(820)
 
         # --- Layout ---
@@ -51,21 +47,6 @@ class FeatureCountDialog(QDialog):
 
         left_layout.addLayout(input_layout)
 
-        # --- Output selection ---
-        left_layout.addWidget(QLabel(tr("Output vector file (optional):")))
-        output_layout = QHBoxLayout()
-
-        self.output_edit = QLineEdit()
-        self.output_edit.setPlaceholderText(tr("Select output file path (optional)..."))
-        output_layout.addWidget(self.output_edit)
-
-        self.output_button = QPushButton("...")
-        self.output_button.setToolTip(tr("Select output file (.gpkg / .shp)"))
-        self.output_button.setFixedWidth(28)
-        output_layout.addWidget(self.output_button)
-
-        left_layout.addLayout(output_layout)
-
         # --- Clustering parameters group ---
         param_group = QGroupBox(tr("DBSCAN Parameters"))
         param_layout = QFormLayout(param_group)
@@ -73,25 +54,78 @@ class FeatureCountDialog(QDialog):
         param_layout.setFormAlignment(Qt.AlignTop)
 
         # --- Feature type selection ---
-        feature_group = QGroupBox(tr("Features to Count"))
-        feature_layout = QHBoxLayout(feature_group)
+        feature_group = QGroupBox(tr("Feature Types to Count"))
+        feature_layout = QVBoxLayout(feature_group)
 
+        # Buildings
+        build_layout = QHBoxLayout()
         self.building_check = QCheckBox(tr("Buildings"))
         self.building_check.setChecked(True)
+        self.building_check.toggled.connect(self.on_clustering_mode_changed)
+        build_layout.addWidget(self.building_check)
+        feature_layout.addLayout(build_layout)
+
+        build_out_layout = QHBoxLayout()
+        self.building_output = QLineEdit()
+        self.building_output.setPlaceholderText(tr("Output for buildings (optional)"))
+        build_out_layout.addWidget(self.building_output)
+        self.building_button = QPushButton("...")
+        self.building_button.setFixedWidth(28)
+        self.building_button.setToolTip(tr("Select buildings output file (.gpkg)"))
+        build_out_layout.addWidget(self.building_button)
+        feature_layout.addLayout(build_out_layout)
+
+        # Trees
+        tree_layout = QHBoxLayout()
         self.tree_check = QCheckBox(tr("Trees (vegetation)"))
         self.tree_check.setChecked(False)
+        self.tree_check.toggled.connect(self.on_clustering_mode_changed)
+        tree_layout.addWidget(self.tree_check)
+        feature_layout.addLayout(tree_layout)
+
+        tree_out_layout = QHBoxLayout()
+        self.tree_output = QLineEdit()
+        self.tree_output.setPlaceholderText(tr("Output for trees (optional)"))
+        tree_out_layout.addWidget(self.tree_output)
+        self.tree_button = QPushButton("...")
+        self.tree_button.setFixedWidth(28)
+        self.tree_button.setToolTip(tr("Select trees output file (.gpkg)"))
+        tree_out_layout.addWidget(self.tree_button)
+        feature_layout.addLayout(tree_out_layout)
+
+        # Bridges
+        bridge_layout = QHBoxLayout()
         self.bridge_check = QCheckBox(tr("Bridges"))
         self.bridge_check.setChecked(False)
-
-        self.building_check.toggled.connect(self.on_clustering_mode_changed)
-        self.tree_check.toggled.connect(self.on_clustering_mode_changed)
         self.bridge_check.toggled.connect(self.on_clustering_mode_changed)
+        bridge_layout.addWidget(self.bridge_check)
+        feature_layout.addLayout(bridge_layout)
 
-        feature_layout.addWidget(self.building_check)
-        feature_layout.addWidget(self.tree_check)
-        feature_layout.addWidget(self.bridge_check)
+        bridge_out_layout = QHBoxLayout()
+        self.bridge_output = QLineEdit()
+        self.bridge_output.setPlaceholderText(tr("Output for bridges (optional)"))
+        bridge_out_layout.addWidget(self.bridge_output)
+        self.bridge_button = QPushButton("...")
+        self.bridge_button.setFixedWidth(28)
+        self.bridge_button.setToolTip(tr("Select bridges output file (.gpkg)"))
+        bridge_out_layout.addWidget(self.bridge_button)
+        feature_layout.addLayout(bridge_out_layout)
 
         left_layout.addWidget(feature_group)
+
+        self.building_button.clicked.connect(lambda: self.select_feature_output("buildings"))
+        self.tree_button.clicked.connect(lambda: self.select_feature_output("trees"))
+        self.bridge_button.clicked.connect(lambda: self.select_feature_output("bridges"))
+
+        self.building_output.textEdited.connect(
+            lambda: self.building_output.setModified(True)
+        )
+        self.tree_output.textEdited.connect(
+            lambda: self.tree_output.setModified(True)
+        )
+        self.bridge_output.textEdited.connect(
+            lambda: self.bridge_output.setModified(True)
+        )
 
         # Search radius (eps)
         self.eps_spin = QDoubleSpinBox()
@@ -136,10 +170,10 @@ class FeatureCountDialog(QDialog):
         """)
 
         title = self.tr("Feature Count")
-        intro = self.tr("This tool estimates the number of features in a LiDAR dataset by clustering points classified as buildings and/or vegetation.")
+        intro = self.tr("This tool estimates the number of features in a LiDAR dataset by clustering points classified by a certain feature type (e.g., buildings, trees, bridges).")
         workflow = self.tr("Workflow:")
-        step1 = self.tr("Filters building/vegetation classified points.")
-        step2 = self.tr("Applies DBSCAN clustering to group nearby filtered points.")
+        step1 = self.tr("Filters points based on selected feature types.")
+        step2 = self.tr("Applies DBSCAN clustering to group nearby points.")
         step3 = self.tr("Creates polygons representing each detected cluster.")
         note = self.tr("The number of detected clusters approximates the total number of features.")
 
@@ -165,7 +199,6 @@ class FeatureCountDialog(QDialog):
         self.populate_input_layers()
         self.input_combo.currentIndexChanged.connect(self.on_input_changed)
         self.input_button.clicked.connect(self.select_input_file)
-        self.output_button.clicked.connect(self.select_output_file)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
 
@@ -195,14 +228,18 @@ class FeatureCountDialog(QDialog):
             self.is_layer = False
         else:
             return
-        if not self.user_edited_output:
-            self.update_default_output()
+
+        # reset modified flags so defaults follow new input
+        self.building_output.setModified(False)
+        self.tree_output.setModified(False)
+        self.bridge_output.setModified(False)
+
+        self.update_feature_outputs()
 
     def update_default_output(self):
         if not self.selected_input:
             return
         base_name = os.path.splitext(os.path.basename(self.selected_input))[0]
-        # Feature type suffix
         if self.building_check.isChecked() and self.tree_check.isChecked():
             type_suffix = "buildings_trees"
         elif self.tree_check.isChecked():
@@ -218,7 +255,6 @@ class FeatureCountDialog(QDialog):
         )
 
         self.output_edit.setText(default_output)
-        self.selected_output = default_output
 
     def select_input_file(self):
         filename, _ = QFileDialog.getOpenFileName(
@@ -229,23 +265,10 @@ class FeatureCountDialog(QDialog):
             self.input_combo.setCurrentIndex(self.input_combo.count() - 1)
             self.selected_input = filename
             self.is_layer = False
-            self.user_edited_output = False
             self.update_default_output()
-
-    def select_output_file(self):
-        filename, _ = QFileDialog.getSaveFileName(
-            self, self.tr("Select Output File"),
-            self.output_edit.text() or "",
-            self.tr("GeoPackage (*.gpkg);;Shapefile (*.shp)")
-        )
-        if filename:
-            self.output_edit.setText(filename)
-            self.selected_output = filename
-            self.user_edited_output = True
 
     def on_clustering_mode_changed(self):
-        if not self.user_edited_output:
-            self.update_default_output()
+        self.update_feature_outputs()
 
     # --- Accessors ---
     def get_params(self):
@@ -267,6 +290,66 @@ class FeatureCountDialog(QDialog):
             features.append("bridges")
         return features
 
+    def update_feature_outputs(self):
+        if not self.selected_input:
+            return
+
+        base_name = os.path.splitext(os.path.basename(self.selected_input))[0]
+        cluster_mode = "3D" if self.use_z_check.isChecked() else "2D"
+        base_dir = os.path.dirname(self.selected_input)
+
+        # Buildings
+        default_buildings = os.path.join(
+            base_dir, f"{base_name}_buildings_{cluster_mode}.gpkg"
+        )
+        if not self.building_output.isModified():
+            self.building_output.setText(default_buildings)
+        self.building_output.setEnabled(self.building_check.isChecked())
+
+        # Trees
+        default_trees = os.path.join(
+            base_dir, f"{base_name}_trees_{cluster_mode}.gpkg"
+        )
+        if not self.tree_output.isModified():
+            self.tree_output.setText(default_trees)
+        self.tree_output.setEnabled(self.tree_check.isChecked())
+
+        # Bridges
+        default_bridges = os.path.join(
+            base_dir, f"{base_name}_bridges_{cluster_mode}.gpkg"
+        )
+        if not self.bridge_output.isModified():
+            self.bridge_output.setText(default_bridges)
+        self.bridge_output.setEnabled(self.bridge_check.isChecked())
+
     def get_input_output(self):
-        """Return (input_path, output_path)."""
-        return self.selected_input, self.output_edit.text().strip()
+        outputs = {}
+        if self.building_check.isChecked():
+            outputs["buildings"] = self.building_output.text().strip()
+        if self.tree_check.isChecked():
+            outputs["trees"] = self.tree_output.text().strip()
+        if self.bridge_check.isChecked():
+            outputs["bridges"] = self.bridge_output.text().strip()
+        return self.selected_input, outputs
+
+    def select_feature_output(self, feature):
+        if not self.selected_input:
+            start_path = ""
+        else:
+            start_path = os.path.dirname(self.selected_input)
+
+        filename, _ = QFileDialog.getSaveFileName(
+            self,
+            self.tr("Select Output File"),
+            start_path,
+            self.tr("GeoPackage (*.gpkg)")
+        )
+        if not filename:
+            return
+
+        if feature == "buildings":
+            self.building_output.setText(filename)
+        elif feature == "trees":
+            self.tree_output.setText(filename)
+        elif feature == "bridges":
+            self.bridge_output.setText(filename)
