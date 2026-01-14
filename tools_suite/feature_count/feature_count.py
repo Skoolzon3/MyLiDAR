@@ -104,7 +104,7 @@ class FeatureCountTask(QgsTask):
             # Step 2: Filter building-classified points
             class_map = {
                 "buildings": [6],
-                "trees": [3, 4, 5],
+                "trees": [5],
                 "bridges": [17]
             }
 
@@ -149,11 +149,18 @@ class FeatureCountTask(QgsTask):
                         continue
                     poly = MultiPoint(cluster_coords).convex_hull
 
+                    if self.use_z:
+                        z_vals = cluster_coords[:, 2]
+                        height_est = float(z_vals.max() - z_vals.min())
+                    else:
+                        height_est = 0.0
+
                     self.results[ftype]["clusters"].append((
                         int(cluster_id),
                         len(cluster_coords),
                         poly.area,
-                        poly.wkt
+                        poly.wkt,
+                        height_est,
                     ))
 
                     progress = 80 + (20 * idx / total_clusters)
@@ -190,15 +197,16 @@ class FeatureCountTask(QgsTask):
                 pr.addAttributes([
                     QgsField("cluster_id", QMetaType.Int),
                     QgsField("num_points", QMetaType.Int),
-                    QgsField("area_m2", QMetaType.Double, "double", 20, 6)
+                    QgsField("area_m2", QMetaType.Double, "double", 20, 6),
+                    QgsField("est_h_m", QMetaType.Double, "double", 20, 3)
                 ])
                 vl.updateFields()
 
                 feats = []
-                for cluster_id, n_points, area, wkt in data["clusters"]:
+                for cluster_id, n_points, area, wkt, height_est in data["clusters"]:
                     feat = QgsFeature()
                     feat.setGeometry(QgsGeometry.fromWkt(wkt))
-                    feat.setAttributes([cluster_id, n_points, area])
+                    feat.setAttributes([cluster_id, n_points, area, height_est])
                     feats.append(feat)
 
                 pr.addFeatures(feats)
@@ -220,7 +228,7 @@ class FeatureCountTask(QgsTask):
 
                 vl.renderer().setSymbol(symbol)
 
-                vl.setDisplayExpression("concat('ID: ', cluster_id, '\nArea: ', round(area_m2,1), ' m²')")
+                vl.setDisplayExpression("concat('ID: ', cluster_id, '\nArea: ', round(area_m2,1), ' m²', '\nHeight: ', round(est_h_m,1), ' m')")
 
                 out_path = self.output_paths.get(ftype)
                 if out_path:
