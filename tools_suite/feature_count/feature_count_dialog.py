@@ -77,7 +77,7 @@ class FeatureCountDialog(QDialog):
 
         # Trees
         tree_layout = QHBoxLayout()
-        self.tree_check = QCheckBox(tr("Trees (vegetation)"))
+        self.tree_check = QCheckBox(tr("Trees"))
         self.tree_check.setChecked(False)
         self.tree_check.toggled.connect(self.on_clustering_mode_changed)
         tree_layout.addWidget(self.tree_check)

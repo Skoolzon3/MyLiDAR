@@ -289,7 +289,7 @@ class FeatureCountTask(QgsTask):
                 QMessageBox.information(
                     self.parent.iface.mainWindow(),
                     self.tr("Feature Detection Complete"),
-                    f"{ftype.capitalize()}:\n"
+                    f"{self.tr(ftype.capitalize())}:\n"
                     f"{self.tr('Points detected')}: {data['num_points']:,}\n"
                     f"{self.tr('Approximate number of features detected')}: {data['num_features']:,}"
                 )
