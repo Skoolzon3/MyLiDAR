@@ -2,7 +2,7 @@
 import os
 
 # --- QGIS and PyQt imports ---
-from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton,QDialogButtonBox, QFileDialog, QLineEdit, QSizePolicy, QTextBrowser, QWidget, QSpacerItem, QGroupBox, QFormLayout, QDoubleSpinBox
+from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton,QDialogButtonBox, QFileDialog, QLineEdit, QSizePolicy, QTextBrowser, QWidget, QSpacerItem, QGroupBox, QFormLayout, QDoubleSpinBox, QCheckBox
 from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsProject, QgsPointCloudLayer
 
@@ -94,6 +94,11 @@ class VegetationClassificationDialog(QDialog):
 
         left_layout.addWidget(param_group)
         left_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
+
+        # Grass classification checkbox
+        self.classify_grass_check = QCheckBox(self.tr("Enable grass classification (color-based)"))
+        self.classify_grass_check.setChecked(False)
+        param_layout.addRow("", self.classify_grass_check)
 
         # --- OK / Cancel buttons ---
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -249,7 +254,8 @@ class VegetationClassificationDialog(QDialog):
         """Return threshold values (low_thresh, high_thresh)."""
         low_thresh = self.low_thresh_spin.value()
         high_thresh = self.high_thresh_spin.value()
-        return low_thresh, high_thresh
+        grass_enabled = self.classify_grass_check.isChecked()
+        return low_thresh, high_thresh, grass_enabled
 
     def get_input_output(self):
         """Return (input_path, output_path)."""

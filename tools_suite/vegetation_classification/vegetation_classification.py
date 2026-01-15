@@ -29,12 +29,13 @@ from .vegetation_classification_dialog import VegetationClassificationDialog
 class VegetationClassificationTask(QgsTask):
     """Background task for classifying LiDAR vegetation points"""
 
-    def __init__(self, description, input_filename, output_path, low_thresh, high_thresh, parent, translator):
+    def __init__(self, description, input_filename, output_path, low_thresh, high_thresh, grass_enabled, parent, translator):
         super().__init__(description, QgsTask.CanCancel)
         self.input_filename = input_filename
         self.output_path = output_path
         self.low_thresh = low_thresh
         self.high_thresh = high_thresh
+        self.grass_enabled = grass_enabled
         self.parent = parent
 
         self.exception = None
@@ -86,6 +87,39 @@ class VegetationClassificationTask(QgsTask):
             high_class = 5
             classifications = las.classification
             self.setProgress(20)
+
+            # Optional grass classification from ground color
+            num_grass = 0
+            if self.grass_enabled:
+                dims = list(las.point_format.dimension_names)
+                if all(d in dims for d in ("red", "green", "blue")):
+                    r16 = las.red.astype(np.float32)
+                    g16 = las.green.astype(np.float32)
+                    b16 = las.blue.astype(np.float32)
+
+                    r = (r16 / 256.0).astype(np.float32)
+                    g = (g16 / 256.0).astype(np.float32)
+                    b = (b16 / 256.0).astype(np.float32)
+
+                    ground_idx = np.where(classifications == ground_class)[0]
+                    if len(ground_idx) > 0:
+                        rr = r[ground_idx]
+                        gg = g[ground_idx]
+                        bb = b[ground_idx]
+
+                        total = rr + gg + bb + 1e-6
+                        green_ratio = gg / total
+                        exg = 2.0 * gg - rr - bb
+
+                        grass_mask = (
+                            (green_ratio > 0.33) &
+                            (exg > 5.0) &
+                            (gg > 20.0)
+                        )
+
+                        grass_idx = ground_idx[grass_mask]
+                        classifications[grass_idx] = low_class
+                        num_grass = int(grass_mask.sum())
 
             # Step 3: Filter ground points
             ground_idx = np.where(classifications == ground_class)[0]
@@ -142,7 +176,9 @@ class VegetationClassificationTask(QgsTask):
                 "num_high_orig": len(high_veg_idx),
                 "num_low": int(np.sum(low_mask)),
                 "num_medium": int(np.sum(medium_mask)),
-                "num_high": int(np.sum(high_mask))
+                "num_high": int(np.sum(high_mask)),
+                "num_grass": num_grass,
+                "grass_enabled": self.grass_enabled,
             }
             self.setProgress(100)
             return True
@@ -179,6 +215,10 @@ class VegetationClassificationTask(QgsTask):
                     )
 
                 s = self.stats
+                grass_line = ""
+                if s.get("grass_enabled"):
+                    grass_line = f"{self.tr('Grass (color-based from ground)')}: {s['num_grass']:,}\n"
+
                 QMessageBox.information(
                     self.parent.iface.mainWindow(),
                     self.tr("Vegetation Reclassification Complete"),
@@ -186,6 +226,7 @@ class VegetationClassificationTask(QgsTask):
                     f"{self.tr('Low vegetation')} (<{self.low_thresh} m): {s['num_low']:,}\n"
                     f"{self.tr('Medium vegetation')} ({self.low_thresh}-{self.high_thresh} m): {s['num_medium']:,}\n"
                     f"{self.tr('High vegetation')} (>{self.high_thresh} m): {s['num_high']:,}\n\n"
+                    f"{grass_line}\n"
                     f"{self.tr('Updated file saved to')}:\n{self.output_path}"
                 )
             else:
@@ -224,11 +265,11 @@ def classify_vegetation(self):
         return
 
     # Step 2: Get thresholds
-    low_thresh, high_thresh = dialog.get_values()
+    low_thresh, high_thresh, grass_enabled = dialog.get_values()
 
     # Step 3: Create and run the background task
     task_desc = f"{self.tr('Classifying vegetation in')} {os.path.basename(input_filename)}"
-    task = VegetationClassificationTask(task_desc, input_filename, output_filename, low_thresh, high_thresh, self, self.tr)
+    task = VegetationClassificationTask(task_desc, input_filename, output_filename, low_thresh, high_thresh, grass_enabled, self, self.tr)
 
     self.running_tasks.append(task)
     QgsApplication.taskManager().addTask(task)
