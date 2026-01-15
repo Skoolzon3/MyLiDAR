@@ -6,7 +6,8 @@ import numpy as np
 
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QMessageBox
-from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsField, QgsProject, QgsFillSymbol, QgsTask, QgsApplication, Qgis, QgsMessageLog, QgsVectorFileWriter, QgsCoordinateTransformContext, QgsCoordinateReferenceSystem, QgsPointCloudLayer
+from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsField, QgsProject, QgsFillSymbol, QgsTask, QgsApplication, Qgis, QgsMessageLog, QgsVectorFileWriter, QgsCoordinateTransformContext, QgsCoordinateReferenceSystem, QgsPointCloudLayer, QgsPointXY
+
 from qgis.PyQt.QtCore import QMetaType
 
 # --- Method-specific imports ---
@@ -136,7 +137,7 @@ class FeatureCountTask(QgsTask):
                 self.results[ftype]["num_features"] = num_features
                 self.setProgress(70)
 
-                # Step 5: Convex hulls for clusters
+                # Step 5: Concave hulls for clusters
                 unique_clusters = [cid for cid in set(labels) if cid != -1]
                 total_clusters = len(unique_clusters)
 
@@ -147,7 +148,21 @@ class FeatureCountTask(QgsTask):
                     cluster_coords = coords[labels == cluster_id]
                     if len(cluster_coords) < self.min_samples:
                         continue
-                    poly = MultiPoint(cluster_coords).convex_hull
+
+                    if self.use_z:
+                        points_xy = [QgsPointXY(float(x), float(y)) for x, y, _z in cluster_coords]
+                    else:
+                        points_xy = [QgsPointXY(float(x), float(y)) for x, y in cluster_coords]
+
+                    geom_pts = QgsGeometry.fromMultiPointXY(points_xy)
+                    target_percent = 0.2 # 0 = very concave, 1 = convex
+                    allow_holes = True
+
+                    hull_geom = geom_pts.concaveHull(target_percent, allow_holes)
+                    if hull_geom.isEmpty():
+                        continue
+
+                    poly = hull_geom
 
                     if self.use_z:
                         z_vals = cluster_coords[:, 2]
@@ -158,8 +173,8 @@ class FeatureCountTask(QgsTask):
                     self.results[ftype]["clusters"].append((
                         int(cluster_id),
                         len(cluster_coords),
-                        poly.area,
-                        poly.wkt,
+                        poly.area(),
+                        poly.asWkt(),
                         height_est,
                     ))
 
