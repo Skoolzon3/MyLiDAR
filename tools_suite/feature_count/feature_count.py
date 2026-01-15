@@ -33,13 +33,15 @@ from .feature_count_dialog import FeatureCountDialog
 class FeatureCountTask(QgsTask):
     """Background task for counting features using DBSCAN on LiDAR data"""
 
-    def __init__(self, description, input_filename, eps, min_samples, use_z, parent, translator, feature_types, output_paths=None):
+    def __init__(self, description, input_filename, eps, min_samples, use_z, hull_target_percent, hull_allow_holes, parent, translator, feature_types, output_paths=None):
         super().__init__(description, QgsTask.CanCancel)
 
         self.input_filename = input_filename
         self.eps = eps
         self.min_samples = min_samples
         self.use_z = use_z
+        self.hull_target_percent = hull_target_percent
+        self.hull_allow_holes = hull_allow_holes
         self.parent = parent
         self.output_paths = output_paths or {}
         self.feature_types = feature_types
@@ -155,10 +157,8 @@ class FeatureCountTask(QgsTask):
                         points_xy = [QgsPointXY(float(x), float(y)) for x, y in cluster_coords]
 
                     geom_pts = QgsGeometry.fromMultiPointXY(points_xy)
-                    target_percent = 0.2 # 0 = very concave, 1 = convex
-                    allow_holes = True
 
-                    hull_geom = geom_pts.concaveHull(target_percent, allow_holes)
+                    hull_geom = geom_pts.concaveHull(self.hull_target_percent, self.hull_allow_holes)
                     if hull_geom.isEmpty():
                         continue
 
@@ -336,7 +336,7 @@ def count_features(self):
         )
         return
 
-    eps, min_samples, use_z = dialog.get_params()
+    eps, min_samples, use_z, hull_target_percent, hull_allow_holes = dialog.get_params()
     feature_types = dialog.get_feature_types()
 
     if not input_filename:
@@ -345,7 +345,7 @@ def count_features(self):
 
     # Step 2: Create and run the background task
     task_desc = f"{self.tr('Counting features in')} {os.path.basename(input_filename)}"
-    task = FeatureCountTask(task_desc, input_filename, eps, min_samples, use_z, self, self.tr, feature_types, output_paths=output_map)
+    task = FeatureCountTask(task_desc, input_filename, eps, min_samples, use_z, hull_target_percent, hull_allow_holes, self, self.tr, feature_types, output_paths=output_map)
 
     self.running_tasks.append(task)
     QgsApplication.taskManager().addTask(task)

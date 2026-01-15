@@ -116,6 +116,8 @@
   "Min samples:": "Min samples:",
   "Use Z-axis (3D clustering)": "Use Z-axis (3D clustering)",
   "Select Output File": "Select Output File",
+  "Concave hull tightness:": "Concave hull tightness:",
+  "Allow holes in hull": "Allow holes in hull",
 
 
 

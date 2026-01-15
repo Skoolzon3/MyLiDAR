@@ -150,6 +150,18 @@ class FeatureCountDialog(QDialog):
         left_layout.addWidget(param_group)
         left_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
+        # Concave hull target percent (0 = very concave, 1 = convex)
+        self.hull_target_spin = QDoubleSpinBox()
+        self.hull_target_spin.setRange(0.0, 1.0)
+        self.hull_target_spin.setSingleStep(0.05)
+        self.hull_target_spin.setValue(0.2)
+        param_layout.addRow(tr("Concave hull tightness:"), self.hull_target_spin)
+
+        # Allow holes in hull
+        self.hull_allow_holes_check = QCheckBox(tr("Allow holes in hull"))
+        self.hull_allow_holes_check.setChecked(False)
+        param_layout.addRow("", self.hull_allow_holes_check)
+
         # --- OK / Cancel buttons ---
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         left_layout.addWidget(buttons)
@@ -276,7 +288,9 @@ class FeatureCountDialog(QDialog):
         return (
             self.eps_spin.value(),
             self.min_samples_spin.value(),
-            self.use_z_check.isChecked()
+            self.use_z_check.isChecked(),
+            self.hull_target_spin.value(),
+            self.hull_allow_holes_check.isChecked(),
         )
 
     def get_feature_types(self):

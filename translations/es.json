@@ -116,6 +116,8 @@
   "Min samples:": "Número mínimo de muestras:",
   "Use Z-axis (3D clustering)": "Usar eje Z (agrupamiento 3D)",
   "Select Output File": "Seleccionar archivo de salida",
+  "Concave hull tightness:": "Ajuste de concavidad del polígono:",
+  "Allow holes in hull": "Permitir huecos en el polígono",
 
 
 
