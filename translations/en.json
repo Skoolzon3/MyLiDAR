@@ -26,6 +26,8 @@
   "Removing outliers in the background": "Removing outliers in the background",
   "Search radius:": "Search radius:",
   "Minimum neighbors:": "Minimum neighbors:",
+  " units": " units",
+  "Search radius for neighbor detection. The same units are used as the coordinate reference system of the input data.": "Search radius for neighbor detection. The same units are used as the coordinate reference system of the input data.",
 
 
 

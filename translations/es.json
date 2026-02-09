@@ -26,6 +26,8 @@
   "Removing outliers in the background": "Eliminando puntos atípicos en segundo plano",
   "Search radius:": "Radio de búsqueda:",
   "Minimum neighbors:": "Vecinos mínimos:",
+  " units": " unidades",
+  "Search radius for neighbor detection. The same units are used as the coordinate reference system of the input data.": "Radio de búsqueda de detección de vecinos. Se utilizan las mismas unidades que el sistema de referencia de coordenadas de los datos de entrada.",
 
 
 

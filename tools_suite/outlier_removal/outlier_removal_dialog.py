@@ -77,7 +77,8 @@ class OutlierRemovalDialog(QDialog):
         self.radius_spin.setSingleStep(0.1)
         self.radius_spin.setValue(2.0)
         self.radius_spin.setDecimals(2)
-        self.radius_spin.setSuffix(" m")
+        self.radius_spin.setSuffix(self.tr(" units"))
+        self.radius_spin.setToolTip(self.tr("Search radius for neighbor detection. The same units are used as the coordinate reference system of the input data."))
         param_layout.addRow(self.tr("Search radius:"), self.radius_spin)
 
         # Min neighbors
