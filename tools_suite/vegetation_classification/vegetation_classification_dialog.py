@@ -77,7 +77,7 @@ class VegetationClassificationDialog(QDialog):
         self.low_thresh_spin.setSingleStep(0.1)
         self.low_thresh_spin.setDecimals(2)
         self.low_thresh_spin.setValue(1.0)
-        self.low_thresh_spin.setSuffix(" m")
+        self.low_thresh_spin.setSuffix(self.tr(" units"))
         param_layout.addRow(self.tr("Low vegetation threshold:"), self.low_thresh_spin)
 
         # High vegetation threshold
@@ -86,7 +86,7 @@ class VegetationClassificationDialog(QDialog):
         self.high_thresh_spin.setSingleStep(0.1)
         self.high_thresh_spin.setDecimals(2)
         self.high_thresh_spin.setValue(3.0)
-        self.high_thresh_spin.setSuffix(" m")
+        self.high_thresh_spin.setSuffix(self.tr(" units"))
         param_layout.addRow(self.tr("High vegetation threshold:"), self.high_thresh_spin)
 
         self.low_thresh_spin.valueChanged.connect(self.validate_thresholds)

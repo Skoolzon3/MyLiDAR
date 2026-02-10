@@ -73,7 +73,7 @@ class DemGenerationDialog(QDialog):
         self.cell_size_spin.setSingleStep(0.1)
         self.cell_size_spin.setValue(1.0)
         self.cell_size_spin.setDecimals(2)
-        self.cell_size_spin.setSuffix(" m")
+        self.cell_size_spin.setSuffix(self.tr(" units"))
         param_layout.addRow(self.cell_size_label, self.cell_size_spin)
 
         # Hillshade checkbox
