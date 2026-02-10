@@ -150,6 +150,12 @@
   "Generating DEM from": "Generating DEM from",
   "Generating DEM in the background": "Generating DEM in the background",
   "Save Hillshade Raster": "Save Hillshade Raster",
+  "Z factor:": "Z factor:",
+  "Vertical exaggeration multiplier. Use >1 to enhance relief, <1 to reduce. Default=1 (no exaggeration).": "Vertical exaggeration multiplier. Use >1 to enhance relief, <1 to reduce. Default=1 (no exaggeration).",
+  "Azimuth:": "Azimuth:",
+  "Sun/light direction in degrees clockwise from North (0°=N, 90°=E, 180°=S, 270°=W). Default=300° (NW lighting).": "Sun/light direction in degrees clockwise from North (0°=N, 90°=E, 180°=S, 270°=W). Default=300° (NW lighting).",
+  "Vertical angle:": "Vertical angle:",
+  "Sun elevation above horizon (0°=horizon, 90°=overhead). Lower values create more shadows. Default=40° (midday sun).": "Sun elevation above horizon (0°=horizon, 90°=overhead). Lower values create more shadows. Default=40° (midday sun).",
 
 
 

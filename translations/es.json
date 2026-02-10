@@ -136,7 +136,7 @@
   "This tool generates a Bare Earth DEM by filtering ground-classified points from LiDAR data and interpolating them into a continuous elevation grid.": "Esta herramienta genera un MDT de terreno desnudo filtrando los puntos clasificados como suelo a partir de datos LiDAR e interpolándolos en una cuadrícula de elevación continua.",
   "Extracts ground-classified points (code 2).": "Extrae los puntos clasificados como suelo (código 2).",
   "Interpolates points into a raster DEM using either TIN or grid-based methods.": "Interpola los puntos en un MDT ráster utilizando métodos TIN o basados en cuadrícula.",
-  "Optionally generates a hillshade raster for visualization.": "Opcionalmente genera un ráster de sombreado (hillshade) para la visualización.",
+  "Optionally generates a hillshade raster for visualization.": "Opcionalmente genera un mapa de de sombras (hillshade) para su visualización.",
   "The output raster represents the underlying terrain surface without vegetation or buildings.": "El ráster resultante representa la superficie del terreno sin vegetación ni edificaciones.",
   "No ground points found in the file": "No se han encontrado puntos de suelo en el archivo",
   "DEM successfully generated from ground points. Output saved at": "MDE generado correctamente a partir de puntos de suelo. Salida guardada en",
@@ -150,6 +150,12 @@
   "Generating DEM from": "Generando MDE desde",
   "Generating DEM in the background": "Generando MED en segundo plano",
   "Save Hillshade Raster": "Guardar mapa de sombras del terreno",
+  "Z factor:": "Factor Z:",
+  "Vertical exaggeration multiplier. Use >1 to enhance relief, <1 to reduce. Default=1 (no exaggeration).": "Multiplicador de exageración vertical. Use >1 para realzar el relieve, <1 para reducirlo. Por defecto=1 (sin exageración).",
+  "Azimuth:": "Azimut:",
+  "Sun/light direction in degrees clockwise from North (0°=N, 90°=E, 180°=S, 270°=W). Default=300° (NW lighting).": "Dirección de la luz/sol en grados en sentido horario desde el norte (0°=N, 90°=E, 180°=S, 270°=O). Por defecto=300° (iluminación del noroeste).",
+  "Vertical angle:": "Ángulo vertical:",
+  "Sun elevation above horizon (0°=horizon, 90°=overhead). Lower values create more shadows. Default=40° (midday sun).": "Elevación del sol sobre el horizonte (0°=horizonte, 90°=cenital). Valores más bajos crean más sombras. Por defecto=40° (sol del mediodía).",
 
 
 

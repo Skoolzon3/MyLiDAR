@@ -32,7 +32,7 @@ from .dem_generation_dialog import DemGenerationDialog
 class DemGenerationTask(QgsTask):
     """Generate DEM from a LiDAR file in a background thread"""
 
-    def __init__(self, description, input_filename, output_path, cell_size, use_triangulation, parent, hillshade_requested, translator, hillshade_output_path=None):
+    def __init__(self, description, input_filename, output_path, cell_size, use_triangulation, parent, hillshade_requested, z_factor, azimuth, vertical_angle, translator, hillshade_output_path=None):
         super().__init__(description, QgsTask.CanCancel)
         self.input_filename = input_filename
         self.output_path = output_path
@@ -41,11 +41,13 @@ class DemGenerationTask(QgsTask):
         self.parent = parent
         self.hillshade_requested = hillshade_requested
         self.hillshade_output_path = hillshade_output_path
-
-        self.exception = None
-        self.tr = translator
+        self.z_factor = z_factor
+        self.azimuth = azimuth
+        self.vertical_angle = vertical_angle
         self.hillshade_path = None
         self.output_crs = None
+        self.exception = None
+        self.tr = translator
 
     def run(self):
         try:
@@ -181,20 +183,17 @@ class DemGenerationTask(QgsTask):
             # Step 5: Generate hillshade (optional)
             if self.hillshade_requested:
                 suffix = "_TIN" if self.use_triangulation else "_cell"
-                # self.hillshade_output_path = self.hillshade_output_path + suffix
-
                 self.hillshade_path = (
                     self.hillshade_output_path
                     if self.hillshade_output_path
                     else os.path.splitext(self.output_path)[0] + suffix + ".tif"
                 )
-
                 try:
                     processing_params = {
                         'INPUT': self.output_path,
-                        'Z_FACTOR': 1.0,
-                        'AZIMUTH': 315.0,
-                        'V_ANGLE': 45.0,
+                        'Z_FACTOR': self.z_factor,
+                        'AZIMUTH': self.azimuth,
+                        'V_ANGLE': self.vertical_angle,
                         'OUTPUT': self.hillshade_path
                     }
                     processing.run("native:hillshade", processing_params)
@@ -264,7 +263,7 @@ def generate_bare_earth_dem(self):
         return
 
     input_path, output_path = dialog.get_input_output()
-    cell_size, use_triangulation, hillshade_requested, hillshade_path = dialog.get_values()
+    cell_size, use_triangulation, hillshade_requested, hillshade_path, z_factor, azimuth, vertical_angle = dialog.get_values()
 
     if not input_path:
         QMessageBox.warning(
@@ -284,7 +283,7 @@ def generate_bare_earth_dem(self):
 
     # Step 2: Create and run the background task
     task_desc = f"{self.tr('Generating DEM from')} {os.path.basename(input_path)}"
-    task = DemGenerationTask(task_desc, input_path, output_path, cell_size, use_triangulation, self, hillshade_requested, self.tr, hillshade_path)
+    task = DemGenerationTask(task_desc, input_path, output_path, cell_size, use_triangulation, self, hillshade_requested, z_factor, azimuth, vertical_angle, self.tr, hillshade_path)
 
     self.running_tasks.append(task)
     QgsApplication.taskManager().addTask(task)

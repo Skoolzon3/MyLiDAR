@@ -87,12 +87,40 @@ class DemGenerationDialog(QDialog):
         self.hillshade_output_button = QPushButton("...")
         self.hillshade_output_button.setToolTip(self.tr("Select hillshade file path (.tif)"))
         self.hillshade_output_button.setFixedWidth(28)
-
         hillshade_output_layout = QHBoxLayout()
         hillshade_output_layout.addWidget(self.hillshade_output_edit)
         hillshade_output_layout.addWidget(self.hillshade_output_button)
-
         param_layout.addRow(self.tr("Hillshade output:"), hillshade_output_layout)
+
+        # --- Hillshade parameters ---
+        # Z factor
+        self.z_factor_spin = QDoubleSpinBox()
+        self.z_factor_spin.setRange(0.0, 1000.0)
+        self.z_factor_spin.setDecimals(6)
+        self.z_factor_spin.setSingleStep(0.1)
+        self.z_factor_spin.setValue(1.0)
+        self.z_factor_spin.setToolTip(self.tr("Vertical exaggeration multiplier. Use >1 to enhance relief, <1 to reduce. Default=1 (no exaggeration)."))
+        param_layout.addRow(self.tr("Z factor:"), self.z_factor_spin)
+
+        # Azimuth
+        self.azimuth_spin = QDoubleSpinBox()
+        self.azimuth_spin.setRange(0.0, 360.0)
+        self.azimuth_spin.setDecimals(6)
+        self.azimuth_spin.setSingleStep(1.0)
+        self.azimuth_spin.setValue(300.0)
+        self.azimuth_spin.setToolTip(self.tr("Sun/light direction in degrees clockwise from North (0°=N, 90°=E, 180°=S, 270°=W). Default=300° (NW lighting)."))
+        self.azimuth_spin.setSuffix(self.tr(" °"))
+        param_layout.addRow(self.tr("Azimuth:"), self.azimuth_spin)
+
+        # Vertical angle
+        self.vertical_angle_spin = QDoubleSpinBox()
+        self.vertical_angle_spin.setRange(0.0, 90.0)
+        self.vertical_angle_spin.setDecimals(6)
+        self.vertical_angle_spin.setSingleStep(1.0)
+        self.vertical_angle_spin.setValue(40.0)
+        self.vertical_angle_spin.setToolTip(self.tr("Sun elevation above horizon (0°=horizon, 90°=overhead). Lower values create more shadows. Default=40° (midday sun)."))
+        self.vertical_angle_spin.setSuffix(self.tr(" °"))
+        param_layout.addRow(self.tr("Vertical angle:"), self.vertical_angle_spin)
 
         self.update_hillshade_output_state(self.hillshade_check.isChecked())
         self.hillshade_check.toggled.connect(self.update_hillshade_output_state)
@@ -238,7 +266,11 @@ class DemGenerationDialog(QDialog):
         use_triangulation = self.method_combo.currentData()
         hillshade_requested = self.hillshade_check.isChecked()
         hillshade_output = self.hillshade_output_edit.text().strip() if hillshade_requested else ""
-        return cell_size, use_triangulation, hillshade_requested, hillshade_output
+        z_factor = self.z_factor_spin.value()
+        azimuth = self.azimuth_spin.value()
+        vertical_angle = self.vertical_angle_spin.value()
+
+        return (cell_size, use_triangulation, hillshade_requested, hillshade_output, z_factor, azimuth, vertical_angle)
 
     def get_input_output(self):
         """Return (input_path, output_path)."""
@@ -247,6 +279,9 @@ class DemGenerationDialog(QDialog):
     def update_hillshade_output_state(self, checked):
         self.hillshade_output_edit.setEnabled(checked)
         self.hillshade_output_button.setEnabled(checked)
+        self.z_factor_spin.setEnabled(checked)
+        self.azimuth_spin.setEnabled(checked)
+        self.vertical_angle_spin.setEnabled(checked)
 
     def select_hillshade_output_file(self):
         filename, _ = QFileDialog.getSaveFileName(
