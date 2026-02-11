@@ -6,6 +6,9 @@ from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComb
 from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsProject, QgsPointCloudLayer
 
+# --- Log management imports ---
+from ..utils import select_log_file, default_suffix_path
+
 # ------------------------------------
 # --- Outlier Removal Dialog Class ---
 # ------------------------------------
@@ -109,7 +112,6 @@ class OutlierRemovalDialog(QDialog):
         self.log_button.setFixedWidth(28)
         self.log_button.setEnabled(False)
         log_path_layout.addWidget(self.log_button)
-
         left_layout.addLayout(log_path_layout)
 
         # --- OK / Cancel buttons ---
@@ -269,22 +271,6 @@ class OutlierRemovalDialog(QDialog):
 
     # --- Log File Management ---
 
-    def get_generate_log(self):
-        """Return whether to generate log file."""
-        return self.generate_log_checkbox.isChecked()
-
-    def select_log_file(self):
-        """Open dialog to select log file path."""
-        filename, _ = QFileDialog.getSaveFileName(
-            self,
-            self.tr("Save Report Log"),
-            "",
-            self.tr("Text files (*.txt);;All files (*.*)")
-        )
-        if filename:
-            self.log_edit.setText(filename)
-            self.selected_log = filename
-
     def get_log_path(self):
         if not self.generate_log_checkbox.isChecked():
             return None
@@ -293,28 +279,16 @@ class OutlierRemovalDialog(QDialog):
             return self.selected_log
 
         output_path = self.output_edit.text().strip()
-        if output_path:
-            base_name = os.path.splitext(os.path.basename(output_path))[0]
-            return os.path.join(
-                os.path.dirname(output_path),
-                base_name + "_outlier_removal_report.txt"
-            )
-
-        return None
+        return default_suffix_path(output_path, "_outlier_removal_report", ".txt")
 
     def update_default_log_path(self):
         if not self.generate_log_checkbox.isChecked():
             return
 
         output_path = self.output_edit.text().strip()
-        if not output_path:
+        default_log = default_suffix_path(output_path, "_outlier_removal_report", ".txt")
+        if not default_log:
             return
-
-        base_name = os.path.splitext(os.path.basename(output_path))[0]
-        default_log = os.path.join(
-            os.path.dirname(output_path),
-            base_name + "_outlier_removal_report.txt"
-        )
 
         if not hasattr(self, 'selected_log') or not self.selected_log:
             self.log_edit.setText(default_log)
@@ -326,4 +300,17 @@ class OutlierRemovalDialog(QDialog):
 
         if enabled:
             self.update_default_log_path()
+        else:
+            self.selected_log = None
+            pass
 
+    def select_log_file(self):
+        initial_path = self.log_edit.text().strip()
+        if not initial_path:
+            output_path = self.output_edit.text().strip()
+            initial_path = default_suffix_path(output_path, "_outlier_removal_report", ".txt") or ""
+
+        filename = select_log_file(self,self.tr("Save Report Log"),initial_path)
+        if filename:
+            self.log_edit.setText(filename)
+            self.selected_log = filename

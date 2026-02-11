@@ -4,6 +4,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+from qgis.PyQt.QtWidgets import QFileDialog
 
 # --------------------------------------
 # --- Auxiliary Formatting Functions ---
@@ -148,3 +150,27 @@ def generate_density_heatmap(x, y, tr, bins=500, as_buffer=True, title=None, fig
         return buf
     else:
         return fig
+
+# --------------------------------
+# --- Log management functions ---
+# --------------------------------
+
+def select_log_file(parent, caption: str, initial_path: str = "") -> str | None:
+    filename, _ = QFileDialog.getSaveFileName(
+        parent,
+        caption,
+        initial_path,
+        "Text files (*.txt);;All files (*.*)"
+    )
+    return filename or None
+
+def default_suffix_path(base_path: str, suffix: str, new_ext: str | None = None) -> str | None:
+    base_path = (base_path or "").strip()
+    if not base_path:
+        return None
+
+    dirname = os.path.dirname(base_path)
+    basename, ext = os.path.splitext(os.path.basename(base_path))
+    if new_ext is None:
+        new_ext = ext
+    return os.path.join(dirname, basename + suffix + new_ext)

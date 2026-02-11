@@ -7,6 +7,7 @@ import numpy as np
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QMessageBox, QDialog
 from qgis.core import QgsApplication, QgsPointCloudLayer, QgsProject, QgsTask, Qgis, QgsMessageLog, QgsCoordinateReferenceSystem
+from qgis.PyQt.QtCore import QDateTime
 
 # --- Dialog imports ---
 from .point_filtering_dialog import PointFilteringDialog
@@ -27,7 +28,7 @@ from .point_filtering_dialog import PointFilteringDialog
 class FilterPointsTask(QgsTask):
     """Filters points from a LiDAR file based on classification codes"""
 
-    def __init__(self, description, input_filename, output_filename, selected_classes, parent, translator):
+    def __init__(self, description, input_filename, output_filename, selected_classes, parent, translator, log_filename=None):
         super().__init__(description, QgsTask.CanCancel)
         self.input_filename = input_filename
         self.output_filename = output_filename
@@ -38,19 +39,34 @@ class FilterPointsTask(QgsTask):
         self.num_removed = 0
         self.num_remaining = 0
         self.output_crs = None
+        self.log_filename = log_filename
+        self.log_entries = []
+
+    def log_step(self, step_name, details="", relevancy="info"):
+        timestamp = QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss")
+        levels = {
+            "info": (Qgis.Info, "INFO"),
+            "warning": (Qgis.Warning, "WARNING"),
+            "critical": (Qgis.Critical, "CRITICAL")
+        }
+        level = levels.get(relevancy, levels["info"])
+        entry = f"[{timestamp}] {level[1]}  {step_name}: {details}"
+        self.log_entries.append(entry)
+        QgsMessageLog.logMessage(f"{step_name}: {details}", "MyLiDAR", level[0])
 
     def run(self):
         try:
-            # Step 1: Read LAS/LAZ
+            self.log_step("PROCESS START", f"Input: {os.path.basename(self.input_filename)}, Classes: {self.selected_classes}", "info")
+
+            # Step 1: Read input file
+            self.log_step("READING INPUT FILE", self.input_filename, "info")
             las = laspy.read(self.input_filename, laz_backend=LazBackend.Lazrs)
             pycrs = las.header.parse_crs(prefer_wkt=True)
             if pycrs:
                 self.output_crs = QgsCoordinateReferenceSystem(pycrs.to_wkt())
+                self.log_step("CRS DETECTED", f"From file header: {self.output_crs.authid()}", "info")
             else:
-                QgsMessageLog.logMessage(
-                    self.tr("No CRS found in file header. Checking input layer loaded in QGIS"),
-                    "MyLiDAR", Qgis.Warning
-                )
+                self.log_step("CRS WARNING", self.tr("No CRS found in file header. Checking input layer loaded in QGIS"), "warning")
 
                 matched_layer = None
                 for lyr in QgsProject.instance().mapLayers().values():
@@ -61,21 +77,15 @@ class FilterPointsTask(QgsTask):
                 if matched_layer:
                     if matched_layer.crs().isValid():
                         self.output_crs = matched_layer.crs()
-                        QgsMessageLog.logMessage(
-                            f"{self.tr('Using CRS assigned in QGIS')}: {self.output_crs.authid()}",
-                            "MyLiDAR", Qgis.Info
-                        )
-                    else:
-                        QgsMessageLog.logMessage(
-                            self.tr("Matched layer CRS is invalid, no CRS will be assigned"),
-                            "MyLiDAR", Qgis.Warning
-                        )
-                else:
-                    QgsMessageLog.logMessage(
-                        self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"),
-                        "MyLiDAR", Qgis.Warning
-                    )
+                        self.log_step("CRS ASSIGNED", f"{self.tr('Using CRS assigned in QGIS')}: {self.output_crs.authid()}", "info")
 
+                    else:
+                        self.log_step("INVALID CRS", self.tr("Matched layer CRS is invalid, no CRS will be assigned"), "warning")
+
+                else:
+                    self.log_step("NO LAYER MATCH", self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"), "warning")
+
+            self.log_step("CLASSIFICATION FILTERING", f"Total classifications: {len(las.classification)}, Target classes: {self.selected_classes}", "info")
             classifications = las.classification
             self.setProgress(10)
 
@@ -83,21 +93,31 @@ class FilterPointsTask(QgsTask):
 
             self.num_removed = np.sum(~mask)
             self.num_remaining = np.sum(mask)
+            self.log_step("FILTERING RESULTS", f"Removed: {self.num_removed:,}, Remaining: {self.num_remaining:,}", "info")
+
             if self.num_remaining == 0:
-                raise ValueError(self.tr("No points remain after filtering."))
+                error_msg = self.tr("No points remain after filtering.")
+                self.log_step("FILTERING FAILED", error_msg, "critical")
+                raise ValueError(error_msg)
 
             self.setProgress(60)
 
+            self.log_step("CREATING FILTERED LAS", f"Copying {self.num_remaining:,} points to new header", "info")
             new_header = las.header.copy()
             las_filtered = laspy.LasData(new_header)
             las_filtered.points = las.points[mask]
             las_filtered.update_header()
+
+            self.log_step("WRITING OUTPUT FILE", self.output_filename, "info")
             las_filtered.write(self.output_filename)
+            self.log_step("FILE WRITE COMPLETE", f"Filtered LAS saved successfully", "info")
             self.setProgress(100)
 
+            self.log_step("PROCESS COMPLETE", f"Successfully filtered {self.num_remaining:,}/{self.num_removed + self.num_remaining:,} points", "info")
             return True
 
         except Exception as e:
+            self.log_step("PROCESS FAILED", f"Exception: {str(e)}", "critical")
             self.exception = e
             return False
 
@@ -117,32 +137,50 @@ class FilterPointsTask(QgsTask):
                 if pc_layer.isValid():
                     if self.output_crs and self.output_crs.isValid():
                         pc_layer.setCrs(self.output_crs)
-                        QgsMessageLog.logMessage(
-                            f"{self.tr('Output layer CRS applied')}: {self.output_crs.authid()} - {self.output_crs.description()}",
-                            "MyLiDAR",
-                            Qgis.Info
-                        )
+                        self.log_step("LAYER CRS APPLIED", f"{self.tr('Output layer CRS applied')}: {self.output_crs.authid()}", "info")
                     else:
-                        QgsMessageLog.logMessage(
-                            self.tr("No valid CRS available to assign to the output layer"),
-                            "MyLiDAR",
-                            Qgis.Warning
-                        )
+                        self.log_step("NO CRS FOR LAYER", self.tr("No valid CRS available to assign to the output layer"), "warning")
                     QgsProject.instance().addMapLayer(pc_layer)
+                    self.log_step("LAYER ADDED TO PROJECT", layer_name, "info")
                 else:
-                    QMessageBox.warning(
-                        self.parent.iface.mainWindow(),
-                        self.tr("Layer Load Warning"),
-                        self.tr("The LiDAR file was saved but could not be loaded into QGIS")
-                    )
+                    self.log_step("LAYER LOAD FAILED", self.tr("The LiDAR file was saved but could not be loaded into QGIS"), "warning")
 
             else:
                 if self.exception:
-                    QgsMessageLog.logMessage(f"{self.tr('An error occurred during point filtering')}: {self.exception}", 'MyLiDAR', Qgis.Critical)
+                    self.log_step("ERROR EXCEPTION", f"{self.tr('An error occurred during point filtering')}: {self.exception}", "critical")
                     QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error Filtering Points"), f"{self.tr('An error occurred')}:\n{self.exception}")
                 else:
-                    QgsMessageLog.logMessage(self.tr('Point filtering was canceled by the user'), 'MyLiDAR', Qgis.Info)
+                    self.log_step("TASK CANCELED", self.tr('Point filtering was canceled by the user'), "info")
 
+            if self.log_filename:
+                try:
+                    with open(self.log_filename, 'w', encoding='utf-8') as f:
+                        f.write(f"LiDAR POINT FILTERING REPORT\n")
+                        f.write("=" * 50 + "\n\n")
+                        f.write(f"Input file: {self.input_filename}\n")
+                        f.write(f"Output file: {self.output_filename}\n")
+                        f.write(f"Filter classes: {self.selected_classes}\n")
+                        f.write(f"CRS: {self.output_crs.authid() if self.output_crs else 'Not set'}\n")
+                        f.write(f"Total points processed: {self.num_removed + self.num_remaining:,}\n")
+                        f.write(f"Points removed: {self.num_removed:,} ({100*self.num_removed/(self.num_removed + self.num_remaining):.1f}%)\n")
+                        f.write(f"Points remaining: {self.num_remaining:,}\n\n")
+                        f.write("PROCESSING STEPS:\n")
+                        f.write("-" * 30 + "\n")
+                        for entry in self.log_entries:
+                            f.write(entry + "\n")
+
+                        if not result and self.exception:
+                            f.write(f"\nFINAL STATUS: FAILED\nError: {str(self.exception)}\n")
+                        else:
+                            f.write(f"\nFINAL STATUS: SUCCESS\n")
+
+                    self.log_step("LOG FILE WRITTEN", self.log_filename, "info")
+
+                except Exception as log_error:
+                    QgsMessageLog.logMessage(
+                        f"Failed to write log file {self.log_filename}: {log_error}",
+                        "MyLiDAR", Qgis.Warning
+                    )
         finally:
             if self in self.parent.running_tasks:
                 self.parent.running_tasks.remove(self)
@@ -159,6 +197,7 @@ def filter_points(self):
 
     input_filename, output_filename = dialog.get_input_output()
     selected_classes = dialog.get_filter_settings()
+    log_filename = dialog.get_log_path()
 
     if not input_filename:
         QMessageBox.warning(
@@ -186,7 +225,7 @@ def filter_points(self):
 
     # Step 2: Create background task
     desc = f"{self.tr('Filtering points from')} {os.path.basename(input_filename)}"
-    task = FilterPointsTask(desc, input_filename, output_filename, selected_classes, self, self.tr)
+    task = FilterPointsTask(desc, input_filename, output_filename, selected_classes, self, self.tr, log_filename)
     self.running_tasks.append(task)
     QgsApplication.taskManager().addTask(task)
 
