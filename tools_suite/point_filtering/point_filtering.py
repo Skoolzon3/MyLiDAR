@@ -155,7 +155,7 @@ class FilterPointsTask(QgsTask):
             if self.log_filename:
                 try:
                     with open(self.log_filename, 'w', encoding='utf-8') as f:
-                        f.write(f"LiDAR POINT FILTERING REPORT\n")
+                        f.write(f"MyLiDAR POINT FILTERING REPORT\n")
                         f.write("=" * 50 + "\n\n")
                         f.write(f"Input file: {self.input_filename}\n")
                         f.write(f"Output file: {self.output_filename}\n")
