@@ -156,10 +156,7 @@ def generate_density_heatmap(x, y, tr, bins=500, as_buffer=True, title=None, fig
 # --------------------------------
 
 def select_log_file(parent, caption: str, initial_path: str = "") -> str | None:
-    filename, _ = QFileDialog.getSaveFileName(
-        parent,
-        caption,
-        initial_path,
+    filename, _ = QFileDialog.getSaveFileName(parent, caption, initial_path,
         "Text files (*.txt);;All files (*.*)"
     )
     return filename or None

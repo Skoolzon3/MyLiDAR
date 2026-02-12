@@ -275,8 +275,9 @@ class OutlierRemovalDialog(QDialog):
         if not self.generate_log_checkbox.isChecked():
             return None
 
-        if hasattr(self, 'selected_log') and self.selected_log:
-            return self.selected_log
+        log_text = self.log_edit.text().strip()
+        if log_text:
+            return log_text
 
         output_path = self.output_edit.text().strip()
         return default_suffix_path(output_path, "_outlier_removal_report", ".txt")
