@@ -6,6 +6,9 @@ from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComb
 from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsProject, QgsPointCloudLayer
 
+# --- Log management imports ---
+from ..utils import select_log_file, default_suffix_path
+
 # -----------------------------------
 # --- Feature Count Dialog Class ---
 # -----------------------------------
@@ -127,14 +130,14 @@ class FeatureCountDialog(QDialog):
             lambda: self.bridge_output.setModified(True)
         )
 
-        # Search radius (eps)
-        self.eps_spin = QDoubleSpinBox()
-        self.eps_spin.setRange(0.1, 100.0)
-        self.eps_spin.setSingleStep(0.1)
-        self.eps_spin.setValue(2.0)
-        self.eps_spin.setSuffix(self.tr(" units"))
+        # Search radius
+        self.radius_spin = QDoubleSpinBox()
+        self.radius_spin.setRange(0.1, 100.0)
+        self.radius_spin.setSingleStep(0.1)
+        self.radius_spin.setValue(2.0)
+        self.radius_spin.setSuffix(self.tr(" units"))
         self.radius_spin.setToolTip(self.tr("Search radius for neighbor detection. The same units are used as the coordinate reference system of the input data."))
-        param_layout.addRow(tr("Search radius:"), self.eps_spin)
+        param_layout.addRow(tr("Search radius:"), self.radius_spin)
 
         # Min samples
         self.min_samples_spin = QSpinBox()
@@ -162,6 +165,26 @@ class FeatureCountDialog(QDialog):
         self.hull_allow_holes_check = QCheckBox(tr("Allow holes in hull"))
         self.hull_allow_holes_check.setChecked(False)
         param_layout.addRow("", self.hull_allow_holes_check)
+
+        # --- Log file option ---
+        log_layout = QHBoxLayout()
+        self.generate_log_checkbox = QCheckBox(self.tr("Generate report log file"))
+        log_layout.addWidget(self.generate_log_checkbox)
+        log_layout.addStretch()
+        left_layout.addLayout(log_layout)
+
+        # --- Log file path ---
+        log_path_layout = QHBoxLayout()
+        self.log_edit = QLineEdit()
+        self.log_edit.setPlaceholderText(self.tr("Default: <output>_outlier_removal_report.txt"))
+        self.log_edit.setEnabled(False)
+        log_path_layout.addWidget(self.log_edit)
+        self.log_button = QPushButton("...")
+        self.log_button.setToolTip(self.tr("Select report log file"))
+        self.log_button.setFixedWidth(28)
+        self.log_button.setEnabled(False)
+        log_path_layout.addWidget(self.log_button)
+        left_layout.addLayout(log_path_layout)
 
         # --- OK / Cancel buttons ---
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -212,6 +235,8 @@ class FeatureCountDialog(QDialog):
         self.populate_input_layers()
         self.input_combo.currentIndexChanged.connect(self.on_input_changed)
         self.input_button.clicked.connect(self.select_input_file)
+        self.generate_log_checkbox.stateChanged.connect(self.on_log_changed)
+        self.log_button.clicked.connect(self.select_log_file)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
 
@@ -287,7 +312,7 @@ class FeatureCountDialog(QDialog):
     def get_params(self):
         """Return eps, min_samples, use_z."""
         return (
-            self.eps_spin.value(),
+            self.radius_spin.value(),
             self.min_samples_spin.value(),
             self.use_z_check.isChecked(),
             self.hull_target_spin.value(),
@@ -368,3 +393,92 @@ class FeatureCountDialog(QDialog):
             self.tree_output.setText(filename)
         elif feature == "bridges":
             self.bridge_output.setText(filename)
+
+    # --- Log File Management ---
+
+    # def get_log_path(self):
+    #     if not self.generate_log_checkbox.isChecked():
+    #         return None
+
+    #     log_text = self.log_edit.text().strip()
+    #     if log_text:
+    #         return log_text
+
+    #     output_path = self.output_edit.text().strip()
+    #     return default_suffix_path(output_path, "_feature_count_report", ".txt")
+
+    def get_log_path(self):
+        if not self.generate_log_checkbox.isChecked():
+            return None
+
+        log_text = self.log_edit.text().strip()
+        if log_text:
+            return log_text
+
+        if not self.selected_input:
+            return None
+
+        base_name = os.path.splitext(os.path.basename(self.selected_input))[0]
+        return os.path.join(os.path.dirname(self.selected_input), f"{base_name}_feature_count_report.txt")
+
+
+    # def update_default_log_path(self):
+    #     if not self.generate_log_checkbox.isChecked():
+    #         return
+    #     output_path = self.output_edit.text().strip()
+    #     default_log = default_suffix_path(output_path, "_feature_count_report", ".txt")
+    #     if not default_log:
+    #         return
+    #     if not hasattr(self, 'selected_log') or not self.selected_log:
+    #         self.log_edit.setText(default_log)
+
+    def update_default_log_path(self):
+        if not self.generate_log_checkbox.isChecked() or not self.selected_input:
+            return
+
+        base_name = os.path.splitext(os.path.basename(self.selected_input))[0]
+        default_dir = os.path.dirname(self.selected_input)
+        default_log = os.path.join(default_dir, f"{base_name}_feature_count_report.txt")
+        self.log_edit.setText(default_log)
+
+    # def on_log_changed(self, state):
+    #     enabled = state == Qt.Checked
+    #     self.log_edit.setEnabled(enabled)
+    #     self.log_button.setEnabled(enabled)
+
+    #     if enabled:
+    #         self.update_default_log_path()
+    #     else:
+    #         self.selected_log = None
+    #         pass
+
+    def on_log_changed(self, state):
+        enabled = state == Qt.Checked
+        self.log_edit.setEnabled(enabled)
+        self.log_button.setEnabled(enabled)
+
+        if enabled:
+            self.update_default_log_path()
+        else:
+            self.log_edit.clear()
+
+    def select_log_file(self):
+        initial_path = self.log_edit.text().strip()
+        if not initial_path and self.selected_input:
+            base_name = os.path.splitext(os.path.basename(self.selected_input))[0]
+            initial_path = os.path.join(os.path.dirname(self.selected_input), f"{base_name}_feature_count_report.txt")
+
+        filename = select_log_file(self, self.tr("Save Report Log"), initial_path)
+        if filename:
+            self.log_edit.setText(filename)
+
+    # def select_log_file(self):
+    #     initial_path = self.log_edit.text().strip()
+    #     if not initial_path:
+    #         output_path = self.output_edit.text().strip()
+    #         initial_path = default_suffix_path(output_path, "_feature_count_report", ".txt") or ""
+
+    #     filename = select_log_file(self,self.tr("Save Report Log"),initial_path)
+    #     if filename:
+    #         self.log_edit.setText(filename)
+    #         self.selected_log = filename
