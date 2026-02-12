@@ -6,6 +6,9 @@ from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComb
 from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsProject, QgsPointCloudLayer
 
+# --- Log management imports ---
+from ..utils import select_log_file, default_suffix_path
+
 # -----------------------------------
 # --- DEM Generation Dialog Class ---
 # -----------------------------------
@@ -132,6 +135,26 @@ class DemGenerationDialog(QDialog):
         self.method_combo.currentIndexChanged.connect(self.on_method_changed)
         self.on_method_changed(self.method_combo.currentIndex())
 
+        # --- Log file option ---
+        log_layout = QHBoxLayout()
+        self.generate_log_checkbox = QCheckBox(self.tr("Generate report log file"))
+        log_layout.addWidget(self.generate_log_checkbox)
+        log_layout.addStretch()
+        left_layout.addLayout(log_layout)
+
+        # --- Log file path ---
+        log_path_layout = QHBoxLayout()
+        self.log_edit = QLineEdit()
+        self.log_edit.setPlaceholderText(self.tr("Default: <output>_outlier_removal_report.txt"))
+        self.log_edit.setEnabled(False)
+        log_path_layout.addWidget(self.log_edit)
+        self.log_button = QPushButton("...")
+        self.log_button.setToolTip(self.tr("Select report log file"))
+        self.log_button.setFixedWidth(28)
+        self.log_button.setEnabled(False)
+        log_path_layout.addWidget(self.log_button)
+        left_layout.addLayout(log_path_layout)
+
         # --- OK / Cancel buttons ---
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         left_layout.addWidget(buttons)
@@ -183,6 +206,9 @@ class DemGenerationDialog(QDialog):
         self.input_combo.currentIndexChanged.connect(self.on_input_changed)
         self.input_button.clicked.connect(self.select_input_file)
         self.output_button.clicked.connect(self.select_output_file)
+        self.generate_log_checkbox.stateChanged.connect(self.on_log_changed)
+        self.log_button.clicked.connect(self.select_log_file)
+        self.output_edit.textChanged.connect(self.update_default_log_path)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
 
@@ -302,3 +328,50 @@ class DemGenerationDialog(QDialog):
 
         if not self.user_edited_output:
             self.update_default_output()
+
+    # --- Log File Management ---
+
+    def get_log_path(self):
+        if not self.generate_log_checkbox.isChecked():
+            return None
+
+        log_text = self.log_edit.text().strip()
+        if log_text:
+            return log_text
+
+        output_path = self.output_edit.text().strip()
+        return default_suffix_path(output_path, "_dem_generation_report", ".txt")
+
+    def update_default_log_path(self):
+        if not self.generate_log_checkbox.isChecked():
+            return
+
+        output_path = self.output_edit.text().strip()
+        default_log = default_suffix_path(output_path, "_dem_generation_report", ".txt")
+        if not default_log:
+            return
+
+        if not hasattr(self, 'selected_log') or not self.selected_log:
+            self.log_edit.setText(default_log)
+
+    def on_log_changed(self, state):
+        enabled = state == Qt.Checked
+        self.log_edit.setEnabled(enabled)
+        self.log_button.setEnabled(enabled)
+
+        if enabled:
+            self.update_default_log_path()
+        else:
+            self.selected_log = None
+            pass
+
+    def select_log_file(self):
+        initial_path = self.log_edit.text().strip()
+        if not initial_path:
+            output_path = self.output_edit.text().strip()
+            initial_path = default_suffix_path(output_path, "_dem_generation_report", ".txt") or ""
+
+        filename = select_log_file(self,self.tr("Save Report Log"),initial_path)
+        if filename:
+            self.log_edit.setText(filename)
+            self.selected_log = filename

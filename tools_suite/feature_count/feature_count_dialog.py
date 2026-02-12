@@ -7,7 +7,7 @@ from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsProject, QgsPointCloudLayer
 
 # --- Log management imports ---
-from ..utils import select_log_file, default_suffix_path
+from ..utils import select_log_file
 
 # -----------------------------------
 # --- Feature Count Dialog Class ---
@@ -396,17 +396,6 @@ class FeatureCountDialog(QDialog):
 
     # --- Log File Management ---
 
-    # def get_log_path(self):
-    #     if not self.generate_log_checkbox.isChecked():
-    #         return None
-
-    #     log_text = self.log_edit.text().strip()
-    #     if log_text:
-    #         return log_text
-
-    #     output_path = self.output_edit.text().strip()
-    #     return default_suffix_path(output_path, "_feature_count_report", ".txt")
-
     def get_log_path(self):
         if not self.generate_log_checkbox.isChecked():
             return None
@@ -421,17 +410,6 @@ class FeatureCountDialog(QDialog):
         base_name = os.path.splitext(os.path.basename(self.selected_input))[0]
         return os.path.join(os.path.dirname(self.selected_input), f"{base_name}_feature_count_report.txt")
 
-
-    # def update_default_log_path(self):
-    #     if not self.generate_log_checkbox.isChecked():
-    #         return
-    #     output_path = self.output_edit.text().strip()
-    #     default_log = default_suffix_path(output_path, "_feature_count_report", ".txt")
-    #     if not default_log:
-    #         return
-    #     if not hasattr(self, 'selected_log') or not self.selected_log:
-    #         self.log_edit.setText(default_log)
-
     def update_default_log_path(self):
         if not self.generate_log_checkbox.isChecked() or not self.selected_input:
             return
@@ -440,17 +418,6 @@ class FeatureCountDialog(QDialog):
         default_dir = os.path.dirname(self.selected_input)
         default_log = os.path.join(default_dir, f"{base_name}_feature_count_report.txt")
         self.log_edit.setText(default_log)
-
-    # def on_log_changed(self, state):
-    #     enabled = state == Qt.Checked
-    #     self.log_edit.setEnabled(enabled)
-    #     self.log_button.setEnabled(enabled)
-
-    #     if enabled:
-    #         self.update_default_log_path()
-    #     else:
-    #         self.selected_log = None
-    #         pass
 
     def on_log_changed(self, state):
         enabled = state == Qt.Checked
@@ -471,14 +438,3 @@ class FeatureCountDialog(QDialog):
         filename = select_log_file(self, self.tr("Save Report Log"), initial_path)
         if filename:
             self.log_edit.setText(filename)
-
-    # def select_log_file(self):
-    #     initial_path = self.log_edit.text().strip()
-    #     if not initial_path:
-    #         output_path = self.output_edit.text().strip()
-    #         initial_path = default_suffix_path(output_path, "_feature_count_report", ".txt") or ""
-
-    #     filename = select_log_file(self,self.tr("Save Report Log"),initial_path)
-    #     if filename:
-    #         self.log_edit.setText(filename)
-    #         self.selected_log = filename

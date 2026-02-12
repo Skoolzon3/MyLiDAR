@@ -31,18 +31,6 @@ from .feature_count_dialog import FeatureCountDialog
 class FeatureCountTask(QgsTask):
     """Background task for counting features using DBSCAN on LiDAR data"""
 
-    def log_step(self, step_name, details="", relevancy="info"):
-        timestamp = QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss")
-        levels = {
-            "info": (Qgis.Info, "INFO"),
-            "warning": (Qgis.Warning, "WARNING"),
-            "critical": (Qgis.Critical, "CRITICAL")
-        }
-        level = levels.get(relevancy, levels["info"])
-        entry = f"[{timestamp}] {level[1]}  {step_name}: {details}"
-        self.log_entries.append(entry)
-        QgsMessageLog.logMessage(f"{step_name}: {details}", "MyLiDAR", level[0])
-
     def __init__(self, description, input_filename, eps, min_samples, use_z, hull_target_percent, hull_allow_holes, parent, translator, feature_types, output_paths=None, log_filename=None):
         super().__init__(description, QgsTask.CanCancel)
 
@@ -68,6 +56,18 @@ class FeatureCountTask(QgsTask):
         }
         self.log_filename = log_filename
         self.log_entries = []
+
+    def log_step(self, step_name, details="", relevancy="info"):
+        timestamp = QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss")
+        levels = {
+            "info": (Qgis.Info, "INFO"),
+            "warning": (Qgis.Warning, "WARNING"),
+            "critical": (Qgis.Critical, "CRITICAL")
+        }
+        level = levels.get(relevancy, levels["info"])
+        entry = f"[{timestamp}] {level[1]}  {step_name}: {details}"
+        self.log_entries.append(entry)
+        QgsMessageLog.logMessage(f"{step_name}: {details}", "MyLiDAR", level[0])
 
     def run(self):
         try:
@@ -364,6 +364,10 @@ def count_features(self):
 
     if not input_filename:
         QMessageBox.warning(self.iface.mainWindow(), self.tr("Missing Input"), self.tr("Please select a LiDAR input file or layer."))
+        return
+
+    if not feature_types:
+        QMessageBox.warning(self.iface.mainWindow(), self.tr("No Feature Types"), self.tr("Please select at least one feature type to detect."))
         return
 
     # Step 2: Create and run the background task
