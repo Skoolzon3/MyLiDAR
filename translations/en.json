@@ -332,5 +332,13 @@
   "Matched layer CRS is invalid, no CRS will be assigned": "Matched layer CRS is invalid, no CRS will be assigned",
   "Input file not found among loaded layers. Cannot import CRS from QGIS": "Input file not found among loaded layers. Cannot import CRS from QGIS",
   "DEM CRS set to": "DEM CRS set to",
-  "Hillshade CRS set to": "Hillshade CRS set to"
+  "Hillshade CRS set to": "Hillshade CRS set to",
+
+
+
+  "Generate report log file": "Generate report log file",
+  "Select report log file": "Select report log file",
+  "Save Report Log": "Save Report Log",
+  "Text files (*.txt);;All files (*.*)": "Text files (*.txt);;All files (*.*)",
+  "Default: <output>_outlier_removal_report.txt": "Default: <output>_outlier_removal_report.txt"
 }

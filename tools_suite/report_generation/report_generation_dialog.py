@@ -524,6 +524,6 @@ class ReportGenerationDialog(QDialog):
             base_name = os.path.splitext(os.path.basename(self.selected_input))[0]
             initial_path = os.path.join(os.path.dirname(self.selected_input), f"{base_name}_report_generation_report.txt")
 
-        filename = select_log_file(self, self.tr("Save Report Log"), initial_path)
+        filename = select_log_file(self,self.tr("Save Report Log"),self.tr,initial_path)
         if filename:
             self.log_edit.setText(filename)

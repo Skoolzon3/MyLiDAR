@@ -332,5 +332,12 @@
   "Matched layer CRS is invalid, no CRS will be assigned": "El SRC de la capa coincidente no es válido, no se asignará ningún SRC",
   "Input file not found among loaded layers. Cannot import CRS from QGIS": "Archivo de entrada no encontrado entre las capas cargadas. No se puede importar el SRC desde QGIS",
   "DEM CRS set to": "SRC del MDE establecido en",
-  "Hillshade CRS set to": "SRC del mapa de sombras establecido en"
+  "Hillshade CRS set to": "SRC del mapa de sombras establecido en",
+
+
+  "Generate report log file": "Generar archivo de registro del informe",
+  "Select report log file": "Seleccionar archivo de registro del informe",
+  "Save Report Log": "Guardar registro del informe",
+  "Text files (*.txt);;All files (*.*)": "Archivos de texto (*.txt);;Todos los archivos (*.*)",
+  "Default: <output>_outlier_removal_report.txt": "Predeterminado: <output>_outlier_removal_report.txt"
 }

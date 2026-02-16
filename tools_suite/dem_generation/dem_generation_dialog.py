@@ -371,7 +371,7 @@ class DemGenerationDialog(QDialog):
             output_path = self.output_edit.text().strip()
             initial_path = default_suffix_path(output_path, "_dem_generation_report", ".txt") or ""
 
-        filename = select_log_file(self,self.tr("Save Report Log"),initial_path)
+        filename = select_log_file(self,self.tr("Save Report Log"),self.tr,initial_path)
         if filename:
             self.log_edit.setText(filename)
             self.selected_log = filename
