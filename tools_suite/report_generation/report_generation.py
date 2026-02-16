@@ -37,7 +37,7 @@ from .report_functions import *
 class ReportGenerationTask(QgsTask):
     """Background task for generating LiDAR information reports + dock"""
 
-    def __init__(self, description, input_filename, report_path, report_format, selected_fields, parent, translator, show_dock=False, is_zip_task=False, zip_output_path=None, temp_dir=None, is_primary_task=True, log_filename=None):
+    def __init__(self, description, input_filename, report_path, report_format, selected_fields, parent, translator, show_dock=False, is_zip_task=False, zip_output_path=None, temp_dir=None, is_primary_task=True, selected_formats=None, log_filename=None):
         super().__init__(description, QgsTask.CanCancel)
         self.input_filename = input_filename
         self.report_path = report_path
@@ -53,6 +53,7 @@ class ReportGenerationTask(QgsTask):
         self.zip_output_path = zip_output_path
         self.temp_dir = temp_dir
         self.is_primary_task = is_primary_task
+        self.selected_formats = selected_formats
         self.log_filename = log_filename
         self.log_entries = []
 
@@ -293,28 +294,68 @@ class ReportGenerationTask(QgsTask):
 
         if self.log_filename:
             try:
-                with open(self.log_filename, 'w', encoding='utf-8') as f:
-                    f.write(f"MyLiDAR REPORT GENERATION REPORT\n")
-                    f.write("=" * 50 + "\n\n")
-                    f.write(f"Input file: {self.input_filename}\n")
-                    f.write(f"Report format: {self.report_format if self.report_format else 'N/A'}\n")
-                    f.write(f"Show dock: {'Yes' if self.show_dock else 'No'}\n")
-                    f.write("PROCESSING STEPS:\n")
-                    f.write("-" * 30 + "\n")
-                    for entry in self.log_entries:
-                        f.write(entry + "\n")
+                file_exists = os.path.exists(self.log_filename)
+                with open(self.log_filename, 'a', encoding='utf-8') as f:
+                    if not file_exists:
+                        f.write("MyLiDAR REPORT GENERATION LOG\n")
+                        f.write("=" * 70 + "\n")
+                        f.write(f"Input file: {self.input_filename}\n")
+                        if hasattr(self, "selected_formats") and self.selected_formats:
+                            f.write(
+                                "Selected formats: "
+                                + ", ".join(fmt.upper() for fmt in self.selected_formats)
+                                + "\n"
+                            )
+                        f.write("=" * 70 + "\n\n")
 
-                    if not result and self.exception:
-                        f.write(f"\nFINAL STATUS: FAILED\nError: {str(self.exception)}\n")
-                    else:
-                        f.write(f"\nFINAL STATUS: SUCCESS\n")
+                    if self.report_format:
+                        file_format = self.report_format.upper()
+                        f.write("=" * 70 + "\n")
+                        f.write(f"TASK: {self.description()}\n")
+                        f.write(f"FORMAT: {file_format}\n")
+                        f.write(f"REPORT PATH: {self.report_path if self.report_path else 'N/A'}\n")
+                        f.write(f"INPUT FILE: {self.input_filename}\n")
+                        f.write("-" * 70 + "\n")
+                        f.write("PROCESSING STEPS:\n")
+
+                        for entry in self.log_entries:
+                            if "DOCK" in entry or "GENERATING DOCK CONTENT" in entry:
+                                continue
+                            if file_format != "PDF" and "GENERATING" in entry:
+                                continue
+                            f.write(entry + "\n")
+
+                        if not result and self.exception:
+                            f.write(f"\nFINAL STATUS: FAILED\nError: {str(self.exception)}\n")
+                        else:
+                            f.write("\nFINAL STATUS: SUCCESS\n")
+                        f.write("=" * 70 + "\n\n")
+
+                    if self.show_dock and getattr(self, "is_primary_task", True):
+                        f.write("=" * 70 + "\n")
+                        f.write(f"TASK: {self.description()}\n")
+                        f.write("FORMAT: DOCK (QGIS Interface)\n")
+                        f.write("REPORT PATH: N/A\n")
+                        f.write(f"INPUT FILE: {self.input_filename}\n")
+                        f.write("-" * 70 + "\n")
+                        f.write("PROCESSING STEPS:\n")
+
+                        for entry in self.log_entries:
+                            f.write(entry + "\n")
+
+                        if not result and self.exception:
+                            f.write(f"\nFINAL STATUS: FAILED\nError: {str(self.exception)}\n")
+                        else:
+                            f.write("\nFINAL STATUS: SUCCESS\n")
+                        f.write("=" * 70 + "\n\n")
 
                 self.log_step("LOG FILE WRITTEN", self.log_filename, "info")
 
             except Exception as log_error:
                 QgsMessageLog.logMessage(
                     f"Failed to write log file {self.log_filename}: {log_error}",
-                    "MyLiDAR", Qgis.Warning
+                    "MyLiDAR",
+                    Qgis.Warning
                 )
 
         if self in self.parent.running_tasks:
@@ -393,6 +434,7 @@ def generate_report(self):
             parent=self,
             translator=self.tr,
             show_dock=True,
+            selected_formats=selected_formats,
             log_filename=log_filename
         )
 
@@ -432,6 +474,7 @@ def generate_report(self):
                 zip_output_path=output_path,
                 temp_dir=temp_dir,
                 is_primary_task=(i == 0),
+                selected_formats=selected_formats,
                 log_filename=log_filename
             )
 
@@ -461,6 +504,7 @@ def generate_report(self):
             self,
             self.tr,
             show_dock=generate_dock,
+            selected_formats=selected_formats,
             log_filename=log_filename
         )
 
