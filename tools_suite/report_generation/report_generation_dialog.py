@@ -6,6 +6,9 @@ from qgis.core import QgsProject, QgsPointCloudLayer
 from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QGroupBox, QCheckBox, QPushButton, QDialogButtonBox, QScrollArea, QWidget, QSpacerItem, QSizePolicy, QLineEdit, QTextBrowser, QFileDialog, QComboBox, QGridLayout
 from qgis.PyQt.QtCore import Qt
 
+# --- Log management imports ---
+from ..utils import select_log_file
+
 # --------------------------------------
 # --- Report Generation Dialog Class ---
 # --------------------------------------
@@ -185,6 +188,26 @@ class ReportGenerationDialog(QDialog):
         # --- Spacer before buttons ---
         scroll_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
+        # --- Log file option ---
+        log_layout = QHBoxLayout()
+        self.generate_log_checkbox = QCheckBox(self.tr("Generate report log file"))
+        log_layout.addWidget(self.generate_log_checkbox)
+        log_layout.addStretch()
+        left_layout.addLayout(log_layout)
+
+        # --- Log file path ---
+        log_path_layout = QHBoxLayout()
+        self.log_edit = QLineEdit()
+        self.log_edit.setPlaceholderText(self.tr("Default: <output>_outlier_removal_report.txt"))
+        self.log_edit.setEnabled(False)
+        log_path_layout.addWidget(self.log_edit)
+        self.log_button = QPushButton("...")
+        self.log_button.setToolTip(self.tr("Select report log file"))
+        self.log_button.setFixedWidth(28)
+        self.log_button.setEnabled(False)
+        log_path_layout.addWidget(self.log_button)
+        left_layout.addLayout(log_path_layout)
+
         # --- OK/Cancel buttons ---
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         left_layout.addWidget(buttons)
@@ -243,6 +266,8 @@ class ReportGenerationDialog(QDialog):
         self.input_combo.currentIndexChanged.connect(self.on_input_changed)
         self.input_button.clicked.connect(self.select_input_file)
         self.output_button.clicked.connect(self.select_output_file)
+        self.generate_log_checkbox.stateChanged.connect(self.on_log_changed)
+        self.log_button.clicked.connect(self.select_log_file)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
 
@@ -323,8 +348,9 @@ class ReportGenerationDialog(QDialog):
             self.is_layer = False
         else:
             return
-        if not self.user_edited_output:
-            self.update_default_output()
+
+        self.update_default_output()
+        self.update_default_log_path()
 
     def update_default_output(self):
         if not self.selected_input:
@@ -350,6 +376,7 @@ class ReportGenerationDialog(QDialog):
         self.is_layer = False
         self.user_edited_output = False
         self.update_default_output()
+        self.update_default_log_path()
 
     def select_output_file(self):
         filename, _ = QFileDialog.getSaveFileName(
@@ -455,3 +482,48 @@ class ReportGenerationDialog(QDialog):
 
     def generate_dock(self):
         return self.checkGenerateDock.isChecked()
+
+    # --- Log File Management ---
+
+    def get_log_path(self):
+        if not self.generate_log_checkbox.isChecked():
+            return None
+
+        log_text = self.log_edit.text().strip()
+        if log_text:
+            return log_text
+
+        if not self.selected_input:
+            return None
+
+        base_name = os.path.splitext(os.path.basename(self.selected_input))[0]
+        return os.path.join(os.path.dirname(self.selected_input), f"{base_name}_report_generation_report.txt")
+
+    def update_default_log_path(self):
+        if not self.generate_log_checkbox.isChecked() or not self.selected_input:
+            return
+
+        base_name = os.path.splitext(os.path.basename(self.selected_input))[0]
+        default_dir = os.path.dirname(self.selected_input)
+        default_log = os.path.join(default_dir, f"{base_name}_report_generation_report.txt")
+        self.log_edit.setText(default_log)
+
+    def on_log_changed(self, state):
+        enabled = state == Qt.Checked
+        self.log_edit.setEnabled(enabled)
+        self.log_button.setEnabled(enabled)
+
+        if enabled:
+            self.update_default_log_path()
+        else:
+            self.log_edit.clear()
+
+    def select_log_file(self):
+        initial_path = self.log_edit.text().strip()
+        if not initial_path and self.selected_input:
+            base_name = os.path.splitext(os.path.basename(self.selected_input))[0]
+            initial_path = os.path.join(os.path.dirname(self.selected_input), f"{base_name}_report_generation_report.txt")
+
+        filename = select_log_file(self, self.tr("Save Report Log"), initial_path)
+        if filename:
+            self.log_edit.setText(filename)

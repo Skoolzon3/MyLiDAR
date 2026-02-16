@@ -273,6 +273,7 @@ class FeatureCountDialog(QDialog):
         self.bridge_output.setModified(False)
 
         self.update_feature_outputs()
+        self.update_default_log_path()
 
     def update_default_output(self):
         if not self.selected_input:
@@ -304,9 +305,11 @@ class FeatureCountDialog(QDialog):
             self.selected_input = filename
             self.is_layer = False
             self.update_default_output()
+            self.update_default_log_path()
 
     def on_clustering_mode_changed(self):
         self.update_feature_outputs()
+        self.update_default_log_path()
 
     # --- Accessors ---
     def get_params(self):
