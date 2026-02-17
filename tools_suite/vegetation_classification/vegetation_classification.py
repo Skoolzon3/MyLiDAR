@@ -48,9 +48,9 @@ class VegetationClassificationTask(QgsTask):
     def log_step(self, step_name, details="", relevancy="info"):
         timestamp = QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss")
         levels = {
-            "info": (Qgis.Info, "INFO"),
-            "warning": (Qgis.Warning, "WARNING"),
-            "critical": (Qgis.Critical, "CRITICAL")
+            "info": (Qgis.Info, self.tr("INFO")),
+            "warning": (Qgis.Warning, self.tr("WARNING")),
+            "critical": (Qgis.Critical, self.tr("CRITICAL"))
         }
         level = levels.get(relevancy, levels["info"])
         entry = f"[{timestamp}] {level[1]}  {step_name}: {details}"
@@ -59,17 +59,17 @@ class VegetationClassificationTask(QgsTask):
 
     def run(self):
         try:
-            self.log_step("PROCESS START", f"Input: {os.path.basename(self.input_filename)}, Low Thresh: {self.low_thresh}, High Thresh: {self.high_thresh}, Grass Enabled: {self.grass_enabled}"),
+            self.log_step(self.tr("PROCESS START"), f"Input: {os.path.basename(self.input_filename)}, Low Thresh: {self.low_thresh}, High Thresh: {self.high_thresh}, Grass Enabled: {self.grass_enabled}"),
 
             # Step 1: Read input file
-            self.log_step("READING INPUT FILE", self.input_filename, "info")
+            self.log_step(self.tr("READING INPUT FILE"), self.input_filename, "info")
             las = laspy.read(self.input_filename, laz_backend=LazBackend.Lazrs)
             pycrs = las.header.parse_crs(prefer_wkt=True)
             if pycrs:
                 self.output_crs = QgsCoordinateReferenceSystem(pycrs.to_wkt())
-                self.log_step("CRS DETECTED", f"From file header: {self.output_crs.authid()}", "info")
+                self.log_step(self.tr("CRS DETECTED"), f"From file header: {self.output_crs.authid()}", "info")
             else:
-                self.log_step("CRS WARNING", self.tr("No CRS found in file header. Checking input layer loaded in QGIS"), "warning")
+                self.log_step(self.tr("CRS NOT FOUND"), self.tr("No CRS found in file header. Checking input layer loaded in QGIS"), "warning")
 
                 matched_layer = None
                 for lyr in QgsProject.instance().mapLayers().values():
@@ -80,10 +80,10 @@ class VegetationClassificationTask(QgsTask):
                 if matched_layer:
                     if matched_layer.crs().isValid():
                         self.output_crs = matched_layer.crs()
-                        self.log_step("CRS ASSIGNED", f"{self.tr('Using CRS assigned in QGIS')}: {self.output_crs.authid()}", "info")
+                        self.log_step(self.tr("CRS ASSIGNED"), f"{self.tr('Using CRS assigned in QGIS')}: {self.output_crs.authid()}", "info")
 
                     else:
-                        self.log_step("INVALID CRS", self.tr("Matched layer CRS is invalid, no CRS will be assigned"), "warning")
+                        self.log_step(self.tr("INVALID CRS"), self.tr("Matched layer CRS is invalid, no CRS will be assigned"), "warning")
 
                 else:
                     self.log_step("NO LAYER MATCH", self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"), "warning")
@@ -188,7 +188,7 @@ class VegetationClassificationTask(QgsTask):
             self.setProgress(90)
 
             # Step 7: Save results
-            self.log_step("WRITING OUTPUT FILE", self.output_filename, "info")
+            self.log_step(self.tr("WRITING OUTPUT FILE"), self.output_filename, "info")
             las.write(self.output_filename)
             self.log_step("OUTPUT FILE WRITTEN", f"File saved to {self.output_filename}", "info")
 
@@ -201,7 +201,7 @@ class VegetationClassificationTask(QgsTask):
                 "grass_enabled": self.grass_enabled,
             }
             self.setProgress(100)
-            self.log_step("PROCESS COMPLETE", f"Vegetation classification completed successfully with {self.stats['num_low']} low, {self.stats['num_medium']} medium, and {self.stats['num_high']} high vegetation points", "info")
+            self.log_step(self.tr("PROCESS COMPLETE"), f"Vegetation classification completed successfully with {self.stats['num_low']} low, {self.stats['num_medium']} medium, and {self.stats['num_high']} high vegetation points", "info")
             return True
 
         except Exception as e:
@@ -216,13 +216,13 @@ class VegetationClassificationTask(QgsTask):
                 if pc_layer.isValid():
                     if self.output_crs and self.output_crs.isValid():
                         pc_layer.setCrs(self.output_crs)
-                        self.log_step("LAYER CRS APPLIED", f"{self.tr('Output layer CRS applied')}: {self.output_crs.authid()}", "info")
+                        self.log_step(self.tr("LAYER CRS APPLIED"), f"{self.tr('Output layer CRS applied')}: {self.output_crs.authid()}", "info")
                     else:
-                        self.log_step("NO CRS FOR LAYER", self.tr("No valid CRS available to assign to the output layer"), "warning")
+                        self.log_step(self.tr("NO CRS FOR LAYER"), self.tr("No valid CRS available to assign to the output layer"), "warning")
                     QgsProject.instance().addMapLayer(pc_layer)
-                    self.log_step("LAYER ADDED TO PROJECT", layer_name, "info")
+                    self.log_step(self.tr("LAYER ADDED TO PROJECT"), layer_name, "info")
                 else:
-                    self.log_step("LAYER LOAD FAILED", self.tr("The LiDAR file was saved but could not be loaded into QGIS"), "warning")
+                    self.log_step(self.tr("LAYER LOAD FAILED"), self.tr("The LiDAR file was saved but could not be loaded into QGIS"), "warning")
 
                 s = self.stats
                 grass_line = ""
@@ -270,7 +270,7 @@ class VegetationClassificationTask(QgsTask):
                         else:
                             f.write(f"\nFINAL STATUS: SUCCESS\n")
 
-                    self.log_step("LOG FILE WRITTEN", self.log_filename, "info")
+                    self.log_step(self.tr("LOG FILE WRITTEN"), self.log_filename, "info")
 
                 except Exception as log_error:
                     QgsMessageLog.logMessage(

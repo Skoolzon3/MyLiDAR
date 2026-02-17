@@ -60,9 +60,9 @@ class ReportGenerationTask(QgsTask):
     def log_step(self, step_name, details="", relevancy="info"):
         timestamp = QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss")
         levels = {
-            "info": (Qgis.Info, "INFO"),
-            "warning": (Qgis.Warning, "WARNING"),
-            "critical": (Qgis.Critical, "CRITICAL")
+            "info": (Qgis.Info, self.tr("INFO")),
+            "warning": (Qgis.Warning, self.tr("WARNING")),
+            "critical": (Qgis.Critical, self.tr("CRITICAL"))
         }
         level = levels.get(relevancy, levels["info"])
         entry = f"[{timestamp}] {level[1]}  {step_name}: {details}"
@@ -71,18 +71,18 @@ class ReportGenerationTask(QgsTask):
 
     def run(self):
         try:
-            self.log_step("PROCESS START", f"Input: {os.path.basename(self.input_filename)}, Report Format: {self.report_format}, Show Dock: {self.show_dock}")
+            self.log_step(self.tr("PROCESS START"), f"Input: {os.path.basename(self.input_filename)}, Report Format: {self.report_format}, Show Dock: {self.show_dock}")
 
             # Step 1: Read input file
-            self.log_step("READING INPUT FILE", self.input_filename, "info")
+            self.log_step(self.tr("READING INPUT FILE"), self.input_filename, "info")
             las = laspy.read(self.input_filename, laz_backend=LazBackend.Lazrs)
             pycrs = las.header.parse_crs(prefer_wkt=True)
             if pycrs:
                 self.output_crs = QgsCoordinateReferenceSystem(pycrs.to_wkt())
                 self.output_crs_source = self.tr("File Header")
-                self.log_step("CRS DETECTED", f"From file header: {self.output_crs.authid()}", "info")
+                self.log_step(self.tr("CRS DETECTED"), f"From file header: {self.output_crs.authid()}", "info")
             else:
-                self.log_step("CRS WARNING", self.tr("No CRS found in file header. Checking input layer loaded in QGIS"), "warning")
+                self.log_step(self.tr("CRS NOT FOUND"), self.tr("No CRS found in file header. Checking input layer loaded in QGIS"), "warning")
 
                 matched_layer = None
                 for lyr in QgsProject.instance().mapLayers().values():
@@ -94,9 +94,9 @@ class ReportGenerationTask(QgsTask):
                     if matched_layer.crs().isValid():
                         self.output_crs = matched_layer.crs()
                         self.output_crs_source = self.tr("QGIS Layer")
-                        self.log_step("CRS ASSIGNED", f"{self.tr('Using CRS assigned in QGIS')}: {self.output_crs.authid()}", "info")
+                        self.log_step(self.tr("CRS ASSIGNED"), f"{self.tr('Using CRS assigned in QGIS')}: {self.output_crs.authid()}", "info")
                     else:
-                        self.log_step("INVALID CRS", self.tr("Matched layer CRS is invalid, no CRS will be assigned"), "warning")
+                        self.log_step(self.tr("INVALID CRS"), self.tr("Matched layer CRS is invalid, no CRS will be assigned"), "warning")
 
                 else:
                     self.log_step("NO LAYER MATCH", self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"), "warning")
@@ -106,20 +106,20 @@ class ReportGenerationTask(QgsTask):
             # Step 2: Extract statistics
             unique_classes, class_counts = np.unique(las.classification, return_counts=True)
             unique_returns, return_counts = np.unique(las.return_number, return_counts=True)
-            self.log_step("STATISTICS EXTRACTED", f"Classes: {len(unique_classes)}, Returns: {len(unique_returns)}", "info")
+            self.log_step(self.tr("STATISTICS EXTRACTED"), f"Classes: {len(unique_classes)}, Returns: {len(unique_returns)}", "info")
 
             if hasattr(las, "gps_time"):
                 dt_min = format_date(gps_time_to_datetime(las.gps_time.min()))
                 dt_max = format_date(gps_time_to_datetime(las.gps_time.max()))
                 total_time = str(timedelta(seconds=las.gps_time.max() - las.gps_time.min()))
-                self.log_step("TIME STATISTICS", f"Min: {dt_min}, Max: {dt_max}, Total: {total_time}", "info")
+                self.log_step(self.tr("TIME STATISTICS"), f"Min: {dt_min}, Max: {dt_max}, Total: {total_time}", "info")
             else:
                 dt_min = dt_max = total_time = None
 
             self.setProgress(50)
 
             # Step 3: Build ReportData
-            self.log_step("BUILDING REPORT DATA", "Compiling selected metadata and statistics into ReportData object", "info")
+            self.log_step(self.tr("BUILDING REPORT DATA"), "Compiling selected metadata and statistics into ReportData object", "info")
             data = ReportData(
                 file_name=os.path.basename(self.input_filename) if self.selected_fields["file_name"] else None,
                 file_source=las.header.file_source_id if self.selected_fields["file_source"] else None,
@@ -160,12 +160,12 @@ class ReportGenerationTask(QgsTask):
 
             # Step 4: Generate dock if requested
             if self.show_dock:
-                self.log_step("GENERATING DOCK CONTENT", "Creating text content and visualizations for the QGIS dock", "info")
+                self.log_step(self.tr("GENERATING DOCK CONTENT"), "Creating text content and visualizations for the QGIS dock", "info")
                 self.setProgress(60)
                 self.report_text = generate_dock_content(self, data, self.tr)
 
                 # --- Classification pie chart ---
-                self.log_step("GENERATING CLASSIFICATION PIE CHART", "Creating pie chart for classification distribution if data is available", "info")
+                self.log_step(self.tr("GENERATING CLASSIFICATION PIE CHART"), "Creating pie chart for classification distribution if data is available", "info")
                 if getattr(data, "unique_classes", None) is not None and getattr(data, "class_counts", None) is not None:
                     fig1 = generate_pie_chart_from_counts(
                         data.unique_classes,
@@ -180,7 +180,7 @@ class ReportGenerationTask(QgsTask):
                 self.setProgress(70)
 
                 # --- Return Number Histogram ---
-                self.log_step("GENERATING RETURN NUMBER BAR CHART", "Creating bar chart for return number distribution if data is available", "info")
+                self.log_step(self.tr("GENERATING RETURN NUMBER BAR CHART"), "Creating bar chart for return number distribution if data is available", "info")
                 if getattr(unique_returns, "__len__", None) is not None and getattr(return_counts, "__len__", None) is not None:
                     if unique_returns is not None and return_counts is not None and len(unique_returns) > 0 and len(return_counts) > 0:
                         fig2 = generate_return_bar_chart(
@@ -196,7 +196,7 @@ class ReportGenerationTask(QgsTask):
                 self.setProgress(85)
 
                 # --- Density Heatmap ---
-                self.log_step("GENERATING DENSITY HEATMAP", "Creating density heatmap of point distribution if coordinates are available", "info")
+                self.log_step(self.tr("GENERATING DENSITY HEATMAP"), "Creating density heatmap of point distribution if coordinates are available", "info")
                 if getattr(las, "x", None) is not None and getattr(las, "y", None) is not None:
                     try:
                         if len(las.x) > 0 and len(las.y) > 0:
@@ -216,22 +216,22 @@ class ReportGenerationTask(QgsTask):
                 self.setProgress(90)
 
             # Step 5: Save report (format & path provided)
-            self.log_step("SAVING REPORT", f"Format: {self.report_format}, Path: {self.report_path}", "info")
+            self.log_step(self.tr("SAVING REPORT"), f"Format: {self.report_format}, Path: {self.report_path}", "info")
             if self.report_format and self.report_path:
                 if self.report_format == "pdf":
                     generate_pdf_report(self.parent, self.report_path, data, self.tr)
-                    self.log_step("PDF REPORT GENERATED", f"Report saved to {self.report_path}", "info")
+                    self.log_step(self.tr("PDF REPORT GENERATED"), f"Report saved to {self.report_path}", "info")
                 elif self.report_format == "md":
                     generate_markdown_report(self.parent, self.report_path, data, self.tr)
-                    self.log_step("MARKDOWN REPORT GENERATED", f"Report saved to {self.report_path}", "info")
+                    self.log_step(self.tr("MARKDOWN REPORT GENERATED"), f"Report saved to {self.report_path}", "info")
                 elif self.report_format == "txt":
                     generate_txt_report(self.parent, self.report_path, data, self.tr)
-                    self.log_step("TEXT REPORT GENERATED", f"Report saved to {self.report_path}", "info")
+                    self.log_step(self.tr("TEXT REPORT GENERATED"), f"Report saved to {self.report_path}", "info")
                 elif self.report_format == "tex":
                     generate_latex_report(self.parent, self.report_path, data, self.tr)
-                    self.log_step("LATEX REPORT GENERATED", f"Report saved to {self.report_path}", "info")
+                    self.log_step(self.tr("LATEX REPORT GENERATED"), f"Report saved to {self.report_path}", "info")
 
-            self.log_step("PROCESS COMPLETE", "Report generation finished successfully", "info")
+            self.log_step(self.tr("PROCESS COMPLETE"), "Report generation finished successfully", "info")
             self.setProgress(100)
             return True
 
@@ -248,7 +248,7 @@ class ReportGenerationTask(QgsTask):
 
                 self.parent.lidar_report_dock.clear()
                 self.parent.lidar_report_dock.add_text(self.report_text)
-                self.log_step("DOCK CREATED", "QGIS dock created and added to the interface", "info")
+                self.log_step(self.tr("DOCK CREATED"), "QGIS dock created and added to the interface", "info")
                 for fig, title in self.figures:
                     self.parent.lidar_report_dock.add_button_for_figure(fig, title=title)
 
@@ -266,7 +266,7 @@ class ReportGenerationTask(QgsTask):
                             rel_name = os.path.basename(self.report_path)
                             zipf.write(self.report_path, rel_name)
 
-                    self.log_step("ZIP UPDATE", f"{self.report_format.upper()} report added to ZIP at {self.zip_output_path}", "info")
+                    self.log_step(self.tr("ZIP UPDATE"), f"{self.report_format.upper()} report added to ZIP at {self.zip_output_path}", "info")
                     QMessageBox.information(
                         self.parent.iface.mainWindow(),
                         self.tr("Success"),
@@ -275,7 +275,7 @@ class ReportGenerationTask(QgsTask):
                     )
 
                 except Exception as e:
-                    self.log_step("ZIP ERROR", f"{self.tr('Failed to add')} {self.report_format.upper()} {self.tr('to ZIP')}: {str(e)}", "critical")
+                    self.log_step(self.tr("ZIP ERROR"), f"{self.tr('Failed to add')} {self.report_format.upper()} {self.tr('to ZIP')}: {str(e)}", "critical")
                     QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error"), str(e))
                 finally:
                     pass
@@ -319,7 +319,7 @@ class ReportGenerationTask(QgsTask):
                         f.write("PROCESSING STEPS:\n")
 
                         for entry in self.log_entries:
-                            if "DOCK" in entry or "GENERATING DOCK CONTENT" in entry:
+                            if "DOCK" in entry or self.tr("GENERATING DOCK CONTENT") in entry:
                                 continue
                             if file_format != "PDF" and "GENERATING" in entry:
                                 continue
@@ -349,7 +349,7 @@ class ReportGenerationTask(QgsTask):
                             f.write("\nFINAL STATUS: SUCCESS\n")
                         f.write("=" * 70 + "\n\n")
 
-                self.log_step("LOG FILE WRITTEN", self.log_filename, "info")
+                self.log_step(self.tr("LOG FILE WRITTEN"), self.log_filename, "info")
 
             except Exception as log_error:
                 QgsMessageLog.logMessage(

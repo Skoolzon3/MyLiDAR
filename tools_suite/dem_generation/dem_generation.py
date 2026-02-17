@@ -56,9 +56,9 @@ class DemGenerationTask(QgsTask):
     def log_step(self, step_name, details="", relevancy="info"):
         timestamp = QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss")
         levels = {
-            "info": (Qgis.Info, "INFO"),
-            "warning": (Qgis.Warning, "WARNING"),
-            "critical": (Qgis.Critical, "CRITICAL")
+            "info": (Qgis.Info, self.tr("INFO")),
+            "warning": (Qgis.Warning, self.tr("WARNING")),
+            "critical": (Qgis.Critical, self.tr("CRITICAL"))
         }
         level = levels.get(relevancy, levels["info"])
         entry = f"[{timestamp}] {level[1]}  {step_name}: {details}"
@@ -67,17 +67,17 @@ class DemGenerationTask(QgsTask):
 
     def run(self):
         try:
-            self.log_step("PROCESS START", f"Input: {os.path.basename(self.input_filename)}, Cell Size: {self.cell_size}, Triangulation: {self.use_triangulation}, Hillshade: {self.hillshade_requested}")
+            self.log_step(self.tr("PROCESS START"), f"Input: {os.path.basename(self.input_filename)}, Cell Size: {self.cell_size}, Triangulation: {self.use_triangulation}, Hillshade: {self.hillshade_requested}")
 
             # Step 1: Read input file
-            self.log_step("READING INPUT FILE", self.input_filename, "info")
+            self.log_step(self.tr("READING INPUT FILE"), self.input_filename, "info")
             las = laspy.read(self.input_filename, laz_backend=LazBackend.Lazrs)
             pycrs = las.header.parse_crs(prefer_wkt=True)
             if pycrs:
                 self.output_crs = QgsCoordinateReferenceSystem(pycrs.to_wkt())
-                self.log_step("CRS DETECTED", f"From file header: {self.output_crs.authid()}", "info")
+                self.log_step(self.tr("CRS DETECTED"), f"From file header: {self.output_crs.authid()}", "info")
             else:
-                self.log_step("CRS WARNING", self.tr("No CRS found in file header. Checking input layer loaded in QGIS"), "warning")
+                self.log_step(self.tr("CRS NOT FOUND"), self.tr("No CRS found in file header. Checking input layer loaded in QGIS"), "warning")
 
                 matched_layer = None
                 for lyr in QgsProject.instance().mapLayers().values():
@@ -88,10 +88,10 @@ class DemGenerationTask(QgsTask):
                 if matched_layer:
                     if matched_layer.crs().isValid():
                         self.output_crs = matched_layer.crs()
-                        self.log_step("CRS ASSIGNED", f"{self.tr('Using CRS assigned in QGIS')}: {self.output_crs.authid()}", "info")
+                        self.log_step(self.tr("CRS ASSIGNED"), f"{self.tr('Using CRS assigned in QGIS')}: {self.output_crs.authid()}", "info")
 
                     else:
-                        self.log_step("INVALID CRS", self.tr("Matched layer CRS is invalid, no CRS will be assigned"), "warning")
+                        self.log_step(self.tr("INVALID CRS"), self.tr("Matched layer CRS is invalid, no CRS will be assigned"), "warning")
 
                 else:
                     self.log_step("NO LAYER MATCH", self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"), "warning")
@@ -287,7 +287,7 @@ class DemGenerationTask(QgsTask):
                         else:
                             f.write(f"\nFINAL STATUS: SUCCESS\n")
 
-                    self.log_step("LOG FILE WRITTEN", self.log_filename, "info")
+                    self.log_step(self.tr("LOG FILE WRITTEN"), self.log_filename, "info")
 
                 except Exception as log_error:
                     QgsMessageLog.logMessage(
