@@ -85,7 +85,7 @@ class RemoveOutliersTask(QgsTask):
                         self.log_step(self.tr("INVALID CRS"), self.tr("Matched layer CRS is invalid, no CRS will be assigned"), "warning")
 
                 else:
-                    self.log_step("NO LAYER MATCH", self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"), "warning")
+                    self.log_step(self.tr("NO LAYER MATCH"), self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"), "warning")
 
             self.setProgress(10)
 

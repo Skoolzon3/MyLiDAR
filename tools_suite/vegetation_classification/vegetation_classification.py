@@ -86,7 +86,7 @@ class VegetationClassificationTask(QgsTask):
                         self.log_step(self.tr("INVALID CRS"), self.tr("Matched layer CRS is invalid, no CRS will be assigned"), "warning")
 
                 else:
-                    self.log_step("NO LAYER MATCH", self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"), "warning")
+                    self.log_step(self.tr("NO LAYER MATCH"), self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"), "warning")
 
             # Step 2: Data preparation
             self.log_step("DATA PREPARATION", "Filtering ground and high vegetation points, and optionally classifying grass based on color", "info")
@@ -140,7 +140,7 @@ class VegetationClassificationTask(QgsTask):
 
             ground_xy = np.vstack((las.x[ground_idx], las.y[ground_idx])).T
             ground_z = las.z[ground_idx]
-            self.log_step("GROUND POINTS FILTERED", f"{len(ground_idx)} ground points found", "info")
+            self.log_step(self.tr("GROUND POINTS FILTERED"), f"{len(ground_idx)} ground points found", "info")
             self.setProgress(30)
 
             # Step 4: Filter points originally marked as high vegetation
@@ -241,10 +241,10 @@ class VegetationClassificationTask(QgsTask):
                 )
             else:
                 if self.exception:
-                    self.log_step("ERROR EXCEPTION", f"{self.tr('An error occurred during vegetation classification')}: {self.exception}", "critical")
+                    self.log_step(self.tr("ERROR EXCEPTION"), f"{self.tr('An error occurred during vegetation classification')}: {self.exception}", "critical")
                     QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error During Classification"), f"{self.tr('An error occurred')}:\n{self.exception}")
                 else:
-                    self.log_step("TASK CANCELED", self.tr('Vegetation classification was canceled by the user'), "info")
+                    self.log_step(self.tr("TASK CANCELED"), self.tr('Vegetation classification was canceled by the user'), "info")
 
             if self.log_filename:
                 try:

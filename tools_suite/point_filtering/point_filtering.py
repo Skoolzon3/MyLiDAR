@@ -83,7 +83,7 @@ class FilterPointsTask(QgsTask):
                         self.log_step(self.tr("INVALID CRS"), self.tr("Matched layer CRS is invalid, no CRS will be assigned"), "WARNING")
 
                 else:
-                    self.log_step("NO LAYER MATCH", self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"), "WARNING")
+                    self.log_step(self.tr("NO LAYER MATCH"), self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"), "WARNING")
 
             self.log_step("CLASSIFICATION FILTERING", f"Total classifications: {len(las.classification)}, Target classes: {self.selected_classes}", "INFO")
             classifications = las.classification
@@ -147,10 +147,10 @@ class FilterPointsTask(QgsTask):
 
             else:
                 if self.exception:
-                    self.log_step("ERROR EXCEPTION", f"{self.tr('An error occurred during point filtering')}: {self.exception}", "CRITICAL")
+                    self.log_step(self.tr("ERROR EXCEPTION"), f"{self.tr('An error occurred during point filtering')}: {self.exception}", "CRITICAL")
                     QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error Filtering Points"), f"{self.tr('An error occurred')}:\n{self.exception}")
                 else:
-                    self.log_step("TASK CANCELED", self.tr('Point filtering was canceled by the user'), "INFO")
+                    self.log_step(self.tr("TASK CANCELED"), self.tr('Point filtering was canceled by the user'), "INFO")
 
             if self.log_filename:
                 try:
