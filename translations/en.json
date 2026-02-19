@@ -27,7 +27,7 @@
   "Search radius:": "Search radius:",
   "Minimum neighbors:": "Minimum neighbors:",
   " units": " units",
-  "Search radius for neighbor detection. The same units are used as the coordinate reference system of the input data.": "Search radius for neighbor detection. The same units are used as the coordinate reference system of the input data.",
+  "Search radius for neighbor detection. Uses layer CRS units when assigned, or raw coordinate units otherwise.": "Search radius for neighbor detection. Uses layer CRS units when assigned, or raw coordinate units otherwise.",
 
 
 
@@ -84,6 +84,8 @@
   "Classifying vegetation in the background": "Classifying vegetation in the background",
   "Enable grass classification (color-based)": "Enable grass classification (color-based)",
   "Grass (color-based from ground)": "Grass (color-based from ground)",
+  "Height threshold for low vegetation. Uses layer CRS vertical units when assigned, or raw coordinate units otherwise.": "Height threshold for low vegetation. Uses layer CRS vertical units when assigned, or raw coordinate units otherwise.",
+  "Height threshold for high vegetation. Uses layer CRS vertical units when assigned, or raw coordinate units otherwise.": "Height threshold for high vegetation. Uses layer CRS vertical units when assigned, or raw coordinate units otherwise.",
 
 
 
@@ -156,6 +158,7 @@
   "Sun/light direction in degrees clockwise from North (0°=N, 90°=E, 180°=S, 270°=W). Default=300° (NW lighting).": "Sun/light direction in degrees clockwise from North (0°=N, 90°=E, 180°=S, 270°=W). Default=300° (NW lighting).",
   "Vertical angle:": "Vertical angle:",
   "Sun elevation above horizon (0°=horizon, 90°=overhead). Lower values create more shadows. Default=40° (midday sun).": "Sun elevation above horizon (0°=horizon, 90°=overhead). Lower values create more shadows. Default=40° (midday sun).",
+  "DEM grid cell size. Uses layer CRS units when assigned, or raw coordinate units otherwise.": "DEM grid cell size. Uses layer CRS units when assigned, or raw coordinate units otherwise.",
 
 
 

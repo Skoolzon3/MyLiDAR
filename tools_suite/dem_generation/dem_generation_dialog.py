@@ -77,6 +77,7 @@ class DemGenerationDialog(QDialog):
         self.cell_size_spin.setValue(1.0)
         self.cell_size_spin.setDecimals(2)
         self.cell_size_spin.setSuffix(self.tr(" units"))
+        self.cell_size_spin.setToolTip(self.tr("DEM grid cell size. Uses layer CRS units when assigned, or raw coordinate units otherwise."))
         param_layout.addRow(self.cell_size_label, self.cell_size_spin)
 
         # Hillshade checkbox

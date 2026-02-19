@@ -27,7 +27,7 @@
   "Search radius:": "Radio de búsqueda:",
   "Minimum neighbors:": "Vecinos mínimos:",
   " units": " unidades",
-  "Search radius for neighbor detection. The same units are used as the coordinate reference system of the input data.": "Radio de búsqueda de detección de vecinos. Se utilizan las mismas unidades que el sistema de referencia de coordenadas de los datos de entrada.",
+  "Search radius for neighbor detection. Uses layer CRS units when assigned, or raw coordinate units otherwise.": "Radio de búsqueda de detección de vecinos. Usa las unidades del SRC de la capa cuando se asigna, o las unidades de coordenadas sin procesar de lo contrario.",
 
 
 
@@ -84,6 +84,8 @@
   "Classifying vegetation in the background": "Clasificando vegetaciónen segundo plano",
   "Enable grass classification (color-based)": "Habilitar clasificación de césped (basada en color)",
   "Grass (color-based from ground)": "Césped (basado en color del suelo)",
+  "Height threshold for low vegetation. Uses layer CRS vertical units when assigned, or raw coordinate units otherwise.": "Umbral de altura para vegetación baja. Usa las unidades verticales del SRC de la capa cuando se asigna, o las unidades de coordenadas sin procesar de lo contrario.",
+  "Height threshold for high vegetation. Uses layer CRS vertical units when assigned, or raw coordinate units otherwise.": "Umbral de altura para vegetación alta. Usa las unidades verticales del SRC de la capa cuando se asigna, o las unidades de coordenadas sin procesar de lo contrario.",
 
 
 
@@ -156,6 +158,7 @@
   "Sun/light direction in degrees clockwise from North (0°=N, 90°=E, 180°=S, 270°=W). Default=300° (NW lighting).": "Dirección de la luz/sol en grados en sentido horario desde el norte (0°=N, 90°=E, 180°=S, 270°=O). Por defecto=300° (iluminación del noroeste).",
   "Vertical angle:": "Ángulo vertical:",
   "Sun elevation above horizon (0°=horizon, 90°=overhead). Lower values create more shadows. Default=40° (midday sun).": "Elevación del sol sobre el horizonte (0°=horizonte, 90°=cenital). Valores más bajos crean más sombras. Por defecto=40° (sol del mediodía).",
+  "DEM grid cell size. Uses layer CRS units when assigned, or raw coordinate units otherwise.": "Tamaño de celda del MDE. Usa las unidades del SRC de la capa cuando se asigna, o las unidades de coordenadas sin procesar de lo contrario.",
 
 
 

@@ -136,7 +136,7 @@ class FeatureCountDialog(QDialog):
         self.radius_spin.setSingleStep(0.1)
         self.radius_spin.setValue(2.0)
         self.radius_spin.setSuffix(self.tr(" units"))
-        self.radius_spin.setToolTip(self.tr("Search radius for neighbor detection. The same units are used as the coordinate reference system of the input data."))
+        self.radius_spin.setToolTip(self.tr("Search radius for neighbor detection. Uses layer CRS units when assigned, or raw coordinate units otherwise."))
         param_layout.addRow(tr("Search radius:"), self.radius_spin)
 
         # Min samples

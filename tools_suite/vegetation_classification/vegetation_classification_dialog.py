@@ -81,6 +81,7 @@ class VegetationClassificationDialog(QDialog):
         self.low_thresh_spin.setDecimals(2)
         self.low_thresh_spin.setValue(1.0)
         self.low_thresh_spin.setSuffix(self.tr(" units"))
+        self.low_thresh_spin.setToolTip(self.tr("Height threshold for low vegetation. Uses layer CRS vertical units when assigned, or raw coordinate units otherwise."))
         param_layout.addRow(self.tr("Low vegetation threshold:"), self.low_thresh_spin)
 
         # High vegetation threshold
@@ -90,6 +91,7 @@ class VegetationClassificationDialog(QDialog):
         self.high_thresh_spin.setDecimals(2)
         self.high_thresh_spin.setValue(3.0)
         self.high_thresh_spin.setSuffix(self.tr(" units"))
+        self.high_thresh_spin.setToolTip(self.tr("Height threshold for high vegetation. Uses layer CRS vertical units when assigned, or raw coordinate units otherwise."))
         param_layout.addRow(self.tr("High vegetation threshold:"), self.high_thresh_spin)
 
         self.low_thresh_spin.valueChanged.connect(self.validate_thresholds)
