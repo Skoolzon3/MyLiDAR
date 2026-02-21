@@ -74,22 +74,7 @@ C:\PROGRA~1\QGIS34~1.3>
 ```
 
 #### macOS
- 1. Open the macOS terminal
- 2. Navigate to the following path:
-    ```bash
-    /Applications/"Your_QGIS_Version".app/Contents/MacOS/bin/
-    ```
- 3. Paste and execute the following command:
-    ```bash
-    pip install laspy[lazrs,laszip] scipy GDAL OSR matplotlib reportlab scikit-learn shapely
-    ```
- 4. Update the sip and PyQt5-sip modules to ensure compatibility between PyQt and QGIS.
-    ```bash
-    pip install sip --upgrade
-    ```
-    ```bash
-    pip install PyQt5-sip --upgrade
-    ```
+No prior dependencies need to be installed. The necessary dependencies are installed alongside the plugin. Due to the way Python runs in QGIS, you can open multiple instances of QGIS. Simply close these until the installation is complete. This error occurs because Pip attempts to install package dependencies by calling a new Python interpreter, which is launched on another instance of QGIS. 
 
 #### Linux (Ubuntu/Debian)
  1. Open the Linux terminal
@@ -178,22 +163,7 @@ C:\PROGRA~1\QGIS34~1.3>
 ```
 
 #### macOS
- 1. Abra el terminal de macOS
- 2. Desplácese a la siguiente ruta:
-    ```bash
-    /Applications/«Tu_versión_de_QGIS».app/Contents/MacOS/bin/
-    ```
- 3. Pegue y ejecute el siguiente comando:
-    ```bash
-    pip install laspy[lazrs,laszip] scipy GDAL OSR matplotlib reportlab scikit-learn shapely
-    ```
- 4. Actualice los módulos sip y PyQt5-sip para asegurar la compatibilidad entre PyQt y QGIS
-    ```bash
-    pip install sip --upgrade
-    ```
-    ```bash
-    pip install PyQt5-sip --upgrade
-    ```
+No es necesario instalar dependencias previas. Las dependencias necesarias son instaladas junto con el plugin. Derivado del entorno sobre el que se ejecuta Python en QGIS, puede abrir otras instancias de QGIS. Simplemente ciérrelas hasta finalizar la instalación. Este error deriva de que pip intenta instalar depedencias de los paquetes llamando a un nuevo intérprete de Python, que es iniciado sobre otra instancia de QGIS.
 
 #### Linux (Ubuntu/Debian)
  1. Abra el terminal de Linux

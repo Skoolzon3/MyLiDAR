@@ -3,7 +3,7 @@ import subprocess
 import sys
 import os
 
-def ensure_dependencies():
+def windows_dependencies():
     packages = {
         "laspy": "laspy",
         "scipy": "scipy",
@@ -30,6 +30,23 @@ def ensure_dependencies():
                 QMessageBox.critical(None, "Dependency installation failed",
                     f"Failed to install {pip_name}\n\nError: {e}")
                 raise
+
+
+def other_so_dependencies():
+   from pip._internal.cli.main import main as pip_main
+
+   packages = ['laspy[lazrs,laszip]', 'scipy', 'GDAL', 'OSR', 'matplotlib', 'reportlab', 'scikit-learn', 'shapely']
+
+   for pip_name in packages:
+       pip_main(["install", "--upgrade", pip_name])
+
+
+def ensure_dependencies():
+    if sys.platform == "win32":
+        windows_dependencies()
+    else:
+        other_so_dependencies()
+
 
 def classFactory(iface):
     ensure_dependencies()
