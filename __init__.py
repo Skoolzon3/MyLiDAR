@@ -33,12 +33,25 @@ def windows_dependencies():
 
 
 def other_so_dependencies():
-   from pip._internal.cli.main import main as pip_main
+    from pip._internal.cli.main import main as pip_main
 
-   packages = ['laspy[lazrs,laszip]', 'scipy', 'GDAL', 'OSR', 'matplotlib', 'reportlab', 'scikit-learn', 'shapely']
-
-   for pip_name in packages:
-       pip_main(["install", "--upgrade", pip_name])
+    packages = {
+        "laspy": "laspy[lazrs,laszip]",
+        "scipy": "scipy",
+        "osgeo.gdal": None,
+        "osgeo.osr": None,
+        "matplotlib": "matplotlib",
+        "reportlab": "reportlab",
+        "sklearn": "scikit-learn",
+        "shapely": "shapely"
+    }
+    
+    for module_name, pip_name in packages.items():
+        try:
+            importlib.import_module(module_name)
+        except ImportError:
+            if pip_name is not None:
+                pip_main(["install", "--upgrade", pip_name])
 
 
 def ensure_dependencies():
