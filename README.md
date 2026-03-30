@@ -32,18 +32,6 @@ These functions are compatible with LiDAR `.las` and `.laz` files, and their exe
 
 6. Manually activate the plugin from ``Plugins → Manage and Install Plugins → Installed``.
 
-<!-- Manual installation -->
-
-<!-- 1.Copy the plugin repository into your own QGIS plugin directory (in this example, the `plugins` folder):
-   - **Windows:** `%APPDATA%\QGIS\QGIS3\profiles\default\python\plugins\`
-   - **Linux:** `~/.local/share/QGIS/QGIS3/profiles/default/python/plugins/`
-
-   **Note:** The paths above correspond to the **default** QGIS profile. If you are using a custom profile, replace `default` with your profile name (e.g., `profiles/my_profile/python/plugins/`).
-
-  2. Restart QGIS.
-
-  3. Manually activate the plugin from ``Plugins → Manage and Install Plugins``.-->
-
 ### Dependencies
 This plugin requires the following Python libraries:
 - **laspy** for reading and writing LAS/LAZ files.
@@ -74,7 +62,7 @@ C:\PROGRA~1\QGIS34~1.3>
 ```
 
 #### macOS
-No prior dependencies need to be installed. The necessary dependencies are installed alongside the plugin. Due to the way Python runs in QGIS, you can open multiple instances of QGIS. Simply close these until the installation is complete. This error occurs because Pip attempts to install package dependencies by calling a new Python interpreter, which is launched on another instance of QGIS. 
+No prior dependencies need to be installed. The necessary dependencies are installed alongside the plugin. Due to the way Python runs in QGIS, you can open multiple instances of QGIS. Simply close these until the installation is complete. This error occurs because Pip attempts to install package dependencies by calling a new Python interpreter, which is launched on another instance of QGIS.
 
 #### Linux (Ubuntu/Debian)
  1. Open the Linux terminal
@@ -121,17 +109,6 @@ Estas funciones son compatibles con archivos LiDAR `.las` y `.laz`, y su ejecuci
 5. Reinicie QGIS.
 
 6. Active manualmente el complemento desde ``Complementos → Administrar e instalar complementos → Instalados``.
-
-<!-- Instalación manual -->
-
-<!-- 1. Copie la carpeta del complemento en su directorio de complementos QGIS propio (en este ejemplo, la carpeta `plugins`):
-   - **Windows:** `%APPDATA%\QGIS\QGIS3\profiles\default\python\plugins\`
-   - **Linux:** `~/.local/share/QGIS/QGIS3/profiles/default/python/plugins/`
-
-   **Nota:** Las rutas anteriores corresponden al perfil **predeterminado** de QGIS. Si utiliza un perfil personalizado, sustituya «predeterminado» por el nombre de su perfil (por ejemplo, «perfiles/mi_perfil/python/plugins/»).
-
-2. Reinicie QGIS.
-3. Active manualmente el complemento desde **Complementos > Administrar e instalar complementos**. -->
 
 ### Dependencias
 Este complemento requiere las siguientes bibliotecas de Python:
