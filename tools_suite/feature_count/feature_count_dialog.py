@@ -293,7 +293,9 @@ class FeatureCountDialog(QDialog):
             f"{base_name}_{suffix}"
         )
 
-        self.output_edit.setText(default_output)
+        self.building_output.setText(default_output)
+        self.tree_output.setText(default_output)
+        self.bridge_output.setText(default_output)
 
     def select_input_file(self):
         filename, _ = QFileDialog.getOpenFileName(
