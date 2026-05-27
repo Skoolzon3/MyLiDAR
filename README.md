@@ -4,6 +4,9 @@
 
 ## English
 
+### NEWS
+After a thorough review, this project's work has been featured in an indexed journal! Check it out for yourself at https://link.springer.com/article/10.1007/s12145-026-02126-6
+
 ### Description
 **MyLiDAR** is a QGIS 3.44 plugin that provides an expanding suite of tools to process and analyze LiDAR point clouds.
 In addition to generating detailed reports from LAS/LAZ files, the plugin offers point cloud cleaning, vegetation classification, feature counting, and statistical analysis, all integrated directly into QGIS.
@@ -81,8 +84,10 @@ Plugin developed in collaboration with the Media Engineering Group (GIM) of the 
 
 ## Español
 
-### Descripción
+### NOTICIAS
+Tras una revisión exhaustiva, ¡el trabajo de este proyecto ha sido publicado en una revista indexada! Échale un vistazo tú mismo en https://link.springer.com/article/10.1007/s12145-026-02126-6
 
+### Descripción
 **MyLiDAR** es un complemento de QGIS 3.44 que proporciona un conjunto de herramientas en expansión para procesar y analizar nubes de puntos LiDAR.
 Además de generar informes detallados a partir de archivos LAS/LAZ, el complemento ofrece limpieza de nubes de puntos, clasificación de vegetación, recuento de elementos y análisis estadístico, todo ello integrado directamente en QGIS.
 
@@ -154,3 +159,4 @@ Se recomienda utilizar la última versión estable de QGIS para aprovechar su fu
 
 ### Agradecimientos
 Complemento desarrollado en colaboración con el Grupo de Ingeniería de Medios (GIM) de la Escuela Politécnica de Cáceres.
+Tras una exhaustiva revisión, ¡el trabajo de este proyecto ha sido publicado en una revista indexada! Échale un vistazo tú mismo en https://link.springer.com/article/10.1007/s12145-026-02126-6
