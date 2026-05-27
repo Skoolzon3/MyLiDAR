@@ -36,7 +36,7 @@ These functions are compatible with LiDAR `.las` and `.laz` files, and their exe
 This plugin requires the following Python libraries:
 - **laspy** for reading and writing LAS/LAZ files.
 - **GDAL** and **OSR** for geospatial data manipulation.
-- **numpy** for numerical calculations and statistical queries. ()
+- **numpy** for numerical calculations and statistical queries.
 - **scikit-learn** for point clustering.
 - **scipy** for scientific data processing and analysis.
 - **matplotlib** for generating graphs and visualisations.
@@ -150,7 +150,7 @@ No es necesario instalar dependencias previas. Las dependencias necesarias son i
     ```
 
 ### Disponibilidad
-Se recomienda utilizar la última versión estable de QGIS para aprovechar su funcionalidad al máximo. No compatible con versiones anteriores a QGIS 3.18.
+Se recomienda utilizar la última versión estable de QGIS para aprovechar su funcionalidad al máximo. Actuakmente compatible con versiones posteriores a QGIS 3.18 y anteriores a QGIS 4.0
 
 ### Agradecimientos
 Complemento desarrollado en colaboración con el Grupo de Ingeniería de Medios (GIM) de la Escuela Politécnica de Cáceres.
