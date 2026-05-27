@@ -72,7 +72,7 @@ No prior dependencies need to be installed. The necessary dependencies are insta
     ```
 
 ### Availability
-We recommend using the latest stable version of QGIS to take full advantage of its functionality. Not compatible with versions prior to QGIS 3.18.
+We recommend using the latest stable version of QGIS to take full advantage of its functionality. Currently compatible with versions later than QGIS 3.18 and earlier than QGIS 4.0.
 
 ### Acknowledgements
 Plugin developed in collaboration with the Media Engineering Group (GIM) of the Polytechnic School of Cáceres.
@@ -150,7 +150,7 @@ No es necesario instalar dependencias previas. Las dependencias necesarias son i
     ```
 
 ### Disponibilidad
-Se recomienda utilizar la última versión estable de QGIS para aprovechar su funcionalidad al máximo. Actuakmente compatible con versiones posteriores a QGIS 3.18 y anteriores a QGIS 4.0
+Se recomienda utilizar la última versión estable de QGIS para aprovechar su funcionalidad al máximo. Actualmente compatible con versiones posteriores a QGIS 3.18 y anteriores a QGIS 4.0.
 
 ### Agradecimientos
 Complemento desarrollado en colaboración con el Grupo de Ingeniería de Medios (GIM) de la Escuela Politécnica de Cáceres.
