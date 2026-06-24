@@ -295,7 +295,7 @@ class OutlierRemovalDialog(QDialog):
             self.log_edit.setText(default_log)
 
     def on_log_changed(self, state):
-        enabled = state == Qt.Checked
+        enabled = state == Qt.CheckState.Checked
         self.log_edit.setEnabled(enabled)
         self.log_button.setEnabled(enabled)
 

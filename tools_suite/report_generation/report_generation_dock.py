@@ -14,7 +14,7 @@ class ReportDock(QDockWidget):
         self.tr = translator if translator else (lambda s: s)
         super().__init__(self.tr("LiDAR Statistics"), parent)
 
-        self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        self.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea)
 
         self.container = QWidget()
         self.layout = QVBoxLayout(self.container)
@@ -67,7 +67,7 @@ class ReportDock(QDockWidget):
 
         label = QLabel()
         label.setPixmap(pixmap)
-        label.setAlignment(Qt.AlignCenter)
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         vbox = QVLayout(dialog)
         vbox.addWidget(label)

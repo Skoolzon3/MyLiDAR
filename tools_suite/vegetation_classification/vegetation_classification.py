@@ -289,7 +289,7 @@ class VegetationClassificationTask(QgsTask):
 def classify_vegetation(self):
     # Step 1: Select input/output file path and parameters via dialog
     dialog = VegetationClassificationDialog(self.iface.mainWindow(), translator=self.tr)
-    if dialog.exec() != QDialog.accepted:
+    if dialog.exec() != QDialog.DialogCode.Accepted:
         return
 
     input_filename, output_filename = dialog.get_input_output()

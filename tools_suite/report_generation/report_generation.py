@@ -244,7 +244,7 @@ class ReportGenerationTask(QgsTask):
             if self.show_dock and getattr(self, "is_primary_task", True):
                 if not hasattr(self.parent, "lidar_report_dock") or self.parent.lidar_report_dock is None or not self.parent.lidar_report_dock.isVisible():
                     self.parent.lidar_report_dock = ReportDock(self.parent.iface.mainWindow(), translator=self.tr)
-                    self.parent.iface.addDockWidget(Qt.RightDockWidgetArea, self.parent.lidar_report_dock)
+                    self.parent.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.parent.lidar_report_dock)
 
                 self.parent.lidar_report_dock.clear()
                 self.parent.lidar_report_dock.add_text(self.report_text)
@@ -369,7 +369,7 @@ def generate_report(self):
 
     # Step 1: Select input/output file path
     dialog = ReportGenerationDialog(self.iface.mainWindow(), tr=self.tr)
-    if dialog.exec() != QDialog.accepted:
+    if dialog.exec() != QDialog.DialogCode.Accepted:
         return
 
     input_path, output_path = dialog.get_input_output()

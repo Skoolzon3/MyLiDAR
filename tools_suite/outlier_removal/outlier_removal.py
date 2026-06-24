@@ -231,7 +231,7 @@ class RemoveOutliersTask(QgsTask):
 def remove_outliers(self):
     # Step 1: Select input file path and parameters via dialog
     dialog = OutlierRemovalDialog(self.iface.mainWindow(), translator=self.tr)
-    if dialog.exec() != QDialog.accepted:
+    if dialog.exec() != QDialog.DialogCode.Accepted:
         return
 
     input_filename, output_filename = dialog.get_input_output()

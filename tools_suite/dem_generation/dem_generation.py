@@ -305,7 +305,7 @@ class DemGenerationTask(QgsTask):
 
 def generate_bare_earth_dem(self):
     dialog = DemGenerationDialog(self.iface.mainWindow(), translator=self.tr)
-    if dialog.exec() != QDialog.accepted:
+    if dialog.exec() != QDialog.DialogCode.Accepted:
         return
 
     input_path, output_path = dialog.get_input_output()

@@ -221,10 +221,10 @@ class FeatureCountTask(QgsTask):
                     vl.setCrs(QgsCoordinateReferenceSystem.fromEpsgId(4326))
 
                 pr.addAttributes([
-                    QgsField("cluster_id", QMetaType.Int),
-                    QgsField("num_points", QMetaType.Int),
-                    QgsField("area_m2", QMetaType.Double, "double", 20, 6),
-                    QgsField("est_h_m", QMetaType.Double, "double", 20, 3)
+                    QgsField("cluster_id", QMetaType.Type.Int),
+                    QgsField("num_points", QMetaType.Type.Int),
+                    QgsField("area_m2", QMetaType.Type.Double, "double", 20, 6),
+                    QgsField("est_h_m", QMetaType.Type.Double, "double", 20, 3)
                 ])
                 vl.updateFields()
                 feats = []
