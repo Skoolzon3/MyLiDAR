@@ -35,7 +35,7 @@ class DemGenerationDialog(QDialog):
         left_layout = QVBoxLayout(left_panel)
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.setSpacing(8)
-        left_layout.setAlignment(Qt.AlignTop)
+        left_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         # --- Input selection ---
         left_layout.addWidget(QLabel(self.tr("LiDAR layer or file:")))
@@ -131,7 +131,7 @@ class DemGenerationDialog(QDialog):
         self.hillshade_output_button.clicked.connect(self.select_hillshade_output_file)
 
         left_layout.addWidget(param_group)
-        left_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
+        left_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
         self.method_combo.currentIndexChanged.connect(self.on_method_changed)
         self.on_method_changed(self.method_combo.currentIndex())
@@ -157,7 +157,7 @@ class DemGenerationDialog(QDialog):
         left_layout.addLayout(log_path_layout)
 
         # --- OK / Cancel buttons ---
-        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         left_layout.addWidget(buttons)
 
         # --- Right Panel (Description) ---

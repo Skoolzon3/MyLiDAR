@@ -37,7 +37,7 @@ class VegetationClassificationDialog(QDialog):
         left_layout = QVBoxLayout(left_panel)
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.setSpacing(8)
-        left_layout.setAlignment(Qt.AlignTop)
+        left_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         # --- Input selection ---
         left_layout.addWidget(QLabel(self.tr("LiDAR layer or file:")))
@@ -50,7 +50,7 @@ class VegetationClassificationDialog(QDialog):
         self.input_button = QPushButton("...")
         self.input_button.setToolTip(self.tr("Select input file (.las / .laz)"))
         self.input_button.setFixedWidth(28)
-        self.input_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.input_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         input_layout.addWidget(self.input_button)
         left_layout.addLayout(input_layout)
 
@@ -65,14 +65,14 @@ class VegetationClassificationDialog(QDialog):
         self.output_button = QPushButton("...")
         self.output_button.setToolTip(self.tr("Select output file (.las / .laz)"))
         self.output_button.setFixedWidth(28)
-        self.output_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.output_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         output_layout.addWidget(self.output_button)
         left_layout.addLayout(output_layout)
 
         # --- Parameters group ---
         param_group = QGroupBox(self.tr("Vegetation Height Thresholds"))
         param_layout = QFormLayout(param_group)
-        param_layout.setLabelAlignment(Qt.AlignRight)
+        param_layout.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
 
         # Low vegetation threshold
         self.low_thresh_spin = QDoubleSpinBox()
@@ -98,7 +98,7 @@ class VegetationClassificationDialog(QDialog):
         self.high_thresh_spin.valueChanged.connect(self.validate_thresholds)
 
         left_layout.addWidget(param_group)
-        left_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
+        left_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
         # Grass classification checkbox
         self.classify_grass_check = QCheckBox(self.tr("Enable grass classification (color-based)"))
@@ -126,14 +126,14 @@ class VegetationClassificationDialog(QDialog):
         left_layout.addLayout(log_path_layout)
 
         # --- OK / Cancel buttons ---
-        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         left_layout.addWidget(buttons)
 
         # --- Right Panel (Description) ---
         desc_box = QTextBrowser()
         desc_box.setOpenExternalLinks(False)
         desc_box.setFixedWidth(320)
-        desc_box.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        desc_box.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
         desc_box.setStyleSheet("""
             QTextBrowser {
                 background-color: #fafafa;

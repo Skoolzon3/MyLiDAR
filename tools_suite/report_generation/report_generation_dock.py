@@ -18,7 +18,7 @@ class ReportDock(QDockWidget):
 
         self.container = QWidget()
         self.layout = QVBoxLayout(self.container)
-        self.layout.setAlignment(Qt.AlignTop)
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.layout.setContentsMargins(12, 12, 12, 12)
         self.layout.setSpacing(15)
 
@@ -74,4 +74,4 @@ class ReportDock(QDockWidget):
         dialog.setLayout(vbox)
 
         dialog.resize(pixmap.width(), pixmap.height())
-        dialog.exec_()
+        dialog.exec()

@@ -34,7 +34,7 @@ class FeatureCountDialog(QDialog):
         left_layout = QVBoxLayout(left_panel)
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.setSpacing(8)
-        left_layout.setAlignment(Qt.AlignTop)
+        left_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         # --- Input selection ---
         left_layout.addWidget(QLabel(tr("LiDAR layer or file:")))
@@ -53,8 +53,8 @@ class FeatureCountDialog(QDialog):
         # --- Clustering parameters group ---
         param_group = QGroupBox(tr("DBSCAN Parameters"))
         param_layout = QFormLayout(param_group)
-        param_layout.setLabelAlignment(Qt.AlignLeft)
-        param_layout.setFormAlignment(Qt.AlignTop)
+        param_layout.setLabelAlignment(Qt.AlignmentFlag.AlignLeft)
+        param_layout.setFormAlignment(Qt.AlignmentFlag.AlignTop)
 
         # --- Feature type selection ---
         feature_group = QGroupBox(tr("Feature Types to Count"))
@@ -152,7 +152,7 @@ class FeatureCountDialog(QDialog):
         param_layout.addRow("", self.use_z_check)
 
         left_layout.addWidget(param_group)
-        left_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
+        left_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
         # Concave hull target percent (0 = very concave, 1 = convex)
         self.hull_target_spin = QDoubleSpinBox()
@@ -187,7 +187,7 @@ class FeatureCountDialog(QDialog):
         left_layout.addLayout(log_path_layout)
 
         # --- OK / Cancel buttons ---
-        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         left_layout.addWidget(buttons)
 
         # --- Right Panel (Description) ---

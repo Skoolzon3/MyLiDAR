@@ -36,7 +36,7 @@ class ReportGenerationDialog(QDialog):
         left_layout = QVBoxLayout(left_panel)
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.setSpacing(8)
-        left_layout.setAlignment(Qt.AlignTop)
+        left_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         # --- Input selection ---
         left_layout.addWidget(QLabel(tr("LiDAR layer or file:")))
@@ -48,7 +48,7 @@ class ReportGenerationDialog(QDialog):
         self.input_button = QPushButton("...")
         self.input_button.setToolTip(tr("Select input file (.las / .laz)"))
         self.input_button.setFixedWidth(28)
-        self.input_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.input_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         input_layout.addWidget(self.input_button)
         left_layout.addLayout(input_layout)
 
@@ -62,7 +62,7 @@ class ReportGenerationDialog(QDialog):
         self.output_button = QPushButton("...")
         self.output_button.setToolTip(tr("Select output file (.txt / .md / .pdf /.tex)"))
         self.output_button.setFixedWidth(28)
-        self.output_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.output_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         output_layout.addWidget(self.output_button)
         left_layout.addLayout(output_layout)
 
@@ -71,13 +71,13 @@ class ReportGenerationDialog(QDialog):
         scroll.setWidgetResizable(True)
         scroll_widget = QWidget()
         scroll_layout = QVBoxLayout(scroll_widget)
-        scroll_layout.setAlignment(Qt.AlignTop)
+        scroll_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         scroll.setWidget(scroll_widget)
         left_layout.addWidget(scroll, stretch=1)
 
         # === Section: Selection Info ===
         header_layout = QHBoxLayout()
-        header_layout.setAlignment(Qt.AlignLeft)
+        header_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         self.label = QLabel(self.tr("Report Attributes"))
         self.label.setStyleSheet("font-weight: 600; font-size: 9pt;")
@@ -122,7 +122,7 @@ class ReportGenerationDialog(QDialog):
         scroll_layout.addWidget(self.groupOutputFormat)
         self.groupOutputFormat.setCheckable(False)
         output_layout_format = QVBoxLayout(self.groupOutputFormat)
-        output_layout_format.setAlignment(Qt.AlignTop)
+        output_layout_format.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         # === File Metadata ===
         self.checkFileName = self.add_check(self.groupFileMetadata, "File Name", "File name of the LiDAR dataset")
@@ -186,7 +186,7 @@ class ReportGenerationDialog(QDialog):
         self.groupClassification.setChecked(False)
 
         # --- Spacer before buttons ---
-        scroll_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
+        scroll_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
         # --- Log file option ---
         log_layout = QHBoxLayout()
@@ -209,15 +209,15 @@ class ReportGenerationDialog(QDialog):
         left_layout.addLayout(log_path_layout)
 
         # --- OK/Cancel buttons ---
-        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         left_layout.addWidget(buttons)
-        self.ok_button = buttons.button(QDialogButtonBox.Ok)
+        self.ok_button = buttons.button(QDialogButtonBox.StandardButton.Ok)
 
         # --- Right Panel (Description) ---
         desc_box = QTextBrowser()
         desc_box.setOpenExternalLinks(False)
         desc_box.setFixedWidth(320)
-        desc_box.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        desc_box.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
         desc_box.setStyleSheet("""
             QTextBrowser {
                 background-color: #fafafa;
@@ -304,7 +304,7 @@ class ReportGenerationDialog(QDialog):
         group.setCheckable(True)
         group.setChecked(False)
         layout = QVBoxLayout(group)
-        layout.setAlignment(Qt.AlignTop)
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         parent_layout.addWidget(group)
         return group
 

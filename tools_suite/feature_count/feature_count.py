@@ -346,7 +346,7 @@ class FeatureCountTask(QgsTask):
 def count_features(self):
     # Step 1: Select input/output and parameters
     dialog = FeatureCountDialog(self.iface.mainWindow(), tr=self.tr)
-    if not dialog.exec_():
+    if not dialog.exec():
         return
 
     input_filename, output_map  = dialog.get_input_output()

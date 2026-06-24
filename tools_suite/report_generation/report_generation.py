@@ -369,7 +369,7 @@ def generate_report(self):
 
     # Step 1: Select input/output file path
     dialog = ReportGenerationDialog(self.iface.mainWindow(), tr=self.tr)
-    if dialog.exec_() != QDialog.Accepted:
+    if dialog.exec() != QDialog.accepted:
         return
 
     input_path, output_path = dialog.get_input_output()
