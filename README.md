@@ -8,7 +8,7 @@
 After a thorough review, this project's work has been featured in an indexed journal! Check it out for yourself at https://link.springer.com/article/10.1007/s12145-026-02126-6
 
 ### Description
-**MyLiDAR** is a QGIS 3.44 plugin that provides an expanding suite of tools to process and analyze LiDAR point clouds.
+**MyLiDAR** is a QGIS plugin that provides an expanding suite of tools to process and analyze LiDAR point clouds.
 In addition to generating detailed reports from LAS/LAZ files, the plugin offers point cloud cleaning, vegetation classification, feature counting, and statistical analysis, all integrated directly into QGIS.
 
 ### Features
@@ -21,6 +21,9 @@ In addition to generating detailed reports from LAS/LAZ files, the plugin offers
 - **Visualisation of LAS/LAZ file statistics**, including density, ranges and classification counts.
 
 These functions are compatible with LiDAR `.las` and `.laz` files, and their execution is aided by an intuitive user interface, integrated directly into the QGIS menu.
+
+### Availability
+This plugin is currently compatible with QGIS versions newer than 3.18 (see `release/qgis3` branch) and QGIS 4.0 (see `develop` branch). We recommend using the latest stable version of QGIS to take full advantage of its features.
 
 ### Installation
 1. Download the plugin by clicking on `<Code> → Download ZIP`, at the top of the repository.
@@ -74,9 +77,6 @@ No prior dependencies need to be installed. The necessary dependencies are insta
     pip install laspy[lazrs,laszip] scipy GDAL OSR matplotlib reportlab scikit-learn shapely
     ```
 
-### Availability
-We recommend using the latest stable version of QGIS to take full advantage of its functionality. Currently compatible with versions later than QGIS 3.18 and earlier than QGIS 4.0.
-
 ### Acknowledgements
 Plugin developed in collaboration with the Media Engineering Group (GIM) of the Polytechnic School of Cáceres.
 
@@ -88,8 +88,7 @@ Plugin developed in collaboration with the Media Engineering Group (GIM) of the 
 Tras una revisión exhaustiva, ¡el trabajo de este proyecto ha sido publicado en una revista indexada! Échale un vistazo tú mismo en https://link.springer.com/article/10.1007/s12145-026-02126-6
 
 ### Descripción
-**MyLiDAR** es un complemento de QGIS 3.44 que proporciona un conjunto de herramientas en expansión para procesar y analizar nubes de puntos LiDAR.
-Además de generar informes detallados a partir de archivos LAS/LAZ, el complemento ofrece limpieza de nubes de puntos, clasificación de vegetación, recuento de elementos y análisis estadístico, todo ello integrado directamente en QGIS.
+**MyLiDAR** es un complemento de QGIS que proporciona un conjunto de herramientas en expansión para procesar y analizar nubes de puntos LiDAR. Además de generar informes detallados a partir de archivos LAS/LAZ, el complemento ofrece limpieza de nubes de puntos, clasificación de vegetación, recuento de elementos y análisis estadístico, todo ello integrado directamente en QGIS.
 
 ### Características
 - **Generación de informes de archivos LiDAR** con metadatos, propiedades espaciales, intensidad, clasificaciones, retornos y hora GPS.
@@ -101,6 +100,9 @@ Además de generar informes detallados a partir de archivos LAS/LAZ, el compleme
 - **Visualización de estadísticas de archivos LAS/LAZ**, incluyendo la densidad, los rangos y los recuentos de clasificación.
 
 Estas funciones son compatibles con archivos LiDAR `.las` y `.laz`, y su ejecución se ayuda de una interfaz de usuario intuitiva, integrada directamente dentro del menú de QGIS.
+
+### Disponibilidad
+Este complemento es actualmente compatible con las versiones de QGIS posteriores a la 3.18 (véase rama `release/qgis3`) y con QGIS 4.0 (véase rama `develop`). Se recomienda utilizar la última versión estable de QGIS para aprovechar su funcionalidad al máximo.
 
 ### Instalación
 1. Descargue el complemento haciendo clic en ``<Código> → Descargar ZIP``, en la parte superior del repositorio.
@@ -154,9 +156,5 @@ No es necesario instalar dependencias previas. Las dependencias necesarias son i
     pip install laspy[lazrs,laszip] scipy GDAL OSR matplotlib reportlab scikit-learn shapely
     ```
 
-### Disponibilidad
-Se recomienda utilizar la última versión estable de QGIS para aprovechar su funcionalidad al máximo. Actualmente compatible con versiones posteriores a QGIS 3.18 y anteriores a QGIS 4.0.
-
 ### Agradecimientos
 Complemento desarrollado en colaboración con el Grupo de Ingeniería de Medios (GIM) de la Escuela Politécnica de Cáceres.
-Tras una exhaustiva revisión, ¡el trabajo de este proyecto ha sido publicado en una revista indexada! Échale un vistazo tú mismo en https://link.springer.com/article/10.1007/s12145-026-02126-6
