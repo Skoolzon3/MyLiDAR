@@ -5,7 +5,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-from qgis.PyQt.QtWidgets import QFileDialog
 
 # --------------------------------------
 # --- Auxiliary Formatting Functions ---
@@ -155,6 +154,8 @@ def generate_density_heatmap(x, y, tr, bins=500, as_buffer=True, title=None, fig
 # --- Log management functions ---
 # --------------------------------
 
+from qgis.PyQt.QtWidgets import QFileDialog
+
 def select_log_file(parent, caption: str, tr, initial_path: str = "") -> str | None:
     filename, _ = QFileDialog.getSaveFileName(parent, caption, initial_path,
         tr("Text files (*.txt);;All files (*.*)"))
@@ -170,3 +171,20 @@ def default_suffix_path(base_path: str, suffix: str, new_ext: str | None = None)
     if new_ext is None:
         new_ext = ext
     return os.path.join(dirname, basename + suffix + new_ext)
+
+# --------------------------------
+
+from qgis.core import Qgis, QgsMessageLog
+from qgis.PyQt.QtCore import QDateTime
+
+def log_step(plugin, step_name, details="", relevancy="info"):
+    timestamp = QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss")
+    levels = {
+        "info": (Qgis.Info, plugin.tr("INFO")),
+        "warning": (Qgis.Warning, plugin.tr("WARNING")),
+        "critical": (Qgis.Critical, plugin.tr("CRITICAL")),
+    }
+    level = levels.get(relevancy, levels["info"])
+    entry = f"[{timestamp}] {level[1]} {step_name}: {details}"
+    plugin.log_entries.append(entry)
+    QgsMessageLog.logMessage(f"{step_name}: {details}", "MyLiDAR", level[0])

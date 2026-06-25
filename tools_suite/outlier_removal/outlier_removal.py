@@ -7,13 +7,15 @@ import numpy as np
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QMessageBox, QDialog
 from qgis.core import QgsApplication, QgsPointCloudLayer, QgsProject, QgsTask, Qgis, QgsMessageLog, QgsCoordinateReferenceSystem
-from qgis.PyQt.QtCore import QDateTime
 
 # --- Method-specific imports ---
 from scipy.spatial import cKDTree
 
 # --- Dialog imports ---
 from .outlier_removal_dialog import OutlierRemovalDialog
+
+# --- Utility imports ---
+from ..utils import log_step
 
 # -----------------------
 # --- Outlier Removal ---
@@ -46,31 +48,19 @@ class RemoveOutliersTask(QgsTask):
         self.log_filename = log_filename
         self.log_entries = []
 
-    def log_step(self, step_name, details="", relevancy="info"):
-        timestamp = QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss")
-        levels = {
-            "info": (Qgis.Info, self.tr("INFO")),
-            "warning": (Qgis.Warning, self.tr("WARNING")),
-            "critical": (Qgis.Critical, self.tr("CRITICAL"))
-        }
-        level = levels.get(relevancy, levels["info"])
-        entry = f"[{timestamp}] {level[1]}  {step_name}: {details}"
-        self.log_entries.append(entry)
-        QgsMessageLog.logMessage(f"{step_name}: {details}", "MyLiDAR", level[0])
-
     def run(self):
         try:
-            self.log_step(self.tr("PROCESS START"), f"Input: {os.path.basename(self.input_filename)}, Radius: {self.radius}, Min neighbors: {self.min_neighbors}", "info")
+            log_step(self, self.tr("PROCESS START"), f"Input: {os.path.basename(self.input_filename)}, Radius: {self.radius}, Min neighbors: {self.min_neighbors}", "info")
 
             # Step 1: Read input file
-            self.log_step(self.tr("READING INPUT FILE"), self.input_filename, "info")
+            log_step(self, self.tr("READING INPUT FILE"), self.input_filename, "info")
             las = laspy.read(self.input_filename, laz_backend=LazBackend.Lazrs)
             pycrs = las.header.parse_crs(prefer_wkt=True)
             if pycrs:
                 self.output_crs = QgsCoordinateReferenceSystem(pycrs.to_wkt())
-                self.log_step(self.tr("CRS DETECTED"), f"From file header: {self.output_crs.authid()}", "info")
+                log_step(self, self.tr("CRS DETECTED"), f"From file header: {self.output_crs.authid()}", "info")
             else:
-                self.log_step(self.tr("CRS NOT FOUND"), self.tr("No CRS found in file header. Checking input layer loaded in QGIS"), "warning")
+                log_step(self, self.tr("CRS NOT FOUND"), self.tr("No CRS found in file header. Checking input layer loaded in QGIS"), "warning")
 
                 matched_layer = None
                 for lyr in QgsProject.instance().mapLayers().values():
@@ -80,30 +70,30 @@ class RemoveOutliersTask(QgsTask):
                 if matched_layer:
                     if matched_layer.crs().isValid():
                         self.output_crs = matched_layer.crs()
-                        self.log_step(self.tr("CRS ASSIGNED"), f"{self.tr('Using CRS assigned in QGIS')}: {self.output_crs.authid()}", "info")
+                        log_step(self, self.tr("CRS ASSIGNED"), f"{self.tr('Using CRS assigned in QGIS')}: {self.output_crs.authid()}", "info")
                     else:
-                        self.log_step(self.tr("INVALID CRS"), self.tr("Matched layer CRS is invalid, no CRS will be assigned"), "warning")
+                        log_step(self, self.tr("INVALID CRS"), self.tr("Matched layer CRS is invalid, no CRS will be assigned"), "warning")
 
                 else:
-                    self.log_step(self.tr("NO LAYER MATCH"), self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"), "warning")
+                    log_step(self, self.tr("NO LAYER MATCH"), self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"), "warning")
 
             self.setProgress(10)
 
             # Step 2: Build KD-tree
-            self.log_step(self.tr("BUILDING KD-TREE"), f"Indexing {las.header.point_count:,} points", "info")
+            log_step(self, self.tr("BUILDING KD-TREE"), f"Indexing {las.header.point_count:,} points", "info")
             coords = np.vstack((las.x, las.y, las.z)).T
             tree = cKDTree(coords)
             self.setProgress(20)
 
             # Step 3: Find outliers
-            self.log_step(self.tr("DETECTING OUTLIERS"), f"Processing {las.header.point_count:,} points in batches", "info")
+            log_step(self, self.tr("DETECTING OUTLIERS"), f"Processing {las.header.point_count:,} points in batches", "info")
             n_points = coords.shape[0]
             batch_size = max(10000, n_points // 100)  # ~100 updates
             neighbor_counts = np.empty(n_points, dtype=np.int32)
 
             for i in range(0, n_points, batch_size):
                 if self.isCanceled():
-                    self.log_step(self.tr("PROCESS CANCELED"), f"at batch {i//batch_size + 1}", "warning")
+                    log_step(self, self.tr("PROCESS CANCELED"), f"at batch {i//batch_size + 1}", "warning")
                     return False
 
                 j = min(i + batch_size, n_points)
@@ -116,15 +106,15 @@ class RemoveOutliersTask(QgsTask):
             mask = neighbor_counts >= self.min_neighbors
             self.num_removed = np.sum(~mask)
             self.num_remaining = np.sum(mask)
-            self.log_step(self.tr("OUTLIER STATISTICS"), f"Removed: {self.num_removed:,} ({100*self.num_removed/n_points:.1f}%), "f"Kept: {self.num_remaining:,} ({100*self.num_remaining/n_points:.1f}%)", "info")
+            log_step(self, self.tr("OUTLIER STATISTICS"), f"Removed: {self.num_removed:,} ({100*self.num_removed/n_points:.1f}%), "f"Kept: {self.num_remaining:,} ({100*self.num_remaining/n_points:.1f}%)", "info")
 
             if self.num_remaining == 0:
                 error_msg = "All points were classified as outliers. No data would remain"
-                self.log_step(self.tr("CRITICAL ERROR"), self.tr(error_msg), "critical")
+                log_step(self, self.tr("CRITICAL ERROR"), self.tr(error_msg), "critical")
                 raise ValueError(self.tr(error_msg))
 
             # Step 5: Create new LasData object with the filtered points
-            self.log_step(self.tr("CREATING FILTERED LAS FILE"), f"Copying {self.num_remaining:,} points", "info")
+            log_step(self, self.tr("CREATING FILTERED LAS FILE"), f"Copying {self.num_remaining:,} points", "info")
             new_header = las.header.copy()
             las_filtered = laspy.LasData(new_header)
             las_filtered.points = las.points[mask]
@@ -133,18 +123,18 @@ class RemoveOutliersTask(QgsTask):
             filtered_coords = coords[mask]
             las_filtered.header.min = [np.min(filtered_coords[:, 0]), np.min(filtered_coords[:, 1]), np.min(filtered_coords[:, 2])]
             las_filtered.header.max = [np.max(filtered_coords[:, 0]), np.max(filtered_coords[:, 1]), np.max(filtered_coords[:, 2])]
-            self.log_step(self.tr("HEADER UPDATED"), f"New extents: {las_filtered.header.min} to {las_filtered.header.max}", "info")
+            log_step(self, self.tr("HEADER UPDATED"), f"New extents: {las_filtered.header.min} to {las_filtered.header.max}", "info")
 
             # Step 6: Write new file to the output path
-            self.log_step(self.tr("WRITING OUTPUT FILE"), self.output_filename, "info")
+            log_step(self, self.tr("WRITING OUTPUT FILE"), self.output_filename, "info")
             las_filtered.write(self.output_filename)
             self.setProgress(100)
 
-            self.log_step(self.tr("PROCESS COMPLETE"), f"Output saved: {self.output_filename}", "info")
+            log_step(self, self.tr("PROCESS COMPLETE"), f"Output saved: {self.output_filename}", "info")
             return True
 
         except Exception as e:
-            self.log_step(self.tr("PROCESS FAILED"), f"Error: {str(e)}", "critical")
+            log_step(self, self.tr("PROCESS FAILED"), f"Error: {str(e)}", "critical")
             self.exception = e
             return False
 
@@ -213,7 +203,7 @@ class RemoveOutliersTask(QgsTask):
                         else:
                             f.write(f"\nFINAL STATUS: SUCCESS\n")
 
-                    self.log_step(self.tr("LOG FILE WRITTEN"), self.log_filename, "info")
+                    log_step(self, self.tr("LOG FILE WRITTEN"), self.log_filename, "info")
 
                 except Exception as log_error:
                     QgsMessageLog.logMessage(

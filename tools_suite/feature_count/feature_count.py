@@ -7,13 +7,16 @@ import numpy as np
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsField, QgsProject, QgsFillSymbol, QgsTask, QgsApplication, Qgis, QgsMessageLog, QgsVectorFileWriter, QgsCoordinateTransformContext, QgsCoordinateReferenceSystem, QgsPointCloudLayer, QgsPointXY
-from qgis.PyQt.QtCore import QMetaType, QDateTime
+from qgis.PyQt.QtCore import QMetaType
 
 # --- Method-specific imports ---
 from sklearn.cluster import DBSCAN
 
 # --- Dialog imports ---
 from .feature_count_dialog import FeatureCountDialog
+
+# --- Utility imports ---
+from ..utils import log_step
 
 # ---------------------
 # --- Feature Count ---
@@ -57,31 +60,19 @@ class FeatureCountTask(QgsTask):
         self.log_filename = log_filename
         self.log_entries = []
 
-    def log_step(self, step_name, details="", relevancy="info"):
-        timestamp = QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss")
-        levels = {
-            "info": (Qgis.Info, self.tr("INFO")),
-            "warning": (Qgis.Warning, self.tr("WARNING")),
-            "critical": (Qgis.Critical, self.tr("CRITICAL"))
-        }
-        level = levels.get(relevancy, levels["info"])
-        entry = f"[{timestamp}] {level[1]}  {step_name}: {details}"
-        self.log_entries.append(entry)
-        QgsMessageLog.logMessage(f"{step_name}: {details}", "MyLiDAR", level[0])
-
     def run(self):
         try:
-            self.log_step(self.tr("PROCESS START"), f"Input: {os.path.basename(self.input_filename)}, EPS: {self.eps}, MinPts: {self.min_samples}, Use Z: {self.use_z}")
+            log_step(self, self.tr("PROCESS START"), f"Input: {os.path.basename(self.input_filename)}, EPS: {self.eps}, MinPts: {self.min_samples}, Use Z: {self.use_z}")
 
             # Step 1: Read input file
-            self.log_step(self.tr("READING INPUT FILE"), self.input_filename, "info")
+            log_step(self, self.tr("READING INPUT FILE"), self.input_filename, "info")
             las = laspy.read(self.input_filename, laz_backend=LazBackend.Lazrs)
             pycrs = las.header.parse_crs(prefer_wkt=True)
             if pycrs:
                 self.output_crs = QgsCoordinateReferenceSystem(pycrs.to_wkt())
-                self.log_step(self.tr("CRS DETECTED"), f"From file header: {self.output_crs.authid()}", "info")
+                log_step(self, self.tr("CRS DETECTED"), f"From file header: {self.output_crs.authid()}", "info")
             else:
-                self.log_step(self.tr("CRS NOT FOUND"), self.tr("No CRS found in file header. Checking input layer loaded in QGIS"), "warning")
+                log_step(self, self.tr("CRS NOT FOUND"), self.tr("No CRS found in file header. Checking input layer loaded in QGIS"), "warning")
 
                 matched_layer = None
                 for lyr in QgsProject.instance().mapLayers().values():
@@ -92,12 +83,12 @@ class FeatureCountTask(QgsTask):
                 if matched_layer:
                     if matched_layer.crs().isValid():
                         self.output_crs = matched_layer.crs()
-                        self.log_step(self.tr("CRS ASSIGNED"), f"{self.tr('Using CRS assigned in QGIS')}: {self.output_crs.authid()}", "info")
+                        log_step(self, self.tr("CRS ASSIGNED"), f"{self.tr('Using CRS assigned in QGIS')}: {self.output_crs.authid()}", "info")
                     else:
-                        self.log_step(self.tr("INVALID CRS"), self.tr("Matched layer CRS is invalid, no CRS will be assigned"), "warning")
+                        log_step(self, self.tr("INVALID CRS"), self.tr("Matched layer CRS is invalid, no CRS will be assigned"), "warning")
 
                 else:
-                    self.log_step(self.tr("NO LAYER MATCH"), self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"), "warning")
+                    log_step(self, self.tr("NO LAYER MATCH"), self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"), "warning")
 
             self.setProgress(10)
 
@@ -115,14 +106,14 @@ class FeatureCountTask(QgsTask):
                 "bridges": [17]
             }
 
-            self.log_step("FILTERING POINTS", f"Filtering for feature types: {', '.join(self.feature_types)}", "info")
+            log_step(self, self.tr("FILTERING POINTS"), f"Filtering for feature types: {', '.join(self.feature_types)}", "info")
             for ftype in self.feature_types:
                 feature_class_codes = class_map.get(ftype)
                 if not feature_class_codes:
                     continue
                 classifications = las.classification
                 is_feature = np.isin(classifications, feature_class_codes)
-                self.log_step("POINTS FILTERED", f"{ftype.capitalize()}: {np.sum(is_feature)} points", "info")
+                log_step(self, self.tr("POINTS FILTERED"), f"{ftype.capitalize()}: {np.sum(is_feature)} points", "info")
 
                 num_points = int(np.sum(is_feature))
                 self.results[ftype]["num_points"] = num_points
@@ -134,10 +125,10 @@ class FeatureCountTask(QgsTask):
                 # Step 3: Extract coordinates for clustering
                 if self.use_z:
                     coords = np.vstack((las.x[is_feature], las.y[is_feature], las.z[is_feature])).T
-                    self.log_step("COORDINATES EXTRACTED", f"Using X, Y, Z for clustering")
+                    log_step(self, self.tr("COORDINATES EXTRACTED"), f"Using X, Y, Z for clustering")
                 else:
                     coords = np.vstack((las.x[is_feature], las.y[is_feature])).T
-                    self.log_step("COORDINATES EXTRACTED", f"Using X, Y for clustering")
+                    log_step(self, self.tr("COORDINATES EXTRACTED"), f"Using X, Y for clustering")
                 self.setProgress(30)
 
                 # Step 4: DBSCAN clustering
@@ -145,11 +136,11 @@ class FeatureCountTask(QgsTask):
                 labels = db.labels_
                 num_features = len(set(labels)) - (1 if -1 in labels else 0)
                 self.results[ftype]["num_features"] = num_features
-                self.log_step("CLUSTERING COMPLETE", f"{ftype.capitalize()}: {num_features} features detected", "info")
+                log_step(self, self.tr("CLUSTERING COMPLETE"), f"{ftype.capitalize()}: {num_features} features detected", "info")
                 self.setProgress(70)
 
                 # Step 5: Concave hulls for clusters
-                self.log_step("GENERATING HULLS", f"Generating hulls for {ftype} clusters", "info")
+                log_step(self, self.tr("GENERATING HULLS"), f"Generating hulls for {ftype} clusters", "info")
                 unique_clusters = [cid for cid in set(labels) if cid != -1]
                 total_clusters = len(unique_clusters)
 
@@ -191,13 +182,13 @@ class FeatureCountTask(QgsTask):
                     progress = 80 + (20 * idx / total_clusters)
                     self.setProgress(progress)
 
-            self.log_step(self.tr("PROCESS COMPLETE"), f"Total points processed: {las.header.point_count}, Total features detected: {sum(r['num_features'] for r in self.results.values())}", "info")
+            log_step(self, self.tr("PROCESS COMPLETE"), f"Total points processed: {las.header.point_count}, Total features detected: {sum(r['num_features'] for r in self.results.values())}", "info")
             self.total_points = int(las.header.point_count)
             self.setProgress(100)
             return True
 
         except Exception as e:
-            self.log_step(self.tr("PROCESS FAILED"), f"Error: {str(e)}", "critical")
+            log_step(self, self.tr("PROCESS FAILED"), f"Error: {str(e)}", "critical")
             self.exception = e
             return False
 
@@ -278,18 +269,18 @@ class FeatureCountTask(QgsTask):
                             gpkg_layer = QgsVectorLayer(out_path, layer_name, "ogr")
 
                             if not gpkg_layer.isValid():
-                                self.log_step("GPKG VALIDATION FAILED", f"Failed to load GPKG layer for validation: {out_path}", "critical")
+                                log_step(self, self.tr("GPKG VALIDATION FAILED"), f"Failed to load GPKG layer for validation: {out_path}", "critical")
                             else:
                                 field_names = [field.name() for field in gpkg_layer.fields()]
                                 expected_fields = ["cluster_id", "num_points", "area_m2"]
                                 missing = [f for f in expected_fields if f not in field_names]
                                 present = [f for f in expected_fields if f in field_names]
-                                self.log_step("GPKG ATTRIBUTE CHECK", f"Present: {present}, Missing: {missing}", "info")
+                                log_step(self, self.tr("GPKG ATTRIBUTE CHECK"), f"Present: {present}, Missing: {missing}", "info")
                             gpkg_layer.saveStyleToDatabaseV2(
                                 "default", "Detected building style", True, ""
                             )
                     else:
-                        self.log_step("FILE SAVE ERROR", f"{self.tr('Error saving output file')}: {errorMessage}", "critical")
+                        log_step(self, self.tr("FILE SAVE ERROR"), f"{self.tr('Error saving output file')}: {errorMessage}", "critical")
 
                 QgsProject.instance().addMapLayer(vl)
                 QMessageBox.information(
@@ -302,10 +293,10 @@ class FeatureCountTask(QgsTask):
 
         else:
             if self.exception:
-                self.log_step(self.tr("ERROR EXCEPTION"), f"{self.tr('An error occurred during feature detection')}: {self.exception}", "critical")
+                log_step(self, self.tr("ERROR EXCEPTION"), f"{self.tr('An error occurred during feature detection')}: {self.exception}", "critical")
                 QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error Detecting Features"), f"{self.tr('An error occurred')}:\n{self.exception}")
             else:
-                self.log_step(self.tr("TASK CANCELED"), self.tr('Point filtering was canceled by the user'), "info")
+                log_step(self, self.tr("TASK CANCELED"), self.tr('Point filtering was canceled by the user'), "info")
 
         if self.log_filename:
             try:
@@ -328,7 +319,7 @@ class FeatureCountTask(QgsTask):
                     else:
                         f.write(f"\nFINAL STATUS: SUCCESS\n")
 
-                self.log_step(self.tr("LOG FILE WRITTEN"), self.log_filename, "info")
+                log_step(self, self.tr("LOG FILE WRITTEN"), self.log_filename, "info")
 
             except Exception as log_error:
                 QgsMessageLog.logMessage(

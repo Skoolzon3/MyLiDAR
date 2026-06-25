@@ -160,11 +160,11 @@ class ReportGenerationDialog(QDialog):
         self.checkReturnCounts = self.add_check(self.groupClassification, "Return Counts")
 
         # === Output Format ===
+        self.checkGenerateDock = self.add_check(self.groupOutputFormat, "Dock Panel in QGIS")
         self.checkTxt = self.add_check(self.groupOutputFormat, "Plain Text (.txt)")
         self.checkMarkdown = self.add_check(self.groupOutputFormat, "Markdown (.md)")
         self.checkPdf = self.add_check(self.groupOutputFormat, "PDF (.pdf)")
         self.checkTeX = self.add_check(self.groupOutputFormat, "TeX (.tex)")
-        self.checkGenerateDock = self.add_check(self.groupOutputFormat, "Generate Dock Panel in QGIS")
 
         self.labelWarningOutputFormat = QLabel(self.tr("No output format selected"))
         self.labelWarningOutputFormat.setStyleSheet("color: #d9534f; font-style: italic;")
@@ -176,7 +176,7 @@ class ReportGenerationDialog(QDialog):
         self.checkPointFormat.setChecked(True)
         self.checkNumPoints.setChecked(True)
         self.checkBounds.setChecked(True)
-        self.checkTxt.setChecked(True)
+        self.checkGenerateDock.setChecked(True)
 
         # Default group state
         self.groupFileMetadata.setChecked(True)

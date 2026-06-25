@@ -8,7 +8,6 @@ import numpy as np
 from qgis.PyQt.QtWidgets import QMessageBox, QDialog
 from qgis.core import QgsProject, QgsRasterLayer, QgsProcessingException, QgsTask, QgsApplication, QgsMessageLog, Qgis, QgsCoordinateReferenceSystem, QgsPointCloudLayer
 import processing
-from qgis.PyQt.QtCore import QDateTime
 
 # --- Method-specific imports ---
 from osgeo import gdal, osr
@@ -17,6 +16,9 @@ from laspy.vlrs.known import WktCoordinateSystemVlr
 
 # --- Dialog imports ---
 from .dem_generation_dialog import DemGenerationDialog
+
+# --- Utility imports ---
+from ..utils import log_step
 
 # ---------------------------------
 # --- Bare Earth DEM Generation ---
@@ -53,31 +55,19 @@ class DemGenerationTask(QgsTask):
         self.log_filename = log_filename
         self.log_entries = []
 
-    def log_step(self, step_name, details="", relevancy="info"):
-        timestamp = QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss")
-        levels = {
-            "info": (Qgis.Info, self.tr("INFO")),
-            "warning": (Qgis.Warning, self.tr("WARNING")),
-            "critical": (Qgis.Critical, self.tr("CRITICAL"))
-        }
-        level = levels.get(relevancy, levels["info"])
-        entry = f"[{timestamp}] {level[1]}  {step_name}: {details}"
-        self.log_entries.append(entry)
-        QgsMessageLog.logMessage(f"{step_name}: {details}", "MyLiDAR", level[0])
-
     def run(self):
         try:
-            self.log_step(self.tr("PROCESS START"), f"Input: {os.path.basename(self.input_filename)}, Cell Size: {self.cell_size}, Triangulation: {self.use_triangulation}, Hillshade: {self.hillshade_requested}")
+            log_step(self, self.tr("PROCESS START"), f"Input: {os.path.basename(self.input_filename)}, Cell Size: {self.cell_size}, Triangulation: {self.use_triangulation}, Hillshade: {self.hillshade_requested}")
 
             # Step 1: Read input file
-            self.log_step(self.tr("READING INPUT FILE"), self.input_filename, "info")
+            log_step(self, self.tr("READING INPUT FILE"), self.input_filename, "info")
             las = laspy.read(self.input_filename, laz_backend=LazBackend.Lazrs)
             pycrs = las.header.parse_crs(prefer_wkt=True)
             if pycrs:
                 self.output_crs = QgsCoordinateReferenceSystem(pycrs.to_wkt())
-                self.log_step(self.tr("CRS DETECTED"), f"From file header: {self.output_crs.authid()}", "info")
+                log_step(self, self.tr("CRS DETECTED"), f"From file header: {self.output_crs.authid()}", "info")
             else:
-                self.log_step(self.tr("CRS NOT FOUND"), self.tr("No CRS found in file header. Checking input layer loaded in QGIS"), "warning")
+                log_step(self, self.tr("CRS NOT FOUND"), self.tr("No CRS found in file header. Checking input layer loaded in QGIS"), "warning")
 
                 matched_layer = None
                 for lyr in QgsProject.instance().mapLayers().values():
@@ -88,18 +78,18 @@ class DemGenerationTask(QgsTask):
                 if matched_layer:
                     if matched_layer.crs().isValid():
                         self.output_crs = matched_layer.crs()
-                        self.log_step(self.tr("CRS ASSIGNED"), f"{self.tr('Using CRS assigned in QGIS')}: {self.output_crs.authid()}", "info")
+                        log_step(self, self.tr("CRS ASSIGNED"), f"{self.tr('Using CRS assigned in QGIS')}: {self.output_crs.authid()}", "info")
 
                     else:
-                        self.log_step(self.tr("INVALID CRS"), self.tr("Matched layer CRS is invalid, no CRS will be assigned"), "warning")
+                        log_step(self, self.tr("INVALID CRS"), self.tr("Matched layer CRS is invalid, no CRS will be assigned"), "warning")
 
                 else:
-                    self.log_step(self.tr("NO LAYER MATCH"), self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"), "warning")
+                    log_step(self, self.tr("NO LAYER MATCH"), self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"), "warning")
 
             self.setProgress(10)
 
             # Step 2: Filter ground points
-            self.log_step(self.tr("FILTERING GROUND POINTS"), "Using classification code 2 (ground)", "info")
+            log_step(self, self.tr("FILTERING GROUND POINTS"), "Using classification code 2 (ground)", "info")
             ground_mask = (las.classification == 2)
             if not np.any(ground_mask):
                 raise ValueError(self.tr("No ground points found in the file"))
@@ -110,28 +100,28 @@ class DemGenerationTask(QgsTask):
             min_y, max_y = y.min(), y.max()
             cols = int(np.ceil((max_x - min_x) / self.cell_size))
             rows = int(np.ceil((max_y - min_y) / self.cell_size))
-            self.log_step(self.tr("GROUND POINTS FILTERED"), f"Points: {len(z)}, Extent: ({min_x}, {min_y}, {max_x}, {max_y}), Grid Size: ({cols} cols x {rows} rows)", "info")
+            log_step(self, self.tr("GROUND POINTS FILTERED"), f"Points: {len(z)}, Extent: ({min_x}, {min_y}, {max_x}, {max_y}), Grid Size: ({cols} cols x {rows} rows)", "info")
             self.setProgress(20)
 
             # Step 2.1: CRS extraction
             srs = osr.SpatialReference()
             try:
-                self.log_step(self.tr("EXTRACTING CRS"), "Attempting to read CRS from LAS file VLRs", "info")
+                log_step(self, self.tr("EXTRACTING CRS"), "Attempting to read CRS from LAS file VLRs", "info")
                 wkt_vlrs = [vlr for vlr in las.header.vlrs if isinstance(vlr, WktCoordinateSystemVlr)]
                 if wkt_vlrs:
                     srs.ImportFromWkt(wkt_vlrs[0].wkt)
-                    self.log_step(self.tr("CRS IMPORTED"), f"Successfully imported CRS from VLR: {srs.GetAttrValue('AUTHORITY', 1)}", "info")
+                    log_step(self, self.tr("CRS IMPORTED"), f"Successfully imported CRS from VLR: {srs.GetAttrValue('AUTHORITY', 1)}", "info")
                 else:
                     srs.ImportFromEPSG(4326)
-                    self.log_step(self.tr("CRS DEFAULTED"), "No WKT VLR found, defaulting to EPSG:4326", "warning")
+                    log_step(self, self.tr("CRS DEFAULTED"), "No WKT VLR found, defaulting to EPSG:4326", "warning")
             except Exception:
                 srs.ImportFromEPSG(4326)
-                self.log_step(self.tr("CRS ERROR"), "Error reading CRS from VLRs, defaulting to EPSG:4326", "warning")
+                log_step(self, self.tr("CRS ERROR"), "Error reading CRS from VLRs, defaulting to EPSG:4326", "warning")
             self.setProgress(30)
 
             # Step 3: DEM Generation
             if self.use_triangulation:
-                self.log_step(self.tr("DEM GENERATION"), "Using triangulation-based interpolation (TIN)", "info")
+                log_step(self, self.tr("DEM GENERATION"), "Using triangulation-based interpolation (TIN)", "info")
                 # Step 3.1: Triangulation-based interpolation (TIN)
                 grid_x, grid_y = np.meshgrid(
                     np.linspace(min_x, max_x, cols),
@@ -155,7 +145,7 @@ class DemGenerationTask(QgsTask):
                 self.setProgress(80)
 
             else:
-                self.log_step(self.tr("DEM GENERATION"), "Using cell-based minimum Z value (bare earth assumption)", "info")
+                log_step(self, self.tr("DEM GENERATION"), "Using cell-based minimum Z value (bare earth assumption)", "info")
                 # Step 3.2: Cell-based minimum Z value (bare earth assumption)
                 dem = np.full((rows, cols), np.nan, dtype=np.float32)
 
@@ -200,7 +190,7 @@ class DemGenerationTask(QgsTask):
 
             # Step 5: Generate hillshade (optional)
             if self.hillshade_requested:
-                self.log_step(self.tr("HILLSHADE GENERATION"), "Generating hillshade from DEM", "info")
+                log_step(self, self.tr("HILLSHADE GENERATION"), "Generating hillshade from DEM", "info")
                 suffix = "_TIN" if self.use_triangulation else "_cell"
                 self.hillshade_path = (
                     self.hillshade_output_path
@@ -234,7 +224,7 @@ class DemGenerationTask(QgsTask):
                 if dem_layer.isValid():
                     if self.output_crs and self.output_crs.isValid():
                         dem_layer.setCrs(self.output_crs)
-                        self.log_step(self.tr("CRS ASSIGNED TO DEM"), f"{self.tr('DEM CRS set to')}: {self.output_crs.authid()}", "info")
+                        log_step(self, self.tr("CRS ASSIGNED TO DEM"), f"{self.tr('DEM CRS set to')}: {self.output_crs.authid()}", "info")
                     QgsProject.instance().addMapLayer(dem_layer)
 
                 if self.hillshade_path:
@@ -244,7 +234,7 @@ class DemGenerationTask(QgsTask):
                     if hillshade_layer.isValid():
                         if self.output_crs and self.output_crs.isValid():
                             hillshade_layer.setCrs(self.output_crs)
-                            self.log_step(self.tr("CRS ASSIGNED TO HILLSHADE"), f"{self.tr('Hillshade CRS set to')}: {self.output_crs.authid()}", "info")
+                            log_step(self, self.tr("CRS ASSIGNED TO HILLSHADE"), f"{self.tr('Hillshade CRS set to')}: {self.output_crs.authid()}", "info")
                         QgsProject.instance().addMapLayer(hillshade_layer)
 
                 msg = f"{self.tr('DEM successfully generated from ground points. Output saved at')}:{self.output_path}"
@@ -259,10 +249,10 @@ class DemGenerationTask(QgsTask):
 
             else:
                 if self.exception:
-                    self.log_step(self.tr("ERROR EXCEPTION"), f"{self.tr('An error occurred during Bare Earth DEM Generation')}: {self.exception}", "critical")
+                    log_step(self, self.tr("ERROR EXCEPTION"), f"{self.tr('An error occurred during Bare Earth DEM Generation')}: {self.exception}", "critical")
                     QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error generating DEM"), f"{self.tr('An error occurred')}:\n{self.exception}")
                 else:
-                    self.log_step(self.tr("TASK CANCELED"), self.tr('Bare Earth DEM Generation was canceled by the user'), "info")
+                    log_step(self, self.tr("TASK CANCELED"), self.tr('Bare Earth DEM Generation was canceled by the user'), "info")
 
             if self.log_filename:
                 try:
@@ -287,7 +277,7 @@ class DemGenerationTask(QgsTask):
                         else:
                             f.write(f"\nFINAL STATUS: SUCCESS\n")
 
-                    self.log_step(self.tr("LOG FILE WRITTEN"), self.log_filename, "info")
+                    log_step(self, self.tr("LOG FILE WRITTEN"), self.log_filename, "info")
 
                 except Exception as log_error:
                     QgsMessageLog.logMessage(

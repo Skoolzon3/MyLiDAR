@@ -7,13 +7,15 @@ import numpy as np
 # --- QGIS and PyQt imports ---
 from qgis.PyQt.QtWidgets import QMessageBox, QDialog
 from qgis.core import QgsPointCloudLayer, QgsProject, QgsTask, QgsApplication, Qgis, QgsMessageLog, QgsCoordinateReferenceSystem
-from qgis.PyQt.QtCore import QDateTime
 
 # --- Method-specific imports ---
 from scipy.spatial import cKDTree
 
 # --- Dialog imports ---
 from .vegetation_classification_dialog import VegetationClassificationDialog
+
+# --- Utils imports ---
+from ..utils import log_step
 
 # ---------------------------------
 # --- Vegetation Classification ---
@@ -45,31 +47,19 @@ class VegetationClassificationTask(QgsTask):
         self.log_filename = log_filename
         self.log_entries = []
 
-    def log_step(self, step_name, details="", relevancy="info"):
-        timestamp = QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss")
-        levels = {
-            "info": (Qgis.Info, self.tr("INFO")),
-            "warning": (Qgis.Warning, self.tr("WARNING")),
-            "critical": (Qgis.Critical, self.tr("CRITICAL"))
-        }
-        level = levels.get(relevancy, levels["info"])
-        entry = f"[{timestamp}] {level[1]}  {step_name}: {details}"
-        self.log_entries.append(entry)
-        QgsMessageLog.logMessage(f"{step_name}: {details}", "MyLiDAR", level[0])
-
     def run(self):
         try:
-            self.log_step(self.tr("PROCESS START"), f"Input: {os.path.basename(self.input_filename)}, Low Thresh: {self.low_thresh}, High Thresh: {self.high_thresh}, Grass Enabled: {self.grass_enabled}"),
+            log_step(self, self.tr("PROCESS START"), f"Input: {os.path.basename(self.input_filename)}, Low Thresh: {self.low_thresh}, High Thresh: {self.high_thresh}, Grass Enabled: {self.grass_enabled}"),
 
             # Step 1: Read input file
-            self.log_step(self.tr("READING INPUT FILE"), self.input_filename, "info")
+            log_step(self, self.tr("READING INPUT FILE"), self.input_filename, "info")
             las = laspy.read(self.input_filename, laz_backend=LazBackend.Lazrs)
             pycrs = las.header.parse_crs(prefer_wkt=True)
             if pycrs:
                 self.output_crs = QgsCoordinateReferenceSystem(pycrs.to_wkt())
-                self.log_step(self.tr("CRS DETECTED"), f"From file header: {self.output_crs.authid()}", "info")
+                log_step(self, self.tr("CRS DETECTED"), f"From file header: {self.output_crs.authid()}", "info")
             else:
-                self.log_step(self.tr("CRS NOT FOUND"), self.tr("No CRS found in file header. Checking input layer loaded in QGIS"), "warning")
+                log_step(self, self.tr("CRS NOT FOUND"), self.tr("No CRS found in file header. Checking input layer loaded in QGIS"), "warning")
 
                 matched_layer = None
                 for lyr in QgsProject.instance().mapLayers().values():
@@ -80,16 +70,16 @@ class VegetationClassificationTask(QgsTask):
                 if matched_layer:
                     if matched_layer.crs().isValid():
                         self.output_crs = matched_layer.crs()
-                        self.log_step(self.tr("CRS ASSIGNED"), f"{self.tr('Using CRS assigned in QGIS')}: {self.output_crs.authid()}", "info")
+                        log_step(self, self.tr("CRS ASSIGNED"), f"{self.tr('Using CRS assigned in QGIS')}: {self.output_crs.authid()}", "info")
 
                     else:
-                        self.log_step(self.tr("INVALID CRS"), self.tr("Matched layer CRS is invalid, no CRS will be assigned"), "warning")
+                        log_step(self, self.tr("INVALID CRS"), self.tr("Matched layer CRS is invalid, no CRS will be assigned"), "warning")
 
                 else:
-                    self.log_step(self.tr("NO LAYER MATCH"), self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"), "warning")
+                    log_step(self, self.tr("NO LAYER MATCH"), self.tr("Input file not found among loaded layers. Cannot import CRS from QGIS"), "warning")
 
             # Step 2: Data preparation
-            self.log_step("DATA PREPARATION", "Filtering ground and high vegetation points, and optionally classifying grass based on color", "info")
+            log_step(self, self.tr("DATA PREPARATION"), self.tr("Filtering ground and high vegetation points, and optionally classifying grass based on color"), "info")
             ground_class = 2
             low_class = 3
             medium_class = 4
@@ -100,7 +90,7 @@ class VegetationClassificationTask(QgsTask):
             # Optional grass classification from ground color
             num_grass = 0
             if self.grass_enabled:
-                self.log_step("GRASS CLASSIFICATION", "Classifying grass points based on RGB values of ground points", "info")
+                log_step(self, self.tr("GRASS CLASSIFICATION"), self.tr("Classifying grass points based on RGB values of ground points"), "info")
                 dims = list(las.point_format.dimension_names)
                 if all(d in dims for d in ("red", "green", "blue")):
                     r16 = las.red.astype(np.float32)
@@ -135,24 +125,24 @@ class VegetationClassificationTask(QgsTask):
             ground_idx = np.where(classifications == ground_class)[0]
             if len(ground_idx) == 0:
                 gp_error_msg = self.tr("No ground points (class 2) found in the file. Cannot classify vegetation without ground reference.")
-                self.log_step("GROUND POINTS MISSING", gp_error_msg, "critical")
+                log_step(self, self.tr("GROUND POINTS MISSING"), gp_error_msg, "critical")
                 raise ValueError(gp_error_msg)
 
             ground_xy = np.vstack((las.x[ground_idx], las.y[ground_idx])).T
             ground_z = las.z[ground_idx]
-            self.log_step(self.tr("GROUND POINTS FILTERED"), f"{len(ground_idx)} ground points found", "info")
+            log_step(self, self.tr("GROUND POINTS FILTERED"), f"{len(ground_idx)} ground points found", "info")
             self.setProgress(30)
 
             # Step 4: Filter points originally marked as high vegetation
             high_veg_idx = np.where(classifications == high_class)[0]
             if len(high_veg_idx) == 0:
                 no_hv_error_msg = self.tr("No high vegetation points (class 5) found in the file. Cannot reclassify vegetation.")
-                self.log_step("HIGH VEGETATION MISSING", no_hv_error_msg, "critical")
+                log_step(self, self.tr("HIGH VEGETATION MISSING"), no_hv_error_msg, "critical")
                 raise ValueError(no_hv_error_msg)
 
             veg_xy = np.vstack((las.x[high_veg_idx], las.y[high_veg_idx])).T
             veg_z = las.z[high_veg_idx]
-            self.log_step("HIGH VEGETATION FILTERED", f"{len(high_veg_idx)} high vegetation points found for reclassification", "info")
+            log_step(self, self.tr("HIGH VEGETATION FILTERED"), f"{len(high_veg_idx)} high vegetation points found for reclassification", "info")
             self.setProgress(40)
 
             # Step 5: Interpolate local ground height using nearest neighbor
@@ -174,7 +164,7 @@ class VegetationClassificationTask(QgsTask):
                 self.setProgress(progress)
 
             veg_height = veg_z - local_ground_z
-            self.log_step("GROUND HEIGHT INTERPOLATED", "Local ground height interpolated for vegetation points", "info")
+            log_step(self, self.tr("GROUND HEIGHT INTERPOLATED"), self.tr("Local ground height interpolated for vegetation points"), "info")
 
             # Step 6: Reclassify vegetation
             low_mask = veg_height < self.low_thresh
@@ -184,13 +174,13 @@ class VegetationClassificationTask(QgsTask):
             las.classification[high_veg_idx[low_mask]] = low_class
             las.classification[high_veg_idx[medium_mask]] = medium_class
             las.classification[high_veg_idx[high_mask]] = high_class
-            self.log_step("VEGETATION RECLASSIFIED", f"Low: {low_mask.sum()}, Medium: {medium_mask.sum()}, High: {high_mask.sum()}", "info")
+            log_step(self, self.tr("VEGETATION RECLASSIFIED"), f"Low: {low_mask.sum()}, Medium: {medium_mask.sum()}, High: {high_mask.sum()}", "info")
             self.setProgress(90)
 
             # Step 7: Save results
-            self.log_step(self.tr("WRITING OUTPUT FILE"), self.output_filename, "info")
+            log_step(self, self.tr("WRITING OUTPUT FILE"), self.output_filename, "info")
             las.write(self.output_filename)
-            self.log_step("OUTPUT FILE WRITTEN", f"File saved to {self.output_filename}", "info")
+            log_step(self, self.tr("OUTPUT FILE WRITTEN"), f"File saved to {self.output_filename}", "info")
 
             self.stats = {
                 "num_high_orig": len(high_veg_idx),
@@ -201,7 +191,7 @@ class VegetationClassificationTask(QgsTask):
                 "grass_enabled": self.grass_enabled,
             }
             self.setProgress(100)
-            self.log_step(self.tr("PROCESS COMPLETE"), f"Vegetation classification completed successfully with {self.stats['num_low']} low, {self.stats['num_medium']} medium, and {self.stats['num_high']} high vegetation points", "info")
+            log_step(self, self.tr("PROCESS COMPLETE"), f"Vegetation classification completed successfully with {self.stats['num_low']} low, {self.stats['num_medium']} medium, and {self.stats['num_high']} high vegetation points", "info")
             return True
 
         except Exception as e:
@@ -216,13 +206,13 @@ class VegetationClassificationTask(QgsTask):
                 if pc_layer.isValid():
                     if self.output_crs and self.output_crs.isValid():
                         pc_layer.setCrs(self.output_crs)
-                        self.log_step(self.tr("LAYER CRS APPLIED"), f"{self.tr('Output layer CRS applied')}: {self.output_crs.authid()}", "info")
+                        log_step(self, self.tr("LAYER CRS APPLIED"), f"{self.tr('Output layer CRS applied')}: {self.output_crs.authid()}", "info")
                     else:
-                        self.log_step(self.tr("NO CRS FOR LAYER"), self.tr("No valid CRS available to assign to the output layer"), "warning")
+                        log_step(self, self.tr("NO CRS FOR LAYER"), self.tr("No valid CRS available to assign to the output layer"), "warning")
                     QgsProject.instance().addMapLayer(pc_layer)
-                    self.log_step(self.tr("LAYER ADDED TO PROJECT"), layer_name, "info")
+                    log_step(self, self.tr("LAYER ADDED TO PROJECT"), layer_name, "info")
                 else:
-                    self.log_step(self.tr("LAYER LOAD FAILED"), self.tr("The LiDAR file was saved but could not be loaded into QGIS"), "warning")
+                    log_step(self, self.tr("LAYER LOAD FAILED"), self.tr("The LiDAR file was saved but could not be loaded into QGIS"), "warning")
 
                 s = self.stats
                 grass_line = ""
@@ -241,10 +231,10 @@ class VegetationClassificationTask(QgsTask):
                 )
             else:
                 if self.exception:
-                    self.log_step(self.tr("ERROR EXCEPTION"), f"{self.tr('An error occurred during vegetation classification')}: {self.exception}", "critical")
+                    log_step(self, self.tr("ERROR EXCEPTION"), f"{self.tr('An error occurred during vegetation classification')}: {self.exception}", "critical")
                     QMessageBox.critical(self.parent.iface.mainWindow(), self.tr("Error During Classification"), f"{self.tr('An error occurred')}:\n{self.exception}")
                 else:
-                    self.log_step(self.tr("TASK CANCELED"), self.tr('Vegetation classification was canceled by the user'), "info")
+                    log_step(self, self.tr("TASK CANCELED"), self.tr('Vegetation classification was canceled by the user'), "info")
 
             if self.log_filename:
                 try:
@@ -270,7 +260,7 @@ class VegetationClassificationTask(QgsTask):
                         else:
                             f.write(f"\nFINAL STATUS: SUCCESS\n")
 
-                    self.log_step(self.tr("LOG FILE WRITTEN"), self.log_filename, "info")
+                    log_step(self, self.tr("LOG FILE WRITTEN"), self.log_filename, "info")
 
                 except Exception as log_error:
                     QgsMessageLog.logMessage(
