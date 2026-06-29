@@ -334,14 +334,11 @@ class FeatureCountTask(QgsTask):
 # --- Main Feature Count Method ---
 # ----------------------------------
 
-def count_features(self):
-    # Step 1: Select input/output and parameters
-    dialog = FeatureCountDialog(self.iface.mainWindow(), tr=self.tr)
-    if not dialog.exec():
-        return
+def _count_features_accepted(self):
+    dialog = self.dialog
 
+    # Step 1: Select input/output and parameters
     input_filename, output_map  = dialog.get_input_output()
-    log_filename = dialog.get_log_path()
     if not input_filename:
         QMessageBox.warning(
             self.iface.mainWindow(),
@@ -349,6 +346,8 @@ def count_features(self):
             self.tr("Please select a LiDAR layer or file.")
         )
         return
+    
+    log_filename = dialog.get_log_path()
 
     eps, min_samples, use_z, hull_target_percent, hull_allow_holes = dialog.get_params()
     feature_types = dialog.get_feature_types()
@@ -374,3 +373,10 @@ def count_features(self):
         level=Qgis.Info,
         duration=-1
     )
+
+def count_features(self):
+    self.dialog = FeatureCountDialog(self.iface.mainWindow(), tr=self.tr)
+    self.dialog.accepted.connect(lambda: _count_features_accepted(self))
+    self.dialog.show()
+    self.dialog.raise_()
+    self.dialog.activateWindow()

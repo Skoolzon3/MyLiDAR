@@ -5,7 +5,7 @@ from laspy import LazBackend
 import numpy as np
 
 # --- QGIS and PyQt imports ---
-from qgis.PyQt.QtWidgets import QMessageBox, QDialog
+from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import QgsApplication, QgsPointCloudLayer, QgsProject, QgsTask, Qgis, QgsMessageLog, QgsCoordinateReferenceSystem
 
 # --- Method-specific imports ---
@@ -218,12 +218,10 @@ class RemoveOutliersTask(QgsTask):
 # --- Main Outlier Removal Method ---
 # -----------------------------------
 
-def remove_outliers(self):
-    # Step 1: Select input file path and parameters via dialog
-    dialog = OutlierRemovalDialog(self.iface.mainWindow(), translator=self.tr)
-    if dialog.exec() != QDialog.DialogCode.Accepted:
-        return
+def _remove_outliers_accepted(self):
+    dialog = self.dialog
 
+    # Step 1: Select input/output file path and parameters via dialog
     input_filename, output_filename = dialog.get_input_output()
     if not input_filename:
         QMessageBox.warning(
@@ -247,7 +245,6 @@ def remove_outliers(self):
     # Step 2: Create and run the background task
     task_description = f"{self.tr('Removing outliers from')} {os.path.basename(input_filename)}"
     task = RemoveOutliersTask(task_description, input_filename, output_filename, radius, min_neighbors, self, self.tr, log_filename)
-
     self.running_tasks.append(task)
     QgsApplication.taskManager().addTask(task)
 
@@ -257,3 +254,10 @@ def remove_outliers(self):
         level=Qgis.Info,
         duration=-1
     )
+
+def remove_outliers(self):
+    self.dialog = OutlierRemovalDialog(self.iface.mainWindow(), translator=self.tr)
+    self.dialog.accepted.connect(lambda: _remove_outliers_accepted(self))
+    self.dialog.show()
+    self.dialog.raise_()
+    self.dialog.activateWindow()

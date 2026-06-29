@@ -5,7 +5,7 @@ from laspy import LazBackend
 import numpy as np
 
 # --- QGIS and PyQt imports ---
-from qgis.PyQt.QtWidgets import QMessageBox, QDialog
+from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import QgsApplication, QgsPointCloudLayer, QgsProject, QgsTask, Qgis, QgsMessageLog, QgsCoordinateReferenceSystem
 
 # --- Dialog imports ---
@@ -179,16 +179,11 @@ class FilterPointsTask(QgsTask):
 # --- Main Point Filtering Method ---
 # -----------------------------------
 
-def filter_points(self):
+def _filter_points_accepted(self):
+    dialog = self.dialog
+
     # Step 1: Select input/output file path and parameters via dialog
-    dialog = PointFilteringDialog(self.iface.mainWindow(), translator=self.tr)
-    if dialog.exec() != QDialog.DialogCode.Accepted:
-        return
-
     input_filename, output_filename = dialog.get_input_output()
-    selected_classes = dialog.get_filter_settings()
-    log_filename = dialog.get_log_path()
-
     if not input_filename:
         QMessageBox.warning(
             self.iface.mainWindow(),
@@ -205,6 +200,7 @@ def filter_points(self):
         )
         return
 
+    selected_classes = dialog.get_filter_settings()
     if not selected_classes:
         QMessageBox.warning(
             self.iface.mainWindow(),
@@ -212,8 +208,10 @@ def filter_points(self):
             self.tr("Please choose at least one classification code.")
         )
         return
+    
+    log_filename = dialog.get_log_path()
 
-    # Step 2: Create background task
+    # Step 2: Create and run the background task
     desc = f"{self.tr('Filtering points from')} {os.path.basename(input_filename)}"
     task = FilterPointsTask(desc, input_filename, output_filename, selected_classes, self, self.tr, log_filename)
     self.running_tasks.append(task)
@@ -225,3 +223,10 @@ def filter_points(self):
         level=Qgis.Info,
         duration=-1
     )
+
+def filter_points(self):
+    self.dialog = PointFilteringDialog(self.iface.mainWindow(), translator=self.tr)
+    self.dialog.accepted.connect(lambda: _filter_points_accepted(self))
+    self.dialog.show()
+    self.dialog.raise_()
+    self.dialog.activateWindow()

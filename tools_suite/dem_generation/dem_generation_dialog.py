@@ -14,9 +14,12 @@ from ..utils import select_log_file, default_suffix_path
 # -----------------------------------
 
 class DemGenerationDialog(QDialog):
-    def __init__(self, parent=None, translator=lambda s: s):
+    def __init__(self, parent=None, tr=lambda s: s):
         super().__init__(parent)
-        self.tr = translator
+        self.setModal(False)
+        self.setWindowModality(Qt.WindowModality.NonModal)
+        
+        self.tr = tr
         self.selected_input = None
         self.selected_output = None
         self.is_layer = False

@@ -14,10 +14,11 @@ from ..utils import select_log_file, default_suffix_path
 # ----------------------------------------------
 
 class VegetationClassificationDialog(QDialog):
-    """Dialog window for vegetation classification settings."""
-
     def __init__(self, parent=None, translator=lambda s: s):
         super().__init__(parent)
+        self.setModal(False)
+        self.setWindowModality(Qt.WindowModality.NonModal)
+
         self.tr = translator
         self.selected_input = None
         self.selected_output = None

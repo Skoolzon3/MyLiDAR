@@ -8,7 +8,7 @@ import zipfile
 from datetime import timedelta
 
 # --- QGIS and PyQt imports ---
-from qgis.PyQt.QtWidgets import QMessageBox, QDialog
+from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import QgsApplication, QgsTask, Qgis, QgsMessageLog, QgsCoordinateReferenceSystem, QgsProject, QgsPointCloudLayer
 from qgis.PyQt.QtCore import Qt
 
@@ -353,15 +353,11 @@ class ReportGenerationTask(QgsTask):
 # --- Main Report Generation Method ---
 # -------------------------------------
 
-def generate_report(self):
+def _generate_report_accepted(self):
+    dialog = self.dialog
 
     # Step 1: Select input/output file path
-    dialog = ReportGenerationDialog(self.iface.mainWindow(), tr=self.tr)
-    if dialog.exec() != QDialog.DialogCode.Accepted:
-        return
-
     input_path, output_path = dialog.get_input_output()
-    log_filename = dialog.get_log_path()
     if not input_path:
         QMessageBox.warning(
             self.iface.mainWindow(),
@@ -369,6 +365,8 @@ def generate_report(self):
             self.tr("Please select a valid LiDAR file or layer.")
         )
         return
+    
+    log_filename = dialog.get_log_path()
 
     # Step 2: Retrieve all selected formats (list like ['txt', 'md', 'pdf', 'tex'])
     selected_formats = dialog.selected_formats()
@@ -505,3 +503,10 @@ def generate_report(self):
             level=Qgis.Info,
             duration=-1
         )
+
+def generate_report(self):
+    self.dialog = ReportGenerationDialog(self.iface.mainWindow(), tr=self.tr)
+    self.dialog.accepted.connect(lambda: _generate_report_accepted(self))
+    self.dialog.show()
+    self.dialog.raise_()
+    self.dialog.activateWindow()

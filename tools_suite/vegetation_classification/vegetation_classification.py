@@ -5,7 +5,7 @@ from laspy import LazBackend
 import numpy as np
 
 # --- QGIS and PyQt imports ---
-from qgis.PyQt.QtWidgets import QMessageBox, QDialog
+from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import QgsPointCloudLayer, QgsProject, QgsTask, QgsApplication, Qgis, QgsMessageLog, QgsCoordinateReferenceSystem
 
 # --- Method-specific imports ---
@@ -276,14 +276,11 @@ class VegetationClassificationTask(QgsTask):
 # --- Main Vegetation Classification Method ---
 # ---------------------------------------------
 
-def classify_vegetation(self):
-    # Step 1: Select input/output file path and parameters via dialog
-    dialog = VegetationClassificationDialog(self.iface.mainWindow(), translator=self.tr)
-    if dialog.exec() != QDialog.DialogCode.Accepted:
-        return
+def _classify_vegetation_accepted(self):
+    dialog = self.dialog
 
+    # Step 1: Select input/output file path and parameters via dialog
     input_filename, output_filename = dialog.get_input_output()
-    log_filename = dialog.get_log_path()
     if not input_filename:
         QMessageBox.warning(
             self.iface.mainWindow(),
@@ -299,6 +296,8 @@ def classify_vegetation(self):
             self.tr("Please specify an output file path.")
         )
         return
+    
+    log_filename = dialog.get_log_path()
 
     # Step 2: Get thresholds
     low_thresh, high_thresh, grass_enabled = dialog.get_values()
@@ -316,3 +315,10 @@ def classify_vegetation(self):
         level=Qgis.Info,
         duration=-1
     )
+
+def classify_vegetation(self):
+    self.dialog = VegetationClassificationDialog(self.iface.mainWindow(), translator=self.tr)
+    self.dialog.accepted.connect(lambda: _classify_vegetation_accepted(self))
+    self.dialog.show()
+    self.dialog.raise_()
+    self.dialog.activateWindow()

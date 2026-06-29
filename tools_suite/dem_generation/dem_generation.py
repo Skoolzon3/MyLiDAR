@@ -5,7 +5,7 @@ from laspy import LazBackend
 import numpy as np
 
 # --- QGIS and PyQt imports ---
-from qgis.PyQt.QtWidgets import QMessageBox, QDialog
+from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import QgsProject, QgsRasterLayer, QgsProcessingException, QgsTask, QgsApplication, QgsMessageLog, Qgis, QgsCoordinateReferenceSystem, QgsPointCloudLayer
 import processing
 
@@ -293,14 +293,11 @@ class DemGenerationTask(QgsTask):
 # --- Bare Earth DEM Generation ---
 # ---------------------------------
 
-def generate_bare_earth_dem(self):
-    dialog = DemGenerationDialog(self.iface.mainWindow(), translator=self.tr)
-    if dialog.exec() != QDialog.DialogCode.Accepted:
-        return
+def _generate_bare_earth_dem_accepted(self):
+    dialog = self.dialog
 
+    # Step 1: Select input/output and parameters
     input_path, output_path = dialog.get_input_output()
-    cell_size, use_triangulation, hillshade_requested, hillshade_path, z_factor, azimuth, vertical_angle = dialog.get_values()
-    log_filename = dialog.get_log_path()
 
     if not input_path:
         QMessageBox.warning(
@@ -317,6 +314,9 @@ def generate_bare_earth_dem(self):
             self.tr("Please specify an output DEM file path.")
         )
         return
+    
+    cell_size, use_triangulation, hillshade_requested, hillshade_path, z_factor, azimuth, vertical_angle = dialog.get_values()
+    log_filename = dialog.get_log_path()
 
     # Step 2: Create and run the background task
     task_desc = f"{self.tr('Generating DEM from')} {os.path.basename(input_path)}"
@@ -331,3 +331,10 @@ def generate_bare_earth_dem(self):
         level=Qgis.Info,
         duration=-1
     )
+
+def generate_bare_earth_dem(self):
+    self.dialog = DemGenerationDialog(self.iface.mainWindow(), tr=self.tr)
+    self.dialog.accepted.connect(lambda: _generate_bare_earth_dem_accepted(self))
+    self.dialog.show()
+    self.dialog.raise_()
+    self.dialog.activateWindow()

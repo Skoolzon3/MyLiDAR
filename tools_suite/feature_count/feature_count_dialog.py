@@ -16,6 +16,8 @@ from ..utils import select_log_file
 class FeatureCountDialog(QDialog):
     def __init__(self, parent=None, tr=lambda s: s):
         super().__init__(parent)
+        self.setModal(False)
+        self.setWindowModality(Qt.WindowModality.NonModal)
 
         self.tr = tr
         self.selected_input = None

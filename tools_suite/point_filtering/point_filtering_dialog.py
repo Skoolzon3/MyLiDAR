@@ -21,6 +21,9 @@ class PointFilteringDialog(QDialog):
 
     def __init__(self, parent=None, translator=None):
         super().__init__(parent)
+        self.setModal(False)
+        self.setWindowModality(Qt.WindowModality.NonModal)
+
         self.tr = translator if translator else (lambda s: s)
         self.selected_input = None
         self.selected_output = None
