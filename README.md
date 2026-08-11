@@ -78,7 +78,7 @@ No prior dependencies need to be installed. The necessary dependencies are insta
 We recommend using the latest stable version of QGIS to take full advantage of its functionality. Currently compatible with versions later than QGIS 3.18 and earlier than QGIS 4.0.
 
 ### Acknowledgements
-Plugin developed in collaboration with the Media Engineering Group (GIM) of the Polytechnic School of Cáceres.
+Plugin developed in collaboration with the Media Engineering Group (GIM) of the Cáceres' School of Technology.
 
 ---
 
