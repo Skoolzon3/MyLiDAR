@@ -78,7 +78,7 @@ No prior dependencies need to be installed. The necessary dependencies are insta
     ```
 
 ### Acknowledgements
-Plugin developed in collaboration with the Media Engineering Group (GIM) of the Polytechnic School of Cáceres.
+Plugin developed in collaboration with the Media Engineering Group (GIM) of the Cáceres' School of Technology.
 
 ---
 
